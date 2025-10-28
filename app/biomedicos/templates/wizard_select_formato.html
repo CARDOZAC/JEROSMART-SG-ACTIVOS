@@ -1,0 +1,225 @@
+
+<!-- wizard_select_formato.html -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Actividad - Módulo Biomédico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .wizard-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .back-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 30px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .option-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+        }
+
+        .option-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .option-card h3 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .option-card p {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .wizard-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .info-box p {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-container">
+            <button class="back-button" onclick="window.location.href='/biomedicos'">← Volver al Dashboard</button>
+            
+            <h2>✨ Iniciar Nueva Actividad</h2>
+            <p class="subtitle">Seleccione el tipo de actividad que desea realizar</p>
+
+            <div class="info-box">
+                <p><strong>📌 Instrucción:</strong> Este asistente le guiará paso a paso en la creación de hojas de vida o reportes de mantenimiento preventivo, cumpliendo con la normativa técnica colombiana (Decreto 4725 de 2005, Resolución 2003 de 2014 - INVIMA).</p>
+            </div>
+
+            <div class="options-grid">
+                <div class="option-card" id="option-hoja-vida" onclick="selectOption('hoja-vida')">
+                    <div class="option-icon">📋</div>
+                    <h3>Nueva Hoja de Vida</h3>
+                    <p>Registrar un nuevo equipo biomédico con toda su documentación técnica, especificaciones y adjuntos requeridos</p>
+                </div>
+
+                <div class="option-card" id="option-mantenimiento" onclick="selectOption('mantenimiento')">
+                    <div class="option-icon">🔧</div>
+                    <h3>Mantenimiento Preventivo</h3>
+                    <p>Generar reporte de mantenimiento preventivo para un equipo existente con formulario multiparamétrico</p>
+                </div>
+            </div>
+
+            <div class="wizard-actions">
+                <button class="btn btn-primary" id="btnContinuar" disabled onclick="continuar()">Continuar →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedOption = null;
+
+        function selectOption(option) {
+            // Remover selección anterior
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Seleccionar nueva opción
+            document.getElementById('option-' + option).classList.add('selected');
+            selectedOption = option;
+
+            // Habilitar botón continuar
+            document.getElementById('btnContinuar').disabled = false;
+        }
+
+        function continuar() {
+            if (!selectedOption) {
+                alert('Por favor seleccione una opción');
+                return;
+            }
+
+            if (selectedOption === 'hoja-vida') {
+                window.location.href = '/biomedicos/wizard/hoja-vida';
+            } else if (selectedOption === 'mantenimiento') {
+                window.location.href = '/biomedicos/wizard/mantenimiento';
+            }
+        }
+    </script>
+</body>
+</html>
+

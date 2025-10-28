@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Activos Biomédicos{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Estilos del Hero Section (Banner superior) */
+    .hero-section {
+        padding: 2rem 1.5rem;
+        background-color: #ffffff;
+        border-radius: .75rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        border: 1px solid #e9ecef;
+        text-align: center;
+        margin-bottom: 2.5rem;
+        animation: fadeIn 1s ease-in-out;
+    }
+    .hero-title { 
+        font-weight: 700; 
+        color: #4B0082; /* Un morado oscuro más elegante */
+    }
+    .hero-subtitle { 
+        color: #495057; 
+        min-height: 1.5rem;
+        font-style: italic;
+    }
+    .section-title { 
+        font-weight: 600; 
+        color: #4B0082; 
+        padding-bottom: 0.5rem; 
+        border-bottom: 2px solid #E6E6FA; /* Lavanda claro */
+    }
+    
+    /* --- Estilos para Widgets de Estadísticas --- */
+    .stat-card {
+        background-color: #ffffff;
+        padding: 1.5rem;
+        border-radius: .75rem;
+        display: flex;
+        align-items: center;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(75, 0, 130, 0.1);
+    }
+    .stat-card .stat-icon {
+        font-size: 2.5rem;
+        padding: 1rem;
+        border-radius: 50%;
+        color: #4B0082;
+        background-color: #E6E6FA;
+        margin-right: 1rem;
+    }
+    .stat-card .stat-info .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #4B0082;
+        line-height: 1;
+    }
+    .stat-card .stat-info .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    /* --- Estilos para Tarjetas de Menú --- */
+    .menu-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1.5rem;
+        height: 100%;
+        text-decoration: none;
+        background-color: #ffffff;
+        border-radius: .75rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        border: 1px solid #e9ecef;
+        color: #212529;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideInUp 0.5s ease-out forwards;
+    }
+    .menu-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(75, 0, 130, 0.15);
+    }
+    
+    .menu-card .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #4B0082;
+        line-height: 1;
+        transition: transform 0.3s ease;
+    }
+    .menu-card:hover .card-icon {
+        transform: scale(1.1);
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div id="biomedical-root"></div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/babel" src="{{ url_for('static', filename='js/gestion_biomedicos.jsx') }}"></script>
+{% endblock %}

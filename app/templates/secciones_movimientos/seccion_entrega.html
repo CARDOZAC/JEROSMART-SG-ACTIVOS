@@ -1,0 +1,93 @@
+<div id="seccion-entrega" class="details-form">
+  <h4 class="mb-3">Detalles del Acta de Entrega</h4>
+
+  <div class="row g-3">
+    <div class="col-md-8 position-relative">
+      <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+      <input type="text" id="proveedor-search" class="form-control" placeholder="Buscar por Razón Social o NIT...">
+      <div id="proveedor-search-results" class="list-group search-results mt-1"></div>
+      <input type="hidden" name="proveedor_id">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Factura N°</label>
+      <input type="text" name="entrega_factura" class="form-control">
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Orden de Compra / Contrato N°</label>
+      <input type="text" name="entrega_contrato_nro" class="form-control">
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Fecha de Contrato</label>
+      <input type="date" name="entrega_fecha_contrato" class="form-control">
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Objeto del Contrato</label>
+      <textarea name="entrega_objeto" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-12 mt-4">
+      <h5 class="fs-6 fw-bold">Tipo de Elemento Entregado</h5>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipos biomédicos" id="cb_bio"><label class="form-check-label" for="cb_bio">Equipos biomédicos</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipos TIC" id="cb_tic"><label class="form-check-label" for="cb_tic">Equipos TIC</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Mobiliario y enseres" id="cb_myn"><label class="form-check-label" for="cb_myn">Mobiliario y enseres</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipo de vigilancia" id="cb_vig"><label class="form-check-label" for="cb_vig">Equipo de vigilancia</label></div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Mobiliario y enseres hospitalarios" id="cb_myh"><label class="form-check-label" for="cb_myh">Mobiliario y enseres hospitalarios</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Maquinaria y equipo industrial" id="cb_maq"><label class="form-check-label" for="cb_maq">Maquinaria y equipo industrial</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_montaje" value="1" id="cb_mon"><label class="form-check-label" for="cb_mon">Requiere montaje</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_capacitacion" value="1" id="cb_cap"><label class="form-check-label" for="cb_cap">Requiere Capacitación</label></div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="propiedad" value="Propio" id="cb_pro"><label class="form-check-label" for="cb_pro">Propio</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="propiedad" value="Ajeno" id="cb_aje"><label class="form-check-label" for="cb_aje">Ajeno</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="Otro" id="entrega_otro_checkbox"><label class="form-check-label" for="entrega_otro_checkbox">Otro</label></div>
+          <div id="entrega_otro_container" class="mt-2" style="display: none;">
+            <input type="text" name="entrega_otro_texto" class="form-control form-control-sm" placeholder="¿Cuál?">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Tipo de Asignación</h5>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="tipo_asignacion" id="asig_temp" value="Temporal">
+        <label class="form-check-label" for="asig_temp">Temporal</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="tipo_asignacion" id="asig_perm" value="Permanente" checked>
+        <label class="form-check-label" for="asig_perm">Permanente</label>
+      </div>
+    </div>
+
+    <div class="col-md-6 mt-4">
+      <h5 class="fs-6 fw-bold">Quién Entrega</h5>
+      <input type="text" name="entrega_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
+      <input type="text" name="entrega_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
+      <input type="text" name="entrega_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
+      <input type="text" name="entrega_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
+      <input type="text" name="entrega_responsable_centro_costo" class="form-control" placeholder="Centro de Costo">
+    </div>
+
+    <div class="col-md-6 mt-4">
+      <h5 class="fs-6 fw-bold">Quién Recibe</h5>
+      <input type="text" name="recibe_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
+      <input type="text" name="recibe_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
+      <input type="text" name="recibe_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
+      <input type="text" name="recibe_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
+      <input type="text" name="recibe_responsable_centro_costo" class="form-control" placeholder="Centro de Costo">
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Observaciones</label>
+      <textarea name="observaciones_generales" class="form-control" rows="2"></textarea>
+    </div>
+  </div>
+</div>

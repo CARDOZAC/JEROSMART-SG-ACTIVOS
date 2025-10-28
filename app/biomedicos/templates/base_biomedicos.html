@@ -1,0 +1,160 @@
+</body>
+</html>
+<!-- base_biomedicos.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo Biomédico - Gestión de Activos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Módulo de Gestión Biomédica</h1>
+            <p>Sistema Inteligente de Activos Fijos - Corporación Clínica Primavera | NIT. 900.213.617-3</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card" onclick="window.location.href='/biomedicos/hojas-vida'">
+                <div class="card-icon">📋</div>
+                <h3>Hojas de Vida</h3>
+                <p>Consultar y gestionar hojas de vida de equipos biomédicos existentes en el sistema conforme a la normativa colombiana</p>
+            </div>
+
+            <div class="card" onclick="window.location.href='/biomedicos/mantenimientos'">
+                <div class="card-icon">🔧</div>
+                <h3>Mantenimientos Preventivos</h3>
+                <p>Ver historial completo de mantenimientos preventivos realizados con trazabilidad y documentación técnica</p>
+            </div>
+
+            <div class="card" onclick="window.location.href='/biomedicos/reportes'">
+                <div class="card-icon">📊</div>
+                <h3>Generar Reporte</h3>
+                <p>Crear reportes técnicos personalizados por rango de fechas, tipo de equipo y estado operacional</p>
+            </div>
+
+            <div class="card" onclick="window.location.href='/biomedicos/wizard/select'">
+                <div class="card-icon">✨</div>
+                <h3>Iniciar Actividad</h3>
+                <p>Asistente inteligente multiparamétrico para crear hojas de vida o ejecutar mantenimientos preventivos</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

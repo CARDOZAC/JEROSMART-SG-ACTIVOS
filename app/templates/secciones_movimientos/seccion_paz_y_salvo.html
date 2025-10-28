@@ -1,0 +1,24 @@
+<div id="seccion-paz-y-salvo" class="details-form">
+  <h4 class="mb-3">Detalles del Acta de Paz y Salvo</h4>
+
+  <div class="row g-3">
+    <div class="col-12 position-relative">
+      <label class="form-label">Funcionario a desvincular <span class="text-danger">*</span></label>
+      <input type="text" id="funcionario-paz-y-salvo-search" class="form-control" placeholder="Buscar por nombre o cédula...">
+      <div id="funcionario-paz-y-salvo-search-results" class="list-group search-results mt-1"></div>
+      <input type="hidden" name="funcionario_id">
+    </div>
+
+    <div class="col-12 position-relative">
+      <label class="form-label">V° B° Quién recibe (Jefe Inmediato) <span class="text-danger">*</span></label>
+      <input type="text" id="jefe-inmediato-search" class="form-control" placeholder="Buscar por nombre o cédula...">
+      <div id="jefe-inmediato-search-results" class="list-group search-results mt-1"></div>
+      <input type="hidden" name="jefe_inmediato_id">
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Observaciones</label>
+      <textarea name="observaciones_generales" class="form-control" rows="3"></textarea>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}Asistente de Firmas - Movimiento #{{ movimiento.id }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Estilos del asistente de firmas */
+    .wizard-progress-bar {display:flex;list-style:none;padding:0;margin:0 0 2rem 0}
+    .wizard-progress-bar .step{flex:1;text-align:center;position:relative;font-weight:600;color:var(--text-secondary)}
+    .wizard-progress-bar .step .icon{display:block;width:40px;height:40px;line-height:38px;border-radius:50%;background:var(--color-surface);border:2px solid var(--color-border);margin:0 auto .5rem auto;transition: all 0.3s ease;}
+    .wizard-progress-bar .step.active{color:var(--accent-blue-dark)}
+    .wizard-progress-bar .step.active .icon{background:var(--accent-blue-dark);border-color:var(--accent-blue-dark);color:var(--text-on-accent)}
+    .wizard-progress-bar .step.completed{color:var(--color-success)}
+    .wizard-progress-bar .step.completed .icon{background:var(--color-success);border-color:var(--color-success);color:var(--text-on-accent)}
+    .wizard-progress-bar .step:not(:last-child)::after{content:'';position:absolute;top:20px;left:50%;width:100%;height:2px;background:var(--color-border);transform:translateX(1.25rem);z-index:-1;transition: background 0.3s ease;}
+    .wizard-progress-bar .step.completed:not(:last-child)::after{background:var(--color-success)}
+
+    .wizard-content .wizard-pane{display:none}
+    .wizard-content .wizard-pane.active{display:block;animation:fadeIn .4s ease-out}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Contenedor del pad de firma */
+    .signature-pad-container{border:2px dashed var(--color-border);border-radius:.5rem;height:250px;background:var(--color-background);cursor:crosshair;position:relative}
+    .signature-pad-container.is-invalid{border-color:var(--color-danger)}
+    .signature-pad-container canvas{position:absolute;inset:0;width:100%;height:100%}
+    .signature-image-container{display:flex;flex-direction:column;justify-content:center;align-items:center;height:250px;padding:.5rem;gap:.5rem}
+    .signature-image{max-height:200px;max-width:100%;border:1px solid var(--color-border);border-radius:.5rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="signature-data"
+      data-post-url="{{ url_for('main.firmar_movimiento', movimiento_id=movimiento.id) }}"
+      data-delete-base="{{ url_for('main.firmar_movimiento', movimiento_id=movimiento.id) }}"
+      data-roles='{{ roles_requeridos | tojson | safe }}'
+      data-firmas='{{ firmas_guardadas | tojson | safe }}'
+      style="display:none"></div>
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <h2 class="h3">
+                        <i class="bi bi-pen-fill me-2" style="color:var(--accent-blue-dark)"></i>
+                        Asistente de Firmas: {{ movimiento.tipo_movimiento }}
+                    </h2>
+                    <p class="text-muted">Movimiento ID: #{{ movimiento.id }}</p>
+                </div>
+
+                <nav>
+                    <ol class="wizard-progress-bar">
+                        {% for rol in roles_requeridos %}
+                        <li class="step" data-step-id="{{ loop.index0 }}">
+                            <span class="icon"><i class="bi bi-pencil"></i></span>
+                            {{ rol.replace('_', ' ') | title }}
+                        </li>
+                        {% endfor %}
+                        <li class="step" data-step-id="{{ roles_requeridos|length }}">
+                            <span class="icon"><i class="bi bi-check2-all"></i></span>
+                            Finalizado
+                        </li>
+                    </ol>
+                </nav>
+
+                <div class="wizard-content mt-4">
+                    {% for rol in roles_requeridos %}
+                    <div class="wizard-pane" data-pane-id="{{ loop.index0 }}">
+                        <h4 class="text-center mb-3">Firma de: <strong>{{ rol.replace('_', ' ') | title }}</strong></h4>
+                        <div class="signature-content-container" id="content-{{ rol }}"></div>
+                    </div>
+                    {% endfor %}
+                    <div class="wizard-pane text-center" data-pane-id="{{ roles_requeridos|length }}">
+                        <div class="p-4 bg-light rounded">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size:4rem"></i>
+                            <h3 class="mt-3">¡Proceso Completado!</h3>
+                            <p class="text-muted">Todas las firmas han sido recolectadas. Ahora puedes generar el documento final o volver al listado.</p>
+                            <a href="{{ url_for('movimientos.generar_acta_pdf', movimiento_id=movimiento.id) }}" target="_blank" id="generate-pdf-btn" class="btn btn-success btn-lg mt-3">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Generar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4 pt-4 border-top">
+                    <button id="wizard-prev-btn" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Anterior</button>
+                    <button id="wizard-next-btn" class="btn btn-primary">Siguiente<i class="bi bi-arrow-right ms-1"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const dataEl = document.getElementById('signature-data');
+    if (!dataEl) return;
+
+    const rolesRequeridos = JSON.parse(dataEl.dataset.roles || '[]');
+    const firmasGuardadas = JSON.parse(dataEl.dataset.firmas || '{}');
+    const postUrl = dataEl.dataset.postUrl;
+    const deleteBase = dataEl.dataset.deleteBase;
+    const totalSteps = rolesRequeridos.length;
+
+    let currentStep = 0;
+
+    const prevBtn = document.getElementById('wizard-prev-btn');
+    const nextBtn = document.getElementById('wizard-next-btn');
+
+    function qsAll(sel){return Array.from(document.querySelectorAll(sel));}
+    function paneByIndex(idx){return document.querySelector(`.wizard-pane[data-pane-id="${idx}"]`);}
+
+    function showStep(stepIndex) {
+        currentStep = stepIndex;
+
+        // Paneles
+        qsAll('.wizard-pane').forEach(p => p.classList.remove('active'));
+        const activePane = paneByIndex(stepIndex);
+        if (activePane) activePane.classList.add('active');
+
+        // Lógica para montar el pad o la imagen
+        if (stepIndex < totalSteps) {
+            const rol = rolesRequeridos[stepIndex];
+            const contentContainer = document.getElementById(`content-${rol}`);
+            if (contentContainer && contentContainer.innerHTML.trim() === '') {
+                initializeStepContent(rol);
+            }
+            // Redimensionar canvas tras volver visible el pane
+            if (contentContainer && typeof contentContainer.resizeCanvas === 'function') {
+                requestAnimationFrame(() => contentContainer.resizeCanvas());
+            }
+        }
+
+        // Barra de progreso
+        const stepsEls = qsAll('.wizard-progress-bar .step');
+        stepsEls.forEach((stepEl, i) => {
+            stepEl.classList.remove('active', 'completed');
+            const icon = stepEl.querySelector('.icon');
+            const isLastFinalStep = i === totalSteps;
+
+            if (i < stepIndex) {
+                stepEl.classList.add('completed');
+                if (icon) icon.innerHTML = '<i class="bi bi-check"></i>';
+            } else if (i === stepIndex) {
+                stepEl.classList.add('active');
+                if (icon) icon.innerHTML = isLastFinalStep ? '<i class="bi bi-check2-all"></i>' : '<i class="bi bi-pencil"></i>';
+            } else {
+                if (icon) icon.innerHTML = isLastFinalStep ? '<i class="bi bi-check2-all"></i>' : '<i class="bi bi-pencil"></i>';
+            }
+        });
+        
+        // Manejo de botones de navegación
+        prevBtn.disabled = stepIndex === 0;
+        nextBtn.style.display = stepIndex >= totalSteps ? 'none' : 'inline-flex';
+    }
+
+    function initializeStepContent(rol) {
+        if (firmasGuardadas && firmasGuardadas[rol]) {
+            renderSignedView(rol, firmasGuardadas[rol]);
+        } else {
+            renderSignaturePad(rol);
+        }
+    }
+
+    function renderSignaturePad(rol) {
+        const content = document.getElementById(`content-${rol}`);
+        if (!content) return;
+
+        content.innerHTML = `
+            <div class="signature-pad-container mb-2"><canvas></canvas></div>
+            <div class="text-end">
+                <button type="button" class="btn btn-sm btn-link text-muted clear-signature">Limpiar</button>
+            </div>
+        `;
+
+        const canvas = content.querySelector('canvas');
+        const pad = new SignaturePad(canvas, { backgroundColor: 'rgb(248, 249, 250)' });
+
+        // Fix de DPI y tamaño real del contenedor
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const container = canvas.parentElement;
+            const w = container.offsetWidth;
+            const h = container.offsetHeight;
+            if (w > 0 && h > 0) {
+                canvas.width = w * ratio;
+                canvas.height = h * ratio;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(ratio, ratio);
+                pad.clear();
+            }
+        }
+        
+        // Redimensionar al cargar y al cambiar tamaño de la ventana
+        window.addEventListener('resize', resizeCanvas);
+        requestAnimationFrame(resizeCanvas);
+
+        content.querySelector('.clear-signature').addEventListener('click', () => pad.clear());
+        content.signaturePadInstance = pad;
+        content.resizeCanvas = resizeCanvas;
+    }
+
+    function renderSignedView(rol, imageUrl) {
+        const content = document.getElementById(`content-${rol}`);
+        if (!content) return;
+
+        content.innerHTML = `
+            <div class="signature-image-container">
+                <img src="${imageUrl}" alt="Firma de ${rol}" class="signature-image">
+                <button class="btn btn-sm btn-outline-danger mt-2 resign-btn" data-rol="${rol}">
+                    <i class="bi bi-trash3 me-1"></i>Re-firmar
+                </button>
+            </div>
+        `;
+        content.querySelector('.resign-btn').addEventListener('click', handleResign);
+    }
+
+    function handleNext() {
+        if (currentStep >= totalSteps) return;
+
+        const rol = rolesRequeridos[currentStep];
+        const content = document.getElementById(`content-${rol}`);
+        
+        // Si ya está firmada, simplemente pasa al siguiente paso
+        if (firmasGuardadas[rol]) {
+            showStep(currentStep + 1);
+            return;
+        }
+
+        const pad = content.signaturePadInstance;
+        if (!pad || pad.isEmpty()) {
+            content.querySelector('.signature-pad-container')?.classList.add('is-invalid');
+            return;
+        }
+
+        // Deshabilita los botones mientras se guarda
+        nextBtn.disabled = true;
+        prevBtn.disabled = true;
+        nextBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+
+        const dataURL = pad.toDataURL('image/png');
+        fetch(postUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ rol_firma: rol, signature: dataURL })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                firmasGuardadas[rol] = data.image_url;
+                renderSignedView(rol, data.image_url);
+                showStep(currentStep + 1);
+            } else {
+                flashMessage(data && data.message ? data.message : 'Error al guardar la firma.', 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Error fetch firma:', err);
+            flashMessage('No se pudo contactar el servidor.', 'danger');
+        })
+        .finally(() => {
+            nextBtn.disabled = false;
+            prevBtn.disabled = currentStep === 0;
+            nextBtn.innerHTML = 'Siguiente<i class="bi bi-arrow-right ms-1"></i>';
+        });
+    }
+
+    function handleResign(e) {
+        const btn = e.currentTarget;
+        const rol = btn.dataset.rol;
+        
+        if (!confirm(`¿Borrar la firma de '${rol.replaceAll('_',' ')}' y re-firmar?`)) return;
+
+        fetch(`${deleteBase}/${encodeURIComponent(rol)}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    delete firmasGuardadas[rol];
+                    const content = document.getElementById(`content-${rol}`);
+                    content.innerHTML = '';
+                    initializeStepContent(rol);
+                    flashMessage(data.message, 'success');
+                } else {
+                    flashMessage('No se pudo borrar la firma.', 'danger');
+                }
+            })
+            .catch(() => flashMessage('No se pudo contactar el servidor.', 'danger'));
+    }
+    
+    function flashMessage(message, category) {
+        const alertHtml = `
+            <div class="alert alert-${category} alert-dismissible fade show flash-message custom-alert rounded-3 shadow-sm" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const container = document.querySelector('.container');
+        container.insertAdjacentHTML('afterbegin', alertHtml);
+    }
+    
+    // Asignar eventos de navegación
+    prevBtn.addEventListener('click', () => { if (currentStep > 0) showStep(currentStep - 1); });
+    nextBtn.addEventListener('click', handleNext);
+
+    // Inicializar el asistente
+    showStep(0);
+});
+</script>
+{% endblock %}

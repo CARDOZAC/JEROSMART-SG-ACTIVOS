@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Editar Activo{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-pencil-square"></i> Editar Activo</h2>
+
+    <form method="POST" id="wizardForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Paso 1 -->
+        <div class="wizard-step fade-step" id="step1">
+            <h4 class="mb-3">📦 Información del Activo</h4>
+            <div class="mb-3">{{ form.nombre.label }} {{ form.nombre(class="form-control", value=activo.nombre) }}</div>
+            <div class="mb-3">{{ form.serial.label }} {{ form.serial(class="form-control", value=activo.serial) }}</div>
+            <button type="button" class="btn btn-primary animated-btn" onclick="nextStep(2)">Siguiente →</button>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="wizard-step fade-step d-none" id="step2">
+            <h4 class="mb-3">📍 Ubicación y Responsable</h4>
+            <div class="mb-3">{{ form.ubicacion.label }} {{ form.ubicacion(class="form-control", value=activo.ubicacion) }}</div>
+            <div class="mb-3">{{ form.responsable.label }} {{ form.responsable(class="form-control", value=activo.responsable) }}</div>
+            <button type="button" class="btn btn-secondary animated-btn" onclick="nextStep(1)">← Atrás</button>
+            <button type="submit" class="btn btn-warning animated-btn" onclick="showLoader()">Actualizar Activo</button>
+        </div>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader" class="d-none text-center mt-3">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="mt-2">Actualizando activo...</p>
+    </div>
+</div>
+
+<script>
+    function nextStep(step) {
+        document.querySelectorAll(".wizard-step").forEach(s => s.classList.add("d-none"));
+        document.getElementById("step" + step).classList.remove("d-none");
+    }
+
+    function showLoader() {
+        document.getElementById("loader").classList.remove("d-none");
+    }
+</script>
+
+<style>
+    .fade-step {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+    .fade-step:not(.d-none) {
+        opacity: 1;
+    }
+</style>
+{% endblock %}

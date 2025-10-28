@@ -1,0 +1,451 @@
+/* ==========================================================================
+   1. VARIABLES GLOBALES (PALETA DE COLORES Y GEOMETRÍA)
+   ========================================================================== */
+/* Paleta de colores renovada: Profesional, limpia y moderna */
+:root {
+  /* --- Paleta de Colores Principal --- */
+  --color-background: #f4f7f9;       /* Un gris azulado muy claro, para el fondo general */
+  --color-surface: #ffffff;         /* Blanco puro para tarjetas y superficies principales */
+  --color-secondary-surface: #f8f9fa; /* Un blanco ligeramente apagado para variedad */
+  --color-border: #dee2e6;          /* Gris claro para bordes sutiles */
+
+  /* --- Paleta de Texto --- */
+  --text-primary: #343a40;          /* Gris oscuro para títulos y texto principal */
+  --text-secondary: #6c757d;        /* Gris medio para descripciones y texto de apoyo */
+  --text-on-accent: #ffffff;        /* Texto blanco para usar sobre fondos de acento */
+
+  /* --- Paleta de Acentos --- */
+  --accent-blue: #0d6efd;           /* Azul primario de Bootstrap, vibrante pero profesional */
+  --accent-blue-soft: #e7f1ff;      /* Un azul muy pálido para fondos de hover o alertas */
+  --accent-blue-dark: #0a58ca;      /* Azul más oscuro para hovers de botones */
+  --accent-green: #198754;          /* Verde para éxito */
+  --accent-gold: #ffc107;           /* Amarillo para advertencias */
+  
+  /* --- Variables de Estado (Badges, Alertas) --- */
+  --color-success: var(--accent-green);
+  --color-warning: var(--accent-gold);
+  --color-danger: #dc3545;
+  --color-info: #0dcaf0;
+
+  /* --- Sombras y Efectos --- */
+  --shadow-color-rgb: 108, 117, 125; /* RGB de --text-secondary para sombras sutiles */
+  --card-radius: 0.75rem;           /* Radio de borde unificado para tarjetas */
+  --card-shadow: 0 4px 12px rgba(var(--shadow-color-rgb), 0.08);
+  --card-shadow-hover: 0 8px 24px rgba(var(--shadow-color-rgb), 0.12);
+  --transition-speed: 0.3s;         /* Velocidad de transición unificada */
+}
+
+/* ==========================================================================
+   2. ESTILOS BASE Y GENERALES
+   ========================================================================== */
+body {
+  padding-top: 90px;
+  background-color: var(--color-background);
+  color: var(--text-secondary);
+  font-family: 'Poppins', sans-serif; /* Fuente más moderna y redondeada */
+}
+
+/* Navbar personalizada */
+.navbar-custom {
+    background-color: var(--color-surface) !important;
+    box-shadow: var(--card-shadow);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+.navbar-brand {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+.navbar-custom .nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    transition: all var(--transition-speed) ease;
+    border-bottom: 3px solid transparent;
+    padding-bottom: 0.5rem;
+}
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active-link {
+    color: var(--accent-blue) !important;
+    border-bottom: 2px solid var(--accent-blue);
+}
+.navbar-custom .dropdown-menu {
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+}
+.navbar-custom .btn-outline-light {
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+    transition: all var(--transition-speed) ease;
+}
+.navbar-custom .btn-outline-light:hover {
+    color: var(--text-on-accent);
+    background-color: var(--accent-blue-dark);
+    border-color: var(--accent-blue);
+}
+
+/* Títulos de Sección */
+.section-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid var(--accent-blue);
+  display: inline-block;
+  font-size: 2rem;
+  margin-bottom: 3rem !important;
+}
+
+/* Botones con estilo pastel */
+.btn-primary {
+    background-color: var(--accent-blue) !important;
+    border-color: var(--accent-blue) !important;
+    color: var(--text-on-accent) !important;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 0 2px 4px rgba(var(--shadow-color-rgb), 0.1);
+}
+.btn-primary:hover {
+    background-color: var(--accent-blue-dark) !important;
+    border-color: var(--accent-blue-dark) !important;
+    box-shadow: 0 4px 12px rgba(var(--shadow-color-rgb), 0.15);
+    transform: translateY(-2px);
+}
+.btn-outline-primary {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    border-radius: 0.75rem;
+    transition: all var(--transition-speed) ease;
+    font-weight: 600;
+}
+.btn-outline-primary:hover {
+    background-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+.btn-success {
+    background-color: var(--accent-green) !important;
+    border-color: var(--accent-green) !important;
+    color: var(--text-on-accent) !important;
+    font-weight: 600;
+}
+.btn-success:hover {
+    background-color: #157347 !important; /* Darker green */
+    border-color: #146c43 !important;
+}
+
+
+/* Cards y elementos de la interfaz */
+.card {
+    border: none;
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* Mensajes Flash (Alertas) */
+.alert.custom-alert {
+    border-left: 5px solid var(--bs-alert-border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border-color: #badbcc;
+}
+
+.alert-info {
+    background-color: var(--accent-blue-soft);
+    color: #052c65;
+    border-color: #b6d4fe;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+    border-color: #ffecb5;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #58151c;
+    border-color: #f1aeb5;
+}
+
+/* Formulario de búsqueda mejorado */
+.search-wrapper {
+    position: relative;
+}
+.search-wrapper .bi-search {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+.search-wrapper input {
+    padding-left: 2.5rem;
+    border-radius: 0.75rem;
+}
+.clear-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+.clear-btn:hover {
+    opacity: 1;
+}
+
+
+/* Footer personalizado */
+.footer-custom {
+    background-color: var(--color-surface);
+    color: var(--text-on-accent) !important;
+}
+
+/* Estilo para los 'chips' o badges de tipo de movimiento */
+.type-chip {
+    padding: .5rem 1rem;
+    border-radius: 999px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+.type-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.type-chip.active {
+    background-color: var(--accent-blue);
+    color: var(--text-on-accent) !important;
+    border: 1px solid var(--accent-blue);
+}
+
+.badge-pill-entrega {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+.badge-pill-traslado {
+    background-color: var(--accent-blue-soft);
+    color: #052c65;
+}
+.badge-pill-es {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+.badge-pill-paz {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+/* ==========================================================================
+   3. ESTILOS DEL DASHBOARD (INDEX)
+   ========================================================================== */
+
+/* Hero Section (Banner superior) */
+.hero-section {
+  background: linear-gradient(135deg, var(--color-surface), var(--color-secondary-surface));
+  color: var(--text-secondary);
+  padding: 3rem 2rem;
+  border-radius: var(--card-radius);
+  margin-bottom: 2.5rem;
+  text-align: center;
+  border: 1px solid transparent;
+  box-shadow: var(--card-shadow);
+}
+.hero-title {
+  font-weight: 700;
+  font-size: 2.8rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+.hero-subtitle {
+  font-style: normal;
+  opacity: 1;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.stat-card {
+  background-color: var(--color-surface);
+  padding: 1.5rem;
+  border-radius: var(--card-radius);
+  display: flex;
+  align-items: center;
+  border: 1px solid transparent;
+  box-shadow: none; /* Sombra más sutil para los stats */
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease, border-color var(--transition-speed) ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card:hover {
+.stat-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-green);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-25deg);
+  transition: left 0.6s ease;
+}
+
+.stat-card:hover::before {
+  left: 150%;
+}
+
+.stat-card .stat-icon i {
+  font-size: 3rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  color: var(--accent-blue);
+  background-color: var(--accent-blue-soft);
+  transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+}
+
+.stat-card:hover .stat-icon i {
+  color: var(--text-on-accent);
+  background-color: var(--accent-green);
+}
+
+.stat-card .stat-info {
+  margin-left: 1.5rem;
+}
+
+.stat-card .stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-card .stat-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Tarjetas de Menú de Acciones */
+.action-card {
+  background-color: var(--color-surface);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  text-decoration: none;
+  color: var(--text-primary);
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+.action-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--accent-blue);
+}
+
+.action-card .card-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1.25rem;
+  line-height: 1;
+  color: var(--accent-blue-dark);
+  transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.action-card:hover .card-icon {
+  color: var(--accent-green);
+  transform: scale(1.1);
+}
+
+.action-card h4 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.action-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Tabla de Activos en Dashboard */
+.dashboard-table-container {
+  max-height: 450px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  background-color: var(--color-surface);
+}
+
+.dashboard-table-container table {
+  margin-bottom: 0;
+}
+
+.dashboard-table-container th,
+.dashboard-table-container td {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.dashboard-table-container .badge {
+  font-size: 0.9em;
+  padding: 0.5em 0.8em;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+/* Contenedores de Gráficos */
+.chart-container {
+  background-color: var(--color-surface);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   4. ANIMACIONES
+   ========================================================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-item {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}

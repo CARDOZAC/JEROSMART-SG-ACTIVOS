@@ -1,0 +1,72 @@
+<div id="seccion-entrada-salida" class="details-form">
+  <h4 class="mb-3">Detalles del Acta de Entrada/Salida</h4>
+
+  <!-- Radios de operación (usados por tu JS para marcar automáticamente) -->
+  <div class="mb-3">
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="tipo_operacion_es_radio" id="op-es-entrada" value="Entrada">
+      <label class="form-check-label" for="op-es-entrada">Entrada</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="tipo_operacion_es_radio" id="op-es-salida" value="Salida">
+      <label class="form-check-label" for="op-es-salida">Salida</label>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12"><h5 class="fs-6 fw-bold">Datos Solicitante</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Nombre Responsable</label>
+      <input type="text" name="solicitante_responsable_nombre" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cédula</label>
+      <input type="text" name="solicitante_responsable_cc" class="form-control">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Cargo/Área</label>
+      <input type="text" name="solicitante_responsable_cargo_area" class="form-control">
+    </div>
+
+    <div class="col-12"><h5 class="mt-3 fs-6 fw-bold">Datos Tercero</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Entidad o Persona <span class="text-danger">*</span></label>
+      <input type="text" name="tercero_entidad_persona" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">NIT / Cédula</label>
+      <input type="text" name="tercero_nit_cc" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Dirección</label>
+      <input type="text" name="tercero_direccion" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Móvil</label>
+      <input type="text" name="tercero_movil" class="form-control">
+    </div>
+    
+    <div class="col-12"><h5 class="mt-3 fs-6 fw-bold">Motivo</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Selecciona un motivo</label>
+      <select name="motivo_seleccionado" id="motivo_seleccionado" class="form-select">
+        <option value="Salida Por Mantenimiento">Salida Por Mantenimiento</option>
+        <option value="Entrada Por Mantenimiento Realizado">Entrada Por Mantenimiento Realizado</option>
+        <option value="Salida Por Préstamo a la Clínica">Salida Por Préstamo a la Clínica</option>
+        <option value="Entrada Por Préstamo a la Clínica">Entrada Por Préstamo a la Clínica</option>
+        <option value="Salida Por Préstamo de la Clínica">Salida Por Préstamo de la Clínica</option>
+        <option value="Entrada Por Préstamo de la Clínica">Entrada Por Préstamo de la Clínica</option>
+        <option value="Otro">Otro...</option>
+      </select>
+    </div>
+    <div class="col-md-6" id="motivo_otro_container" style="display: none;">
+      <label class="form-label">¿Cuál?</label>
+      <input type="text" name="motivo_otro" class="form-control">
+    </div>
+
+    <div class="col-12 mt-3">
+      <label class="form-label">Observaciones</label>
+      <textarea name="observaciones_especificas" class="form-control" rows="2"></textarea>
+    </div>
+  </div>
+</div>

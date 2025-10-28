@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Movimientos{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Estilos específicos para la vista de movimientos */
+    .movimiento-card {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .movimiento-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow-hover);
+    }
+    .movimiento-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .movimiento-header-left {
+        display: flex;
+        align-items: center;
+    }
+    .movimiento-icon {
+        font-size: 2.5rem;
+        margin-right: 1rem;
+        color: var(--accent-blue-dark);
+        transition: color 0.2s ease-in-out;
+    }
+    .movimiento-card:hover .movimiento-icon {
+        color: var(--accent-blue);
+    }
+    .movimiento-info {
+        flex-grow: 1;
+    }
+    .movimiento-info h5 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    .movimiento-info .text-muted {
+        font-size: 0.9rem;
+    }
+    .movimiento-body {
+        padding: 1.5rem;
+    }
+    .movimiento-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--color-border);
+        margin-top: auto;
+    }
+    .movimiento-footer .btn-group {
+        width: 100%;
+    }
+    .movimiento-footer .btn-group .btn {
+        flex: 1;
+    }
+
+    /* Insignias de estado personalizadas */
+    .badge-movimiento {
+        font-size: 0.85rem;
+        padding: 0.5em 1em;
+        border-radius: 999px;
+    }
+    .badge-entrega { background-color: var(--accent-green); color: var(--text-primary); }
+    .badge-traslado { background-color: var(--accent-blue); color: var(--text-on-accent); }
+    .badge-entrada-salida { background-color: var(--accent-gold); color: var(--text-primary); }
+    .badge-paz-salvo { background-color: var(--accent-gray); color: var(--text-primary); }
+
+    /* Estilos para los filtros */
+    .filter-container {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--card-radius);
+        padding: 2rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 2rem;
+    }
+    .filter-container .form-select {
+        cursor: pointer;
+    }
+    .spinner-border-lg {
+        width: 3rem;
+        height: 3rem;
+        border-width: .3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 fw-bold mb-0">Gestión de Movimientos</h2>
+        <a href="{{ url_for('add_movimiento') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i> Nuevo Movimiento
+        </a>
+    </div>
+
+    <!-- Sección de Filtros -->
+    <div class="filter-container mb-4">
+        <form id="filter-form" action="{{ url_for('ver_movimientos') }}" method="GET">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="search-input" class="form-label">Buscar por proveedor, funcionario u observación</label>
+                    <input type="text" id="search-input" name="q" class="form-control" placeholder="Ej. Ana Pérez" value="{{ filtros.q or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="tipo-select" class="form-label">Filtrar por tipo de acta</label>
+                    <select id="tipo-select" name="tipo" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="Entrega" {% if filtros.tipo == 'Entrega' %}selected{% endif %}>Acta de Entrega</option>
+                        <option value="Traslado" {% if filtros.tipo == 'Traslado' %}selected{% endif %}>Acta de Traslado</option>
+                        <option value="Entrada/Salida" {% if filtros.tipo == 'Entrada/Salida' %}selected{% endif %}>Acta de Entrada/Salida</option>
+                        <option value="Paz y Salvo" {% if filtros.tipo == 'Paz y Salvo' %}selected{% endif %}>Acta de Paz y Salvo</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
+                    <a href="{{ url_for('ver_movimientos') }}" class="btn btn-outline-secondary w-100">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Contenedor de Movimientos -->
+    <div id="movimientos-container">
+        {% if movimientos %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for movimiento in movimientos %}
+                    <div class="col">
+                        <div class="movimiento-card">
+                            <div class="movimiento-header">
+                                <div class="movimiento-header-left">
+                                    {% set icon_class = 'bi-box-arrow-up-right' if movimiento.tipo_movimiento == 'Entrega'
+                                                      else 'bi-truck' if movimiento.tipo_movimiento == 'Traslado'
+                                                      else 'bi-arrow-left-right' if movimiento.tipo_movimiento == 'Entrada/Salida'
+                                                      else 'bi-file-earmark-check-fill' %}
+                                    <i class="bi {{ icon_class }} movimiento-icon"></i>
+                                    <div class="movimiento-info">
+                                        <h5 class="mb-0">{{ movimiento.tipo_movimiento }}</h5>
+                                        <span class="text-muted">Movimiento #{{ movimiento.id }}</span>
+                                    </div>
+                                </div>
+                                {% set badge_class = 'badge-entrega' if movimiento.tipo_movimiento == 'Entrega'
+                                                     else 'badge-traslado' if movimiento.tipo_movimiento == 'Traslado'
+                                                     else 'badge-entrada-salida' if movimiento.tipo_movimiento == 'Entrada/Salida'
+                                                     else 'badge-paz-salvo' %}
+                                <span class="badge badge-movimiento {{ badge_class }}">{{ movimiento.tipo_movimiento }}</span>
+                            </div>
+                            <div class="movimiento-body">
+                                <p class="mb-1"><small class="text-muted">Fecha:</small> <strong>{{ movimiento.fecha|formatdatetime('%d/%m/%Y %H:%M') }}</strong></p>
+                                <p class="mb-1"><small class="text-muted">Registrado por:</small> <strong>{{ movimiento.usuario_nombre }}</strong></p>
+                                {% if movimiento.funcionario_nombre %}
+                                    <p class="mb-1"><small class="text-muted">Funcionario Relacionado:</small> <strong>{{ movimiento.funcionario_nombre }}</strong></p>
+                                {% endif %}
+                                {% if movimiento.proveedor_nombre %}
+                                    <p class="mb-1"><small class="text-muted">Proveedor:</small> <strong>{{ movimiento.proveedor_nombre }}</strong></p>
+                                {% endif %}
+                                <p class="mb-1"><small class="text-muted">Activos en el acta:</small> <strong>{{ movimiento.asset_count }}</strong></p>
+                            </div>
+                            <div class="movimiento-footer">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('ver_movimiento', movimiento_id=movimiento.id) }}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-eye-fill me-1"></i> Ver Detalles
+                                    </a>
+                                    {% set pdf_url = 'generar_pdf_entrega' if movimiento.tipo_movimiento == 'Entrega'
+                                                     else 'generar_pdf_traslado' if movimiento.tipo_movimiento == 'Traslado'
+                                                     else 'generar_pdf_entrada_salida' if movimiento.tipo_movimiento == 'Entrada/Salida'
+                                                     else 'generar_pdf_paz_y_salvo' %}
+                                    <a href="{{ url_for(pdf_url, movimiento_id=movimiento.id) }}" class="btn btn-outline-primary" target="_blank">
+                                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-eliminar-movimiento" data-id="{{ movimiento.id }}" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center p-4 d-flex flex-column align-items-center">
+                <i class="bi bi-box-seam fs-1 mb-3"></i>
+                <h4 class="alert-heading">¡No hay movimientos!</h4>
+                <p>No se encontraron movimientos que coincidan con los criterios de búsqueda.</p>
+                <a href="{{ url_for('ver_movimientos') }}" class="btn btn-info mt-2">Borrar filtros</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de confirmación (reemplaza a la alerta nativa) -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar este movimiento? Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="delete-form" action="" method="POST">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    const deleteForm = document.getElementById('delete-form');
+    const movimientosContainer = document.getElementById('movimientos-container');
+
+    movimientosContainer.addEventListener('click', function(e) {
+        const deleteButton = e.target.closest('.btn-eliminar-movimiento');
+        if (deleteButton) {
+            e.preventDefault();
+            const movimientoId = deleteButton.dataset.id;
+            deleteForm.action = '{{ url_for("eliminar_movimiento", movimiento_id=0) }}'.replace('0', movimientoId);
+            deleteModal.show();
+        }
+    });
+
+    // Opcional: Agregar lógica para mostrar spinner al cargar
+    const filterForm = document.getElementById('filter-form');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function() {
+            movimientosContainer.innerHTML = `
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary spinner-border-lg" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+});
+</script>
+{% endblock %}

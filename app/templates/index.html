@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Sección de Bienvenida -->
+    <div class="hero-section fade-in-item mb-4">
+        <h1 class="hero-title">Bienvenido, {{ session.cargo | title }}</h1>
+        <div class="hero-subtitle fs-5" id="dynamicWelcomePhrase">Cargando...</div>
+    </div>
+
+    <!-- Widgets de Estadísticas -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-4 col-md-6 fade-in-item" style="animation-delay: 0.1s;">
+            <a href="{{ url_for('activos.ver_activos') }}" class="text-decoration-none">
+                <div class="stat-card card h-100 card-body">
+                    <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-number">{{ total_activos }}</div>
+                        <div class="stat-label">Activos Totales</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-4 col-md-6 fade-in-item" style="animation-delay: 0.2s;">
+            <a href="{{ url_for('funcionarios.ver_funcionarios') }}" class="text-decoration-none">
+                <div class="stat-card card h-100 card-body">
+                    <div class="stat-icon"><i class="bi bi-people"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-number">{{ total_funcionarios }}</div>
+                        <div class="stat-label">Funcionarios Registrados</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-4 col-md-12 fade-in-item" style="animation-delay: 0.3s;">
+            <a href="{{ url_for('movimientos.ver_movimientos') }}" class="text-decoration-none">
+                <div class="stat-card card h-100 card-body">
+                    <div class="stat-icon"><i class="bi bi-arrows-move"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-number">{{ total_movimientos }}</div>
+                        <div class="stat-label">Movimientos Registrados</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Acciones Principales -->
+    <h3 class="mb-4 section-title fade-in-item" style="animation-delay: 0.4s;">Panel de Acciones Rápidas</h3>
+    <div class="row g-4 align-items-stretch mb-5">
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.5s;">
+            <a href="{{ url_for('activos.ver_activos') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-card-checklist card-icon"></i> 
+                <h4>Inventario General</h4>
+                <p class="mb-0">Consulta, busca y gestiona todos los activos de la entidad.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.6s;">
+            <a href="{{ url_for('movimientos.add_movimiento') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-send-plus-fill card-icon"></i>
+                <h4>Registrar Movimiento</h4>
+                <p class="mb-0">Crea actas de entrega, traslado, entrada o salida de activos.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.7s;">
+            <a href="{{ url_for('biomedicos.index') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-heart-pulse-fill card-icon"></i>
+                <h4>Módulo Biomédico</h4>
+                <p class="mb-0">Gestiona mantenimientos y hojas de vida de equipos médicos.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.8s;">
+            <a href="{{ url_for('main.inventario_ajenos') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-briefcase-fill card-icon"></i>
+                <h4>Activos Ajenos</h4>
+                <p class="mb-0">Administra equipos de terceros que están bajo custodia.</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Visualización de Datos -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7 fade-in-item" style="animation-delay: 0.9s;">
+            <h3 class="mb-4 section-title">Últimos Activos Registrados</h3>
+            <div class="dashboard-table-container card card-body">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Placa</th>
+                            <th scope="col">Nombre del Activo</th>
+                            <th scope="col">Clase</th>
+                            <th scope="col" class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activo in ultimos_activos %}
+                        <tr>
+                            <td><span class="badge text-bg-secondary fw-normal">{{ activo.placa_codigo_interno }}</span></td>
+                            <td><strong>{{ activo.nombre_activo }}</strong></td>
+                            <td class="text-muted">{{ activo.nombre_clase }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil me-1"></i>Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted p-4">No hay activos registrados recientemente.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-lg-5 fade-in-item" style="animation-delay: 1.0s;">
+            <h3 class="mb-4 section-title">Activos por Clase</h3>
+            <div class="chart-container card card-body d-flex align-items-center justify-content-center">
+                <canvas id="assetsByClassChart" data-chart-data='{{ activos_por_clase | tojson }}'></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12 fade-in-item" style="animation-delay: 1.1s;">
+            <h3 class="mb-4 section-title">Movimientos por Tipo</h3>
+            <div class="chart-container card card-body d-flex align-items-center justify-content-center" style="height: 400px;">
+                <canvas id="movimientosByTypeChart" data-chart-data='{{ movimientos_por_tipo | tojson }}'></canvas>
+            </div>
+        </div>
+    </div>
+
+    {% if session.get('rol') == 'admin' %}
+    <hr class="my-5 fade-in-item" style="animation-delay: 1.2s;">
+    <h3 class="mb-4 section-title fade-in-item" style="animation-delay: 1.3s;">Herramientas de Administración</h3>
+    <div class="row g-4 align-items-stretch">
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.4s;">
+            <a href="{{ url_for('activos.add_activo') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-box-seam-fill card-icon"></i>
+                <h4>Registrar Activo</h4>
+                <p class="mb-0">Agrega un activo propio o ajeno al inventario.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.5s;">
+            <a href="{{ url_for('admin.ver_funcionarios') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-people-fill card-icon"></i>
+                <h4>Gestionar Funcionarios</h4>
+                <p class="mb-0">Administra la información del personal.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.6s;">
+            <a href="{{ url_for('admin.ver_proveedores') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-truck card-icon"></i>
+                <h4>Gestionar Proveedores</h4>
+                <p class="mb-0">Administra los datos de empresas y terceros.</p>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.7s;">
+            <a href="{{ url_for('auth.register') }}" class="action-card text-decoration-none h-100">
+                <i class="bi bi-person-plus-fill card-icon"></i>
+                <h4>Registrar Usuario</h4>
+                <p class="mb-0">Crea nuevas cuentas de acceso al sistema.</p>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    
+    // --- Lógica para el Saludo Dinámico ---
+    const dynamicPhraseElement = document.getElementById('dynamicWelcomePhrase');
+    if (dynamicPhraseElement) {
+        const hour = new Date().getHours();
+        let greeting = "¡Qué bueno verte!";
+        if (hour >= 5 && hour < 12) greeting = "¡Que tengas un excelente día!";
+        else if (hour >= 12 && hour < 19) greeting = "¡Una bendecida tarde para ti!";
+        else greeting = "¡Que tengas una noche de paz!";
+        
+        const verses = [
+            { text: "De modo que si alguno está en Cristo, nueva criatura es; las cosas viejas pasaron; he aquí todas son hechas nuevas.", ref: "2 Corintios 5:17" },
+            { text: "Todo lo que hagas, hazlo con el corazón, como para el Señor y no para los hombres.", ref: "Colosenses 3:23" },
+            { text: "Confía en el Señor de todo tu corazón, y no te apoyes en tu propio entendimiento.", ref: "Proverbios 3:5" }
+        ];
+        const randomVerse = verses[Math.floor(Math.random() * verses.length)];
+        
+          dynamicPhraseElement.innerHTML = `${greeting}<br>
+           <blockquote class="fs-6 fw-light text-body-secondary mt-3 mb-0">
+           "${randomVerse.text}"
+            <footer class="blockquote-footer text-body-secondary mt-1">${randomVerse.ref}</footer>
+            </blockquote>`;
+    }
+
+    // --- Lógica para Gráficos ---
+    const cssVars = getComputedStyle(document.documentElement);
+    const colorTextSecondary = cssVars.getPropertyValue('--text-secondary').trim();
+    const colorBorder = cssVars.getPropertyValue('--color-border').trim();
+    const chartColors = [ // Paleta de colores más profesional y moderna
+        '#5b9bd5', // Azul
+        '#ed7d31', // Naranja
+        '#a5a5a5', // Gris
+        '#ffc000', // Amarillo
+        '#4472c4'  // Azul oscuro
+    ];
+    
+    const getTooltipOptions = () => ({
+        backgroundColor: 'rgba(33, 37, 41, 0.9)',
+        titleFont: { family: 'Poppins', size: 14 },
+        bodyFont: { family: 'Inter', size: 12 },
+        padding: 12,
+        boxPadding: 6,
+        displayColors: false
+    });
+
+    // ROBUSTEZ: Función para mostrar un mensaje si no hay datos para el gráfico
+    function renderNoDataMessage(canvasElement, message) {
+        const container = canvasElement.parentElement;
+        container.innerHTML = `<div class="text-center text-muted p-4">${message}</div>`;
+    }
+
+    // Gráfico 1: Activos por Clase (Barras Horizontales)
+    const assetsByClassChartEl = document.getElementById('assetsByClassChart');
+    if (assetsByClassChartEl) {
+        try {
+            const chartData = JSON.parse(assetsByClassChartEl.dataset.chartData || '[]');
+            if (!Array.isArray(chartData) || chartData.length === 0) {
+                renderNoDataMessage(assetsByClassChartEl, 'No hay datos de activos por clase para mostrar.');
+            } else {
+                new Chart(assetsByClassChartEl, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.map(item => item.nombre_clase),
+                        datasets: [{
+                            label: 'Nº de Activos',
+                            data: chartData.map(item => item.count),
+                            backgroundColor: chartColors,
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: getTooltipOptions() },
+                        scales: {
+                            y: { grid: { display: false }, ticks: { color: colorTextSecondary, font: { family: 'Inter' } } },
+                            x: { beginAtZero: true, grid: { color: colorBorder, drawBorder: false }, ticks: { color: colorTextSecondary, font: { family: 'Inter' } } }
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error al procesar datos del gráfico de activos:", e);
+            renderNoDataMessage(assetsByClassChartEl, 'Error al cargar los datos del gráfico.');
+        }
+    }
+
+    // Gráfico 2: Movimientos por Tipo (Dona)
+    const movimientosByTypeChartEl = document.getElementById('movimientosByTypeChart');
+    let movimientosChart = null;
+    if (movimientosByTypeChartEl) {
+        try {
+            const chartData = JSON.parse(movimientosByTypeChartEl.dataset.chartData || '[]');
+            if (!Array.isArray(chartData) || chartData.length === 0) {
+                renderNoDataMessage(movimientosByTypeChartEl, 'No hay datos de movimientos por tipo para mostrar.');
+            } else {
+                movimientosChart = new Chart(movimientosByTypeChartEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.map(item => item.tipo_movimiento),
+                        datasets: [{
+                            label: 'Nº de Movimientos',
+                            data: chartData.map(item => item.count),
+                            backgroundColor: chartColors,
+                            borderColor: cssVars.getPropertyValue('--color-surface').trim(),
+                            borderWidth: 2,
+                            hoverOffset: 12
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { color: colorTextSecondary, font: { family: 'Inter', size: 14 }, boxWidth: 20 }
+                            },
+                            tooltip: getTooltipOptions()
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error al procesar datos del gráfico de movimientos:", e);
+            renderNoDataMessage(movimientosByTypeChartEl, 'Error al cargar los datos del gráfico.');
+        }
+    }
+
+    // RESPONSIVE: Función para ajustar el gráfico en diferentes tamaños de pantalla
+    function handleResize() {
+        if (!movimientosChart) return;
+
+        const newPosition = window.innerWidth < 768 ? 'bottom' : 'right';
+        if (movimientosChart.options.plugins.legend.position !== newPosition) {
+            movimientosChart.options.plugins.legend.position = newPosition;
+            movimientosChart.update();
+        }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Importar Activos desde CSV{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importar Activos (CSV)</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Sube un archivo CSV con tus activos existentes. Asegúrate de que los nombres de las columnas en el CSV coincidan con los nombres de los campos de la aplicación (ej. `nombre_activo`, `placa_codigo`, `clase_id`, `registro_invima`, etc.).</p>
+                    <p class="text-info small">
+                        <i class="bi bi-info-circle-fill"></i> **Columnas Requeridas:** `nombre_activo`, `placa_codigo`, `clase_id`.
+                        <br>
+                        Para `clase_id` y `funcionario_id`, usa los IDs numéricos de tu base de datos.
+                    </p>
+
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('importar_activos') }}">
+                        <div class="mb-3">
+                            <label for="csv_file" class="form-label">Seleccionar archivo CSV:</label>
+                            <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-upload me-2"></i>Importar Activos</button>
+                        <a href="{{ url_for('ver_activos') }}" class="btn btn-secondary ms-2">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Paz y Salvo #{{ movimiento.id }}</title>
+    <style>
+        @page { size: letter portrait; margin: 1.5cm; }
+        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 9pt; line-height: 1.3; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        td, th { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: top; }
+        .header-table td { text-align: center; vertical-align: middle; font-weight: bold; }
+        .logo { width: 100px; height: auto; }
+        .bg-gray { background-color: #E7E6E6; }
+        .bold { font-weight: bold; }
+        .text-center { text-align: center; }
+        .signature-section { margin-top: 30px; page-break-inside: avoid; }
+        .signature-box { width: 48%; text-align: center; display: inline-block; margin-top: 40px; }
+        .signature-line { border-top: 1px solid #000; padding-top: 5px; font-size: 8pt; }
+        .signature-img { max-height: 40px; max-width: 100%; margin-bottom: 5px; }
+        h1 { font-size: 14pt; text-align: center; margin-bottom: 10px; }
+        .section-title { background-color: #E7E6E6; font-weight: bold; text-align: center; padding: 5px; }
+        .paragraph { text-align: justify; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td rowspan="3" style="width: 20%;"><img class="logo" src="{{ url_for('static', filename='img/logo_primavera_simple.png', _external=True) }}"></td>
+            <td rowspan="2" style="width: 50%;">CORPORACION CLINICA PRIMAVERA <br> NIT: 900213617-3</td>
+            <td style="width: 30%;">Código: 268.4-11.019</td>
+        </tr>
+        <tr><td>Versión: 1</td></tr>
+        <tr><td>PAZ Y SALVO DE ACTIVOS FIJOS</td><td>Pagina 1 de 1</td></tr>
+    </table>
+
+    <h1>PAZ Y SALVO #{{ movimiento.id }}</h1>
+
+    <table>
+        <tr>
+            <td><span class="bold">Fecha:</span> {{ movimiento.fecha.split(' ')[0] if movimiento.fecha }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr><td class="section-title" colspan="2">DATOS DEL FUNCIONARIO</td></tr>
+        <tr>
+            <td style="width: 50%;"><span class="bold">Nombre:</span> {{ detalles.nombre_funcionario or 'N/A' }}</td>
+            <td><span class="bold">Cédula:</span> {{ detalles.funcionario_desvinculado_id or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td><span class="bold">Cargo:</span> {{ detalles.cargo_funcionario or 'N/A' }}</td>
+            <td><span class="bold">Área:</span> {{ detalles.area_funcionario or 'N/A' }}</td>
+        </tr>
+    </table>
+
+    <p class="paragraph">
+        Por medio de la presente, el área de Activos Fijos de la CORPORACIÓN CLÍNICA PRIMAVERA certifica que el/la funcionario(a)
+        mencionado(a) se encuentra a <span class="bold">PAZ Y SALVO</span> por concepto de activos fijos a su cargo. Se ha verificado
+        la devolución y el estado de los elementos que le fueron asignados para el desempeño de sus labores.
+    </p>
+
+    <table>
+        <tr><td class="section-title" colspan="6">ACTIVOS VERIFICADOS</td></tr>
+        <thead>
+            <tr><th>N°</th><th>Descripción</th><th>Placa</th><th>Marca</th><th>Modelo</th><th>Serie</th></tr>
+        </thead>
+        <tbody>
+            {% for activo in activos %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td>
+                <td>{{ activo.nombre_activo }}</td>
+                <td>{{ activo.placa_codigo_interno }}</td>
+                <td>{{ activo.marca or '' }}</td>
+                <td>{{ activo.modelo or '' }}</td>
+                <td>{{ activo.serie or '' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center" style="height: 50px;">El funcionario no tenía activos a su cargo.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table>
+        <tr><td class="section-title">OBSERVACIONES</td></tr>
+        <tr><td style="height: 50px;">{{ detalles.observaciones_paz_salvo or movimiento.observaciones_generales or 'Sin observaciones.' }}</td></tr>
+    </table>
+
+    <div class="signature-section">
+        <div style="width: 100%; text-align: center;">
+            <div class="signature-box">
+                {% if firmas.get('Funcionario') %}<img src="{{ firmas['Funcionario'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">
+                    {{ detalles.nombre_funcionario or '____________________________' }}<br>
+                    <span class="bold">Funcionario</span>
+                </div>
+            </div>
+            <div class="signature-box">
+                {% if firmas.get('Responsable_Activos_Fijos') %}<img src="{{ firmas['Responsable_Activos_Fijos'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">
+                    ____________________________<br>
+                    <span class="bold">Responsable Activos Fijos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

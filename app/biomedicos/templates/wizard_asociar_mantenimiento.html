@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Asociar Mantenimiento a Hoja de Vida{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Asociar Mantenimiento a Hoja de Vida</h1>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('biomedicos.wizard_asociar_mantenimiento') }}">
+                <div class="mb-3">
+                    <label for="hoja_vida_id" class="form-label">Seleccione la Hoja de Vida del Equipo</label>
+                    <select class="form-select" id="hoja_vida_id" name="hoja_vida_id" required>
+                        <option value="" disabled selected>-- Seleccione una Hoja de Vida --</option>
+                        {% for hoja in hojas_vida %}
+                            <option value="{{ hoja.id }}">{{ hoja.equipo }} - {{ hoja.marca }} {{ hoja.modelo }} (Serie: {{ hoja.serie }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="mantenimiento_id" class="form-label">Seleccione el Mantenimiento a Asociar</label>
+                    <select class="form-select" id="mantenimiento_id" name="mantenimiento_id" required>
+                        <option value="" disabled selected>-- Seleccione un Mantenimiento --</option>
+                        {% for mantenimiento in mantenimientos %}
+                            <option value="{{ mantenimiento.id }}">ID: {{ mantenimiento.id }} - {{ mantenimiento.tipo }} - {{ mantenimiento.fecha_mantenimiento }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Asociar</button>
+                <a href="{{ url_for('biomedicos.hojas_de_vida') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

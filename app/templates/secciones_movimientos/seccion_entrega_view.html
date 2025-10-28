@@ -1,0 +1,31 @@
+{% if detalles %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h5 class="card-title mb-3">Detalles de Entrega</h5>
+        <ul class="list-group list-group-flush rounded-3 border">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Funcionario que entrega:</strong>
+                <span>{{ detalles.entrega_responsable_nombre or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Funcionario que recibe:</strong>
+                <span>{{ detalles.recibe_responsable_nombre or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Orden de Compra/Contrato:</strong>
+                <span>{{ detalles.orden_compra_contrato or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Tipo de Asignación:</strong>
+                <span>{{ detalles.tipo_asignacion or '—' }}</span>
+            </li>
+            {% if detalles.observaciones_acta %}
+            <li class="list-group-item">
+                <strong>Observaciones Específicas:</strong>
+                <p class="mb-0 mt-1 text-muted">{{ detalles.observaciones_acta }}</p>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endif %}

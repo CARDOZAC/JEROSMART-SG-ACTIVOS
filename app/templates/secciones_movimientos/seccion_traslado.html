@@ -1,0 +1,58 @@
+<div id="seccion-traslado" class="details-form">
+  <h4 class="mb-3">Detalles del Acta de Traslado</h4>
+
+  <div class="row g-3">
+    <div class="col-12">
+      <h5 class="fs-6 fw-bold">Tipo de traslado</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Retiro de funcionario" id="tt1"><label class="form-check-label" for="tt1">Retiro de funcionario</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Activo de un funcionario a otro en la misma área" id="tt2"><label class="form-check-label" for="tt2">Activo de un funcionario a otro en la misma área</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Activo de un centro de costo a otro" id="tt3"><label class="form-check-label" for="tt3">Activo de un centro de costo a otro</label></div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Traslado de bodega por obsolescencia, desuso o reposición" id="tt4"><label class="form-check-label" for="tt4">Traslado de bodega por obsolescencia, desuso o reposición</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Traslado de un activo de bodega a centro de costo" id="tt5"><label class="form-check-label" for="tt5">Traslado de un activo de bodega a centro de costo</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_tipo" value="Traslado del activo de un tercero" id="tt6"><label class="form-check-label" for="tt6">Traslado del activo de un tercero</label></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Características del traslado</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_caracteristicas" value="Salida de activos" id="tc1"><label class="form-check-label" for="tc1">Salida de activos</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_caracteristicas" value="Activo Ajeno" id="tc2"><label class="form-check-label" for="tc2">Activo Ajeno</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_caracteristicas" value="Asignación permanente de activo" id="tc3"><label class="form-check-label" for="tc3">Asignación permanente de activo</label></div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_caracteristicas" value="Asignación temporal del activo" id="tc4"><label class="form-check-label" for="tc4">Asignación temporal del activo</label></div>
+          <label class="form-label mt-2">Lugar o evento de destino:</label>
+          <input type="text" name="traslado_lugar_evento" class="form-control form-control-sm">
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Especificaciones de Ubicación</h5></div>
+    <div class="col-md-6"><label class="form-label">Ubicación Inicial</label><input type="text" name="traslado_ubicacion_inicial" class="form-control"></div>
+    <div class="col-md-6"><label class="form-label">Ubicación Final</label><input type="text" name="traslado_destino" class="form-control"></div>
+
+    <div class="col-md-6 mt-3">
+      <h5 class="fs-6 fw-bold">Origen (Quién Entrega)</h5>
+      <input type="text" name="traslado_resp_actual" class="form-control" placeholder="Nombre del responsable actual...">
+    </div>
+
+    <div class="col-md-6 mt-3 position-relative">
+      <h5 class="fs-6 fw-bold">Destino (Quién Recibe)</h5>
+      <input type="text" id="funcionario-traslado-search" class="form-control" placeholder="Buscar nuevo responsable...">
+      <div id="funcionario-traslado-search-results" class="list-group search-results mt-1"></div>
+      <input type="hidden" name="funcionario_id_nuevo">
+    </div>
+
+    <div class="col-12 mt-3">
+      <label class="form-label">Observaciones</label>
+      <textarea name="observaciones_generales" class="form-control" rows="2"></textarea>
+    </div>
+  </div>
+</div>

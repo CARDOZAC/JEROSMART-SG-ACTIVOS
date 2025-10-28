@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario General de Activos{% endblock %}
+
+{% block head_extra %}
+<style>
+    .main-card {
+        background-color: #ffffff;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+        border: none;
+        overflow: hidden;
+    }
+    .table-hover tbody tr {
+        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f1f5f9;
+        transform: scale(1.015);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+    }
+    .thead-custom {
+        background-color: #4a5568;
+        color: white;
+    }
+    .filter-bar {
+        background-color: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid #dee2e6;
+    }
+    .badge-propio {
+        background-color: #e0f2fe !important;
+        color: #0c4a6e !important;
+    }
+    .badge-ajeno {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+    }
+    .clickable-row {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card main-card">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <h2 class="h3 mb-0 text-dark fw-bold"><i class="bi bi-collection-fill me-2 text-primary"></i>Inventario General de Activos</h2>
+                <div>
+                    {% if session.get('rol') == 'admin' %}
+                    <a href="{{ url_for('importar_activos') }}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar CSV</a>
+                    <a href="{{ url_for('add_activo') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Agregar Activo</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Barra de Búsqueda y Filtros Mejorada -->
+            <div class="filter-bar mb-4">
+                <form method="GET" action="{{ url_for('ver_activos') }}" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="q" class="form-label fw-semibold">Buscar Activo</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="q" id="q" value="{{ filtros.q or '' }}" class="form-control" placeholder="Nombre, placa, serie...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtro_tipo" class="form-label fw-semibold">Tipo de Propiedad</label>
+                        <select name="filtro_tipo" id="filtro_tipo" class="form-select">
+                            <option value="">Todos los Tipos</option>
+                            <option value="Propio" {% if filtros.tipo == 'Propio' %}selected{% endif %}>Propios</option>
+                            <option value="Ajeno" {% if filtros.tipo == 'Ajeno' %}selected{% endif %}>Ajenos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtro_clase" class="form-label fw-semibold">Clase de Activo</label>
+                        <select name="filtro_clase" id="filtro_clase" class="form-select">
+                            <option value="">Todas las Clases</option>
+                            {% for clase in clases %}
+                            <option value="{{ clase.id }}" {% if filtros.clase|string == clase.id|string %}selected{% endif %}>{{ clase.nombre_clase }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabla de Activos Unificada -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th>Placa</th>
+                            <th>Nombre del Activo</th>
+                            <th>Tipo / Clase</th>
+                            <th>Propietario / Responsable</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activo in activos %}
+                        <tr class='clickable-row' data-href="{{ url_for('edit_activo', activo_id=activo.id) }}">
+                            <td><strong class="text-primary">{{ activo.placa_codigo }}</strong></td>
+                            <td>
+                                <div class="fw-bold">{{ activo.nombre_activo }}</div>
+                                <small class="text-muted">S/N: {{ activo.serie or 'N/A' }}</small>
+                            </td>
+                            <td>
+                                {% if activo.tipo_propiedad == 'Propio' %}
+                                    <span class="badge rounded-pill badge-propio fs-6">
+                                        <i class="bi bi-building me-1"></i>Propio
+                                    </span>
+                                    <div class="text-muted small">{{ activo.nombre_clase or 'Sin clase' }}</div>
+                                {% elif activo.tipo_propiedad == 'Ajeno' %}
+                                    <span class="badge rounded-pill badge-ajeno fs-6">
+                                        <i class="bi bi-person-badge me-1"></i>Ajeno
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if activo.tipo_propiedad == 'Ajeno' %}
+                                    <div class="fw-bold" title="Propietario del activo">{{ activo.propietario_ajeno or 'No especificado' }}</div>
+                                {% else %}
+                                    <div class="fw-bold" title="Responsable del activo">{{ activo.funcionario_responsable or 'Sin Asignar' }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set estado_map = {
+                                    'Operativo': {'class': 'bg-success', 'icon': 'bi-check-circle-fill'},
+                                    'En Mantenimiento': {'class': 'bg-warning text-dark', 'icon': 'bi-tools'},
+                                    'En préstamo': {'class': 'bg-info text-dark', 'icon': 'bi-arrow-left-right'},
+                                    'Dañado': {'class': 'bg-danger', 'icon': 'bi-x-octagon-fill'},
+                                    'Retirado': {'class': 'bg-secondary', 'icon': 'bi-box-arrow-left'}
+                                } %}
+                                {% set estado_info = estado_map.get(activo.estado, {'class': 'bg-light text-dark', 'icon': 'bi-question-circle'}) %}
+                                <span class="badge {{ estado_info.class }}"><i class="bi {{ estado_info.icon }} me-1"></i>{{ activo.estado }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if session.get('rol') == 'admin' %}
+                                    <a href="{{ url_for('edit_activo', activo_id=activo.id) }}" class="btn btn-outline-secondary btn-sm" title="Editar Activo">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-delete-url="{{ url_for('delete_activo', activo_id=activo.id) }}" data-asset-name="{{ activo.nombre_activo }}" title="Eliminar Activo" onclick="event.stopPropagation();">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="bi bi-folder-x fs-2"></i>
+                                <h5 class="mt-2">No se encontraron activos</h5>
+                                <p>Intenta con otros términos de búsqueda o agrega un nuevo activo.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar permanentemente el activo: <strong id="assetName"></strong>?</p>
+                <p class="text-danger"><strong>Advertencia:</strong> Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Lógica para hacer las filas de la tabla clicables
+    const rows = document.querySelectorAll('.clickable-row');
+    rows.forEach(row => {
+        row.addEventListener('click', () => {
+            window.location.href = row.dataset.href;
+        });
+    });
+
+    // Lógica para el modal de confirmación de eliminación
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const deleteUrl = button.getAttribute('data-delete-url');
+            const assetName = button.getAttribute('data-asset-name');
+            
+            const modalAssetName = confirmDeleteModal.querySelector('#assetName');
+            const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
+            
+            modalAssetName.textContent = assetName;
+            deleteForm.action = deleteUrl;
+        });
+    }
+});
+</script>
+{% endblock %}

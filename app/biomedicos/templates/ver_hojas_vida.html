@@ -1,0 +1,394 @@
+<!-- ============================================ -->
+<!-- ver_hojas_vida.html -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hojas de Vida - Módulo Biomédico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .back-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 25px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f7fafc;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .badge-danger {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-view {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .btn-edit {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .btn-delete {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .filters select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="table-container">
+            <button class="back-button" onclick="window.location.href='/biomedicos'">← Volver al Dashboard</button>
+            <h2>📋 Hojas de Vida Registradas</h2>
+            
+            <div class="filters">
+                <select id="filterTipo">
+                    <option value="">Todos los equipos</option>
+                    <option value="monitor">Monitores</option>
+                    <option value="ventilador">Ventiladores</option>
+                    <option value="desfibrilador">Desfibriladores</option>
+                    <option value="bomba">Bombas de Infusión</option>
+                    <option value="otros">Otros</option>
+                </select>
+                <select id="filterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="activo">Activo</option>
+                    <option value="mantenimiento">En Mantenimiento</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="baja">Dado de Baja</option>
+                </select>
+                <select id="filterUbicacion">
+                    <option value="">Todas las ubicaciones</option>
+                    <option value="uci">UCI</option>
+                    <option value="urgencias">Urgencias</option>
+                    <option value="cirugia">Cirugía</option>
+                    <option value="hospitalizacion">Hospitalización</option>
+                </select>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" placeholder="🔍 Buscar por placa, marca, modelo, serie o ubicación..." id="searchHojaVida">
+                <button class="btn btn-primary" onclick="buscarHojaVida()">Buscar</button>
+                <button class="btn btn-primary" onclick="window.location.href='/biomedicos/wizard/select'">+ Nueva Hoja de Vida</button>
+            </div>
+
+            <table id="tablaHojasVida">
+                <thead>
+                    <tr>
+                        <th>Placa</th>
+                        <th>Equipo Biomédico</th>
+                        <th>Marca / Modelo</th>
+                        <th>Serie</th>
+                        <th>Ubicación</th>
+                        <th>Estado</th>
+                        <th>Última Actualización</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>BM-001</strong></td>
+                        <td>Monitor de Signos Vitales</td>
+                        <td>Philips / IntelliVue MX400</td>
+                        <td>US20210415</td>
+                        <td>UCI - Cama 3</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>15/09/2024</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-view" title="Ver Hoja de Vida" onclick="verHojaVida('BM-001')">👁️</button>
+                                <button class="btn-icon btn-edit" title="Editar" onclick="editarHojaVida('BM-001')">✏️</button>
+                                <button class="btn-icon btn-delete" title="Eliminar" onclick="eliminarHojaVida('BM-001')">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>BM-002</strong></td>
+                        <td>Ventilador Mecánico</td>
+                        <td>Dräger / Evita V300</td>
+                        <td>DRAE-2021-0892</td>
+                        <td>UCI - Cama 1</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>20/09/2024</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-view" title="Ver Hoja de Vida">👁️</button>
+                                <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                <button class="btn-icon btn-delete" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>BM-003</strong></td>
+                        <td>Desfibrilador</td>
+                        <td>ZOLL / R Series</td>
+                        <td>ZL-19-4567</td>
+                        <td>Urgencias</td>
+                        <td><span class="badge badge-warning">Mantenimiento</span></td>
+                        <td>10/09/2024</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-view" title="Ver Hoja de Vida">👁️</button>
+                                <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                <button class="btn-icon btn-delete" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>BM-004</strong></td>
+                        <td>Bomba de Infusión</td>
+                        <td>B.Braun / Infusomat Space</td>
+                        <td>BB-2022-1234</td>
+                        <td>UCI - Cama 5</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>25/09/2024</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-view" title="Ver Hoja de Vida">👁️</button>
+                                <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                <button class="btn-icon btn-delete" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>BM-005</strong></td>
+                        <td>Electrocardiografo</td>
+                        <td>GE / MAC 2000</td>
+                        <td>GE-ECG-0856</td>
+                        <td>Hospitalización 2do Piso</td>
+                        <td><span class="badge badge-danger">Inactivo</span></td>
+                        <td>05/09/2024</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-view" title="Ver Hoja de Vida">👁️</button>
+                                <button class="btn-icon btn-edit" title="Editar">✏️</button>
+                                <button class="btn-icon btn-delete" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function buscarHojaVida() {
+            const searchValue = document.getElementById('searchHojaVida').value.toLowerCase();
+            const table = document.getElementById('tablaHojasVida');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td');
+                let found = false;
+                
+                for (let j = 0; j < td.length - 1; j++) {
+                    if (td[j].textContent.toLowerCase().indexOf(searchValue) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                tr[i].style.display = found ? '' : 'none';
+            }
+        }
+
+        function verHojaVida(placa) {
+            alert('Ver hoja de vida del equipo: ' + placa);
+            // Implementar navegación a vista detallada
+        }
+
+        function editarHojaVida(placa) {
+            alert('Editar hoja de vida del equipo: ' + placa);
+            // Implementar navegación a formulario de edición
+        }
+
+        function eliminarHojaVida(placa) {
+            if (confirm('¿Está seguro de eliminar la hoja de vida del equipo ' + placa + '?')) {
+                alert('Hoja de vida eliminada');
+                // Implementar lógica de eliminación
+            }
+        }
+
+        // Event listeners para filtros
+        document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
+        document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+        document.getElementById('filterUbicacion').addEventListener('change', aplicarFiltros);
+
+        function aplicarFiltros() {
+            // Implementar lógica de filtrado combinado
+            console.log('Filtros aplicados');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "entrada_salida": ["Responsable_del_activo", "Jefe_inmediato_del_responsable","VoBo_activos_fijos","soporte_clinica_primavera/tercero_a_cargo"],
+  "traslado": ["Responsable_Actual", "Responsable_Nuevo", "Jefe_inmediato_del_responsable_nuevo","VoBo_activos_fijos"],
+  "entrega": ["Funcionario_Entrega","jefe_inmediato_funcionario_entrega","Funcionario_Recibe","jefe_inmediato_quien_recibe","VoBo_activos_fijos","soporte_clinica_primavera"]
+}

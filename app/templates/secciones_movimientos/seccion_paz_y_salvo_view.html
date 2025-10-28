@@ -1,0 +1,27 @@
+{% if detalles %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h5 class="card-title mb-3">Detalles de Paz y Salvo</h5>
+        <ul class="list-group list-group-flush rounded-3 border">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Funcionario Desvinculado:</strong>
+                <span>{{ movimiento.funcionario_desvinculado_nombre or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Fecha de Inspección:</strong>
+                <span>{{ detalles.fecha_inspeccion|formatdate or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Estado de Inspección:</strong>
+                <span>{{ detalles.estado_inspeccion or '—' }}</span>
+            </li>
+            {% if detalles.observaciones_paz_salvo %}
+            <li class="list-group-item">
+                <strong>Observaciones:</strong>
+                <p class="mb-0 mt-1 text-muted">{{ detalles.observaciones_paz_salvo }}</p>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endif %}

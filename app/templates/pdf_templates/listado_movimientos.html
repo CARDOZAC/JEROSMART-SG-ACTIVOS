@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Movimientos</title>
+    <!-- Incluimos Poppins para la estética del reporte -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+    <style>
+        @page { size: A4 portrait; margin: 2cm 1.5cm; }
+        body { font-family: 'Poppins', Arial, sans-serif; font-size: 9pt; color: #3d405b; }
+        
+        /* Encabezado */
+        header {
+            border-bottom: 2px solid #98c1d9;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+        h1 {
+            font-size: 16pt;
+            font-weight: 600;
+            color: #212529;
+            margin: 0;
+            padding: 0;
+        }
+        .subheader {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8pt;
+            color: #778da9;
+            margin-top: 4px;
+        }
+        .subheader span {
+            margin-right: 15px;
+        }
+
+        /* Sección de Estadísticas */
+        .stats-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .stats-table th, .stats-table td {
+            border: none;
+            padding: 12px 8px;
+            background-color: #e0fbfc;
+            border-right: 1px solid rgba(0,0,0,0.05);
+            font-size: 10pt;
+        }
+        .stats-table th {
+            background-color: #98c1d9;
+            color: #fff;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .stats-table th:last-child, .stats-table td:last-child {
+            border-right: none;
+        }
+
+        /* Tabla de Movimientos */
+        table.movimientos-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+        .movimientos-table thead th {
+            background-color: #f0f0f5;
+            color: #3d405b;
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #dcdce2;
+            border-top: 1px solid #dcdce2;
+        }
+        .movimientos-table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .movimientos-table tbody tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+        .movimientos-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .center { text-align: center; }
+        .badge {
+            background-color: #98c1d9;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 7pt;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Listado de Movimientos</h1>
+        <div class="subheader">
+            <div>
+                <span>Generado: {{ generado }}</span>
+                <span>Usuario: {{ usuario or 'N/A' }}</span>
+            </div>
+            <div>
+                <span>Filtros:</span>
+                <span>Tipo: {{ filtros.tipo if filtros.tipo else 'Todos' }}</span>
+                <span>Búsqueda: {{ '“' + filtros.q + '”' if filtros.q else 'Sin búsqueda' }}</span>
+            </div>
+        </div>
+    </header>
+
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th>Total</th>
+                <th>Entrega</th>
+                <th>Traslado</th>
+                <th>Entrada/Salida</th>
+                <th>Paz y Salvo</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>{{ stats.total }}</strong></td>
+                <td>{{ stats.entrega }}</td>
+                <td>{{ stats.traslado }}</td>
+                <td>{{ stats.es }}</td>
+                <td>{{ stats.paz }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="movimientos-table">
+        <thead>
+            <tr>
+                <th style="width:8%">ID</th>
+                <th style="width:18%">Tipo</th>
+                <th style="width:16%">Fecha</th>
+                <th style="width:28%">Sujeto principal</th>
+                <th style="width:10%" class="center">Activos</th>
+                <th style="width:20%">Usuario</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>#{{ r.id }}</td>
+                <td>
+                    {% if r.tipo_movimiento == 'Entrega' %}<span class="badge" style="background-color:#54b281">Entrega</span>
+                    {% elif r.tipo_movimiento == 'Traslado' %}<span class="badge" style="background-color:#50b9cd">Traslado</span>
+                    {% elif r.tipo_movimiento == 'Entrada/Salida' %}<span class="badge" style="background-color:#e59954">Entrada/Salida</span>
+                    {% elif r.tipo_movimiento == 'Paz y Salvo' %}<span class="badge" style="background-color:#778da9">Paz y Salvo</span>
+                    {% else %}{{ r.tipo_movimiento }}{% endif %}
+                </td>
+                <td>{{ r.fecha }}</td>
+                <td>{{ r.sujeto_principal or 'N/A' }}</td>
+                <td class="center">{{ r.activos_count or 0 }}</td>
+                <td>{{ r.usuario_registra or '' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="center" style="color: #778da9; padding: 30px;">
+                    No hay resultados para los filtros aplicados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

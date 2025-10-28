@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizard de Mantenimiento Biomédico</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración para usar la fuente Inter -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .step-indicator {
+            transition: width 0.3s ease-in-out;
+        }
+        .custom-shadow {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 6px 6px rgba(0, 0, 0, 0.05);
+        }
+        .form-container {
+            min-height: 400px; /* Asegura un tamaño mínimo para la vista */
+        }
+    </style>
+</head>
+<body>
+
+<div class="min-h-screen p-4 md:p-10 flex items-start justify-center">
+    <div id="maintenance-wizard" class="w-full max-w-5xl bg-white rounded-xl custom-shadow">
+        
+        <!-- HEADER Y PROGRESS BAR -->
+        <header class="p-6 border-b border-gray-100">
+            <h1 class="text-3xl font-extrabold text-gray-800">
+                <i class="fas fa-tools text-indigo-600 mr-2"></i> Nuevo Reporte de Mantenimiento
+            </h1>
+            <p class="text-gray-500 mt-1">Siga los pasos para generar el reporte dinámico.</p>
+            <div class="mt-4">
+                <div class="flex justify-between text-sm font-medium text-gray-600">
+                    <span id="step-label">Paso 1: Selección del Equipo</span>
+                    <span id="step-count">1 de 3</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full step-indicator" style="width: 33.33%"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENEDOR DEL WIZARD (FORMULARIO) -->
+        <div class="p-6 form-container">
+            <form id="dynamic-form-wizard" action="/biomedicos/mantenimientos/nuevo" method="POST" class="space-y-6">
+                <!-- Secciones del formulario -->
+                <div id="step-1" class="transition-opacity duration-300">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">1. Seleccione el Activo Biomédico</h2>
+                    
+                    <div class="mb-4">
+                        <label for="activo_id" class="block text-sm font-medium text-gray-700 mb-1">Buscar Equipo (Placa/Serie/Nombre)</label>
+                        <input type="text" id="activo_search" placeholder="Escriba aquí para buscar..."
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                               autocomplete="off">
+                        <input type="hidden" name="activo_id" id="activo_id">
+                    </div>
+
+                    <!-- Resultados de la búsqueda -->
+                    <div id="search-results" class="space-y-2 max-h-48 overflow-y-auto rounded-lg shadow-inner bg-gray-50 p-2">
+                        <p class="text-gray-500 text-sm p-1">Comience a escribir para ver los resultados.</p>
+                    </div>
+
+                    <!-- Datos del activo seleccionado (Card de confirmación) -->
+                    <div id="activo-details" class="mt-6 p-4 border border-indigo-200 bg-indigo-50 rounded-lg hidden">
+                        <p class="font-bold text-indigo-700">Activo Seleccionado:</p>
+                        <p class="text-sm text-indigo-600">
+                            <span id="activo-nombre"></span> (<span id="activo-placa"></span>)
+                        </p>
+                        <p class="text-xs text-indigo-500 mt-1">Ubicación: <span id="activo-ubicacion"></span></p>
+                    </div>
+
+                </div>
+
+                <div id="step-2" class="transition-opacity duration-300 hidden">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">2. Seleccione el Tipo de Reporte</h2>
+                    <label for="tipo_reporte_id" class="block text-sm font-medium text-gray-700 mb-1">Formato Institucional de Mantenimiento</label>
+                    <select id="tipo_reporte_name" name="tipo_reporte_name" 
+                            class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                        <option value="">-- Seleccione un formato --</option>
+                        <!-- Opciones cargadas por JS -->
+                    </select>
+
+                    <input type="hidden" name="tipo_id" id="tipo_id">
+                </div>
+                
+                <div id="step-3" class="transition-opacity duration-300 hidden">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">3. Detalles del Mantenimiento</h2>
+                    
+                    <!-- Campos comunes del mantenimiento -->
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label for="fecha_mantenimiento" class="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
+                            <input type="datetime-local" name="fecha_mantenimiento" id="fecha_mantenimiento" required
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="duracion_minutos" class="block text-sm font-medium text-gray-700 mb-1">Duración (minutos)</label>
+                            <input type="number" name="duracion_minutos" id="duracion_minutos" min="1" placeholder="Ej: 60"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado del Mantenimiento</label>
+                        <select name="estado" id="estado" required
+                                class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="Completo">Completo</option>
+                            <option value="Incompleto">Incompleto</option>
+                            <option value="Pendiente">Pendiente</option>
+                        </select>
+                    </div>
+
+                    <!-- CONTENEDOR DINÁMICO DE ATRIBUTOS -->
+                    <h3 class="text-lg font-semibold text-gray-600 mb-3 border-t pt-4">Resultados de la Inspección</h3>
+                    <div id="dynamic-fields-container" class="space-y-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <p class="text-center text-gray-500 italic">El formulario dinámico se cargará aquí.</p>
+                    </div>
+
+                    <!-- OBSERVACIONES GENERALES -->
+                    <div class="mt-6">
+                        <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones Generales</label>
+                        <textarea name="observaciones" id="observaciones" rows="3"
+                                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                  placeholder="Notas adicionales, recomendaciones o hallazgos."></textarea>
+                    </div>
+
+                </div>
+
+                <!-- Botones de Navegación -->
+                <div class="flex justify-between pt-6 border-t border-gray-100">
+                    <button type="button" id="prev-btn" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition duration-150 disabled:opacity-50" disabled>
+                        <i class="fas fa-arrow-left mr-2"></i> Anterior
+                    </button>
+                    <button type="button" id="next-btn" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 disabled:opacity-50">
+                        Siguiente <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" id="submit-btn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150 hidden">
+                        <i class="fas fa-save mr-2"></i> Guardar Reporte
+                    </button>
+                </div>
+
+                <!-- Contenedor para mensajes de error y loading -->
+                <div id="message-container" class="mt-4 p-3 rounded-lg text-center font-medium hidden"></div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- LIBRERÍAS (Font Awesome para iconos) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+<!-- JAVASCRIPT DINÁMICO (Lógica del Wizard y APIs) -->
+<script>
+    // --- VARIABLES GLOBALES ---
+    const API_BASE = '/api'; // Prefijo base para las APIs de Flask
+    const WIZARD_STEPS = ['step-1', 'step-2', 'step-3'];
+    let currentStepIndex = 0;
+    let allFormats = {}; // Almacenará los formatos JSON cargados
+    let selectedActivo = null;
+    
+    // --- REFERENCIAS DOM ---
+    const form = document.getElementById('dynamic-form-wizard');
+    const progressBar = document.getElementById('progress-bar');
+    const stepLabel = document.getElementById('step-label');
+    const stepCount = document.getElementById('step-count');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const messageContainer = document.getElementById('message-container');
+    const activoSearch = document.getElementById('activo_search');
+    const searchResults = document.getElementById('search-results');
+    const activoDetails = document.getElementById('activo-details');
+    const tipoReporteSelect = document.getElementById('tipo_reporte_name');
+    const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
+
+    // --- FUNCIONES UTILITARIAS ---
+    
+    /** Muestra mensajes de feedback (errores, éxito, loading) */
+    function showMessage(msg, type = 'info') {
+        let bgColor, textColor;
+        switch (type) {
+            case 'success': bgColor = 'bg-green-100'; textColor = 'text-green-800'; break;
+            case 'error': bgColor = 'bg-red-100'; textColor = 'text-red-800'; break;
+            case 'warning': bgColor = 'bg-yellow-100'; textColor = 'text-yellow-800'; break;
+            case 'loading': bgColor = 'bg-blue-100'; textColor = 'text-blue-800'; msg = `<i class="fas fa-spinner fa-spin mr-2"></i> ${msg}`; break;
+            default: bgColor = 'bg-gray-100'; textColor = 'text-gray-800';
+        }
+        messageContainer.className = `mt-4 p-3 rounded-lg text-center font-medium ${bgColor} ${textColor}`;
+        messageContainer.innerHTML = msg;
+        messageContainer.classList.remove('hidden');
+    }
+
+    /** Navega entre los pasos del wizard */
+    function goToStep(index) {
+        if (index < 0 || index >= WIZARD_STEPS.length) return;
+        
+        // Ocultar todos los pasos y botones de navegación
+        WIZARD_STEPS.forEach((id, i) => {
+            const stepElement = document.getElementById(id);
+            if (i === index) {
+                stepElement.classList.remove('hidden');
+                stepElement.classList.add('opacity-100');
+            } else {
+                stepElement.classList.add('hidden');
+                stepElement.classList.remove('opacity-100');
+            }
+        });
+
+        currentStepIndex = index;
+
+        // Actualizar barra de progreso y etiquetas
+        const progress = ((index + 1) / WIZARD_STEPS.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        stepCount.textContent = `${index + 1} de ${WIZARD_STEPS.length}`;
+
+        const stepTitles = [
+            'Paso 1: Selección del Equipo',
+            'Paso 2: Selección del Reporte',
+            'Paso 3: Llenado Dinámico del Reporte'
+        ];
+        stepLabel.textContent = stepTitles[index];
+
+        // Control de botones
+        prevBtn.disabled = index === 0;
+        nextBtn.classList.toggle('hidden', index === WIZARD_STEPS.length - 1);
+        submitBtn.classList.toggle('hidden', index !== WIZARD_STEPS.length - 1);
+        
+        // Lógica específica por paso
+        if (index === 2 && !dynamicFieldsContainer.innerHTML) {
+            // Recargar campos dinámicos si estamos en el paso 3 y no se han cargado (ej. refresco)
+            loadDynamicFields(tipoReporteSelect.value);
+        }
+    }
+
+    // --- FUNCIONES DE CARGA DE DATOS ---
+
+    /** Carga todos los nombres de los formatos de mantenimiento (desde formatos.json) */
+    async function fetchMaintenanceTypes() {
+        showMessage('Cargando tipos de formatos...', 'loading');
+        try {
+            // NOTA: Esta ruta debe ser implementada en app/biomedicos/routes.py para leer formatos.json
+            const response = await fetch(`${API_BASE}/mantenimiento/formatos`); 
+            if (!response.ok) throw new Error('Error al cargar tipos de reportes.');
+            const data = await response.json();
+            allFormats = data.formats; 
+            tipoReporteSelect.innerHTML = '<option value="">-- Seleccione un formato --</option>';
+            Object.keys(allFormats).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                tipoReporteSelect.appendChild(option);
+            });
+            showMessage('Tipos de reportes cargados.', 'success');
+        } catch (error) {
+            showMessage(`Error: ${error.message}. Asegúrese de que la ruta API /mantenimiento/formatos esté implementada.`, 'error');
+        }
+    }
+    
+    /** Genera el formulario dinámico basado en el nombre del reporte (Step 3) */
+    function loadDynamicFields(formatName) {
+        if (!formatName || !allFormats[formatName]) {
+            dynamicFieldsContainer.innerHTML = '<p class="text-center text-gray-500 italic">Seleccione un formato para cargar los campos dinámicos.</p>';
+            return;
+        }
+
+        const fields = allFormats[formatName];
+        let htmlContent = '';
+
+        fields.forEach(field => {
+            const fieldId = `field_${field.name}`;
+            const isRequired = field.required ? 'required' : '';
+            const requiredMark = field.required ? '<span class="text-red-500">*</span>' : '';
+            
+            htmlContent += `<div class="mb-4">`;
+            htmlContent += `<label for="${fieldId}" class="block text-sm font-medium text-gray-700 mb-1">${field.label} ${requiredMark}</label>`;
+
+            switch (field.type) {
+                case 'select':
+                    // Genera un campo SELECT
+                    htmlContent += `<select name="atributos_reporte_json[${field.name}]" id="${fieldId}" ${isRequired} 
+                                        class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">`;
+                    htmlContent += `<option value="">-- Seleccione --</option>`;
+                    field.options.forEach(option => {
+                        htmlContent += `<option value="${option}">${option}</option>`;
+                    });
+                    htmlContent += `</select>`;
+                    break;
+                case 'textarea':
+                    // Genera un campo TEXTAREA (para observaciones largas)
+                    htmlContent += `<textarea name="atributos_reporte_json[${field.name}]" id="${fieldId}" rows="3" ${isRequired}
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" 
+                                        placeholder="Ingrese observaciones o resultados..."></textarea>`;
+                    break;
+                default:
+                    // Genera un campo TEXT (para texto, números, fechas, etc.)
+                    htmlContent += `<input type="${field.type}" name="atributos_reporte_json[${field.name}]" id="${fieldId}" ${isRequired}
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">`;
+                    break;
+            }
+
+            htmlContent += `</div>`;
+        });
+        
+        dynamicFieldsContainer.innerHTML = htmlContent;
+    }
+    
+    /** Búsqueda de activos biomédicos (Step 1) */
+    async function searchActivos(term) {
+        if (term.length < 3) {
+            searchResults.innerHTML = '<p class="text-gray-500 text-sm p-1">Escriba al menos 3 caracteres para buscar.</p>';
+            activoDetails.classList.add('hidden');
+            return;
+        }
+
+        searchResults.innerHTML = '<p class="text-blue-600 text-sm p-1"><i class="fas fa-spinner fa-spin mr-2"></i> Buscando...</p>';
+
+        try {
+            // NOTA: La ruta API /activos/biomedicos debe ser implementada en app/activos/routes.py 
+            // y debe filtrar por clase_id=1.
+            const response = await fetch(`${API_BASE}/activos/biomedicos?q=${term}`);
+            const data = await response.json();
+
+            if (data.length === 0) {
+                searchResults.innerHTML = '<p class="text-red-500 text-sm p-1">No se encontraron activos biomédicos.</p>';
+                return;
+            }
+
+            let resultsHtml = '';
+            data.forEach(activo => {
+                resultsHtml += `
+                    <div data-id="${activo.id}" data-nombre="${activo.nombre_activo}" data-placa="${activo.placa_codigo_interno}" data-ubicacion="${activo.ubicacion}"
+                         class="p-2 border border-gray-200 rounded-lg hover:bg-indigo-50 cursor-pointer transition duration-150 select-activo">
+                        <p class="font-semibold text-gray-700">${activo.nombre_activo}</p>
+                        <p class="text-xs text-gray-500">Placa: ${activo.placa_codigo_interno} | Ubicación: ${activo.ubicacion}</p>
+                    </div>
+                `;
+            });
+            searchResults.innerHTML = resultsHtml;
+        } catch (error) {
+            searchResults.innerHTML = '<p class="text-red-500 text-sm p-1">Error al buscar activos.</p>';
+        }
+    }
+
+
+    // --- MANEJO DE EVENTOS ---
+    
+    // 1. Navegación del Wizard
+    prevBtn.addEventListener('click', () => {
+        goToStep(currentStepIndex - 1);
+        messageContainer.classList.add('hidden');
+    });
+
+    nextBtn.addEventListener('click', () => {
+        // Validar paso actual antes de avanzar
+        if (currentStepIndex === 0) {
+            if (!document.getElementById('activo_id').value) {
+                showMessage('Debe seleccionar un activo biomédico para continuar.', 'warning');
+                return;
+            }
+        } else if (currentStepIndex === 1) {
+            if (!tipoReporteSelect.value) {
+                showMessage('Debe seleccionar un formato de reporte para continuar.', 'warning');
+                return;
+            }
+        }
+        
+        // Si la validación es exitosa, avanzar
+        goToStep(currentStepIndex + 1);
+        messageContainer.classList.add('hidden');
+    });
+
+    // 2. Lógica de búsqueda y selección (Step 1)
+    activoSearch.addEventListener('input', (e) => {
+        searchActivos(e.target.value.trim());
+    });
+    
+    // Delegación de evento para seleccionar un activo
+    searchResults.addEventListener('click', (e) => {
+        const selected = e.target.closest('.select-activo');
+        if (selected) {
+            selectedActivo = {
+                id: selected.dataset.id,
+                nombre: selected.dataset.nombre,
+                placa: selected.dataset.placa,
+                ubicacion: selected.dataset.ubicacion
+            };
+            
+            // Actualizar campos ocultos y la tarjeta de detalles
+            document.getElementById('activo_id').value = selectedActivo.id;
+            document.getElementById('activo-nombre').textContent = selectedActivo.nombre;
+            document.getElementById('activo-placa').textContent = selectedActivo.placa;
+            document.getElementById('activo-ubicacion').textContent = selectedActivo.ubicacion;
+            activoDetails.classList.remove('hidden');
+            
+            // Vaciar y ocultar resultados
+            searchResults.innerHTML = '<p class="text-gray-500 text-sm p-1">Activo seleccionado. Pulse "Siguiente".</p>';
+            activoSearch.value = selectedActivo.nombre;
+        }
+    });
+
+    // 3. Lógica de selección de reporte (Step 2)
+    tipoReporteSelect.addEventListener('change', (e) => {
+        const formatName = e.target.value;
+        if (formatName) {
+            document.getElementById('tipo_id').value = formatName; // Usamos el nombre como ID temporal en el hidden field
+            loadDynamicFields(formatName);
+        } else {
+            document.getElementById('tipo_id').value = '';
+        }
+    });
+
+    // 4. Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+        goToStep(0);
+        fetchMaintenanceTypes();
+        // Establecer fecha actual por defecto en el campo datetime-local
+        document.getElementById('fecha_mantenimiento').value = new Date().toISOString().slice(0, 16);
+    });
+
+    // 5. Envío del Formulario (Validación final)
+    form.addEventListener('submit', (e) => {
+        // Validación final de campos obligatorios, etc.
+        if (!document.getElementById('activo_id').value) {
+            e.preventDefault();
+            goToStep(0);
+            showMessage('ERROR: El ID del activo está vacío. Seleccione un equipo.', 'error');
+            return;
+        }
+        if (!document.getElementById('tipo_id').value) {
+            e.preventDefault();
+            goToStep(1);
+            showMessage('ERROR: Debe seleccionar un tipo de reporte.', 'error');
+            return;
+        }
+        
+        showMessage('Guardando reporte...', 'loading');
+        // NOTA: El procesamiento final debe hacerse en tu ruta de Flask /biomedicos/mantenimientos/nuevo
+        // con la lógica para manejar el objeto JSON 'atributos_reporte_json'.
+    });
+
+</script>
+
+</body>
+</html>

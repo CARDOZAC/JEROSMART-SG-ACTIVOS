@@ -1,0 +1,27 @@
+{% if detalles %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h5 class="card-title mb-3">Detalles de Entrada/Salida</h5>
+        <ul class="list-group list-group-flush rounded-3 border">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Tipo de Operación:</strong>
+                <span>{{ detalles.tipo_operacion or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Entidad Externa:</strong>
+                <span>{{ detalles.entidad_externa_nombre or '—' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Fecha de Retorno Estimada:</strong>
+                <span>{{ detalles.fecha_retorno_estimada|formatdate or '—' }}</span>
+            </li>
+            {% if detalles.motivo %}
+            <li class="list-group-item">
+                <strong>Motivo:</strong>
+                <p class="mb-0 mt-1 text-muted">{{ detalles.motivo }}</p>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endif %}

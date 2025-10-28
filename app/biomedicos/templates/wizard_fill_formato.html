@@ -1,0 +1,139 @@
+{% extends "base_biomedicos.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary fw-bold">🛠️ Asistente de Mantenimiento Biomédico</h2>
+    <p class="text-center text-muted">Complete paso a paso el formato seleccionado</p>
+
+    <!-- Barra de progreso -->
+    <div class="progress mb-4">
+        <div id="wizardProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+             role="progressbar" style="width: 25%">Paso 1 de 4</div>
+    </div>
+
+    <form id="wizardForm" method="POST" enctype="multipart/form-data" class="shadow p-4 rounded bg-light">
+        <!-- Paso 1: Selección de Activo y Formato -->
+        <div class="wizard-step" id="step-1">
+            <h4 class="mb-3">📌 Información Inicial</h4>
+            <div class="mb-3">
+                <label for="activo" class="form-label">Activo Asociado</label>
+                <select class="form-select" name="activo_id" id="activo" required>
+                    <option value="">-- Seleccione Activo --</option>
+                    {% for activo in activos %}
+                        <option value="{{ activo.id }}">{{ activo.nombre_activo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="formato" class="form-label">Formato de Mantenimiento</label>
+                <select class="form-select" name="formato" id="formato" required>
+                    <option value="">-- Seleccione Formato --</option>
+                    {% for key, value in formatos.items() %}
+                        <option value="{{ key }}">{{ value.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Paso 2: Campos dinámicos cargados desde JSON -->
+        <div class="wizard-step d-none" id="step-2">
+            <h4 class="mb-3">📝 Datos del Mantenimiento</h4>
+            <div id="dynamicFields">
+                <!-- Aquí se cargarán dinámicamente los campos según formato -->
+            </div>
+        </div>
+
+        <!-- Paso 3: Observaciones -->
+        <div class="wizard-step d-none" id="step-3">
+            <h4 class="mb-3">💬 Observaciones</h4>
+            <div class="mb-3">
+                <label for="observaciones" class="form-label">Observaciones generales</label>
+                <textarea name="observaciones" id="observaciones" class="form-control" rows="4"></textarea>
+            </div>
+        </div>
+
+        <!-- Paso 4: Adjuntos -->
+        <div class="wizard-step d-none" id="step-4">
+            <h4 class="mb-3">📂 Evidencias y Archivos</h4>
+            <div class="mb-3">
+                <label for="archivos" class="form-label">Subir archivos (PDF, imágenes, etc.)</label>
+                <input type="file" class="form-control" name="archivos" id="archivos" multiple>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" id="prevBtn" class="btn btn-outline-secondary" disabled>⬅️ Atrás</button>
+            <button type="button" id="nextBtn" class="btn btn-primary">Siguiente ➡️</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const steps = document.querySelectorAll(".wizard-step");
+    const progressBar = document.getElementById("wizardProgress");
+    let currentStep = 0;
+
+    function showStep(stepIndex) {
+        steps.forEach((step, index) => {
+            step.classList.toggle("d-none", index !== stepIndex);
+        });
+        progressBar.style.width = ((stepIndex + 1) / steps.length * 100) + "%";
+        progressBar.textContent = `Paso ${stepIndex + 1} de ${steps.length}`;
+
+        document.getElementById("prevBtn").disabled = (stepIndex === 0);
+        document.getElementById("nextBtn").textContent = (stepIndex === steps.length - 1) ? "Finalizar ✅" : "Siguiente ➡️";
+    }
+
+    document.getElementById("nextBtn").addEventListener("click", function() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            document.getElementById("wizardForm").submit();
+        }
+    });
+
+    document.getElementById("prevBtn").addEventListener("click", function() {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Cargar campos dinámicos desde JSON cuando selecciona formato
+    document.getElementById("formato").addEventListener("change", function() {
+        const formatoKey = this.value;
+        if (!formatoKey) return;
+
+        fetch(`/api/formatos/${formatoKey}`)
+            .then(res => res.json())
+            .then(data => {
+                const dynamicFields = document.getElementById("dynamicFields");
+                dynamicFields.innerHTML = "";
+
+                data.campos.forEach(campo => {
+                    let input = "";
+                    if (campo.tipo === "texto") {
+                        input = `<input type="text" class="form-control" name="${campo.nombre}" placeholder="${campo.etiqueta}">`;
+                    } else if (campo.tipo === "numero") {
+                        input = `<input type="number" class="form-control" name="${campo.nombre}" placeholder="${campo.etiqueta}">`;
+                    } else if (campo.tipo === "textarea") {
+                        input = `<textarea class="form-control" name="${campo.nombre}" rows="3" placeholder="${campo.etiqueta}"></textarea>`;
+                    } else if (campo.tipo === "booleano") {
+                        input = `<select class="form-select" name="${campo.nombre}">
+                                    <option value="si">Sí</option>
+                                    <option value="no">No</option>
+                                 </select>`;
+                    }
+                    dynamicFields.innerHTML += `
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${campo.etiqueta}</label>
+                            ${input}
+                        </div>`;
+                });
+            });
+    });
+
+    showStep(currentStep);
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Traslado #{{ movimiento.id }}</title>
+    <style>
+        @page { size: letter portrait; margin: 1.5cm; }
+        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 8pt; line-height: 1.2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        td, th { border: 1px solid #000; padding: 3px 5px; text-align: left; vertical-align: top; }
+        .header-table td { text-align: center; vertical-align: middle; font-weight: bold; }
+        .logo { width: 100px; height: auto; }
+        .bg-gray { background-color: #E7E6E6; }
+        .bold { font-weight: bold; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .w-50 { width: 50%; }
+        .no-border, .no-border td { border: none; padding: 2px 0; }
+        .checkbox { display: inline-block; width: 10px; height: 10px; border: 1px solid black; text-align: center; line-height: 10px; font-weight: bold; margin-right: 5px; }
+        .signature-section { margin-top: 20px; }
+        .signature-row { display: flex; justify-content: space-between; margin-top: 30px; }
+        .signature-box { width: 48%; text-align: center; }
+        .signature-line { border-top: 1px solid #000; padding-top: 4px; font-size: 7.5pt; }
+        .signature-img { max-height: 35px; max-width: 100%; margin-bottom: 5px; }
+        .clausula { font-size: 7pt; text-align: justify; margin-top: 10px; }
+        p.small-text { font-size: 7.5pt; text-align: center; margin: 2px 0; }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td rowspan="3" style="width: 20%;"><img class="logo" src="{{ url_for('static', filename='img/logo_primavera_simple.png', _external=True) }}"></td>
+            <td rowspan="2" style="width: 50%;">CORPORACION CLINICA PRIMAVERA <br> NIT: 900213617-3</td>
+            <td style="width: 30%;">Código: 268.4-11.017</td>
+        </tr>
+        <tr><td>Versión: 4</td></tr>
+        <tr><td>TRASLADO DE ACTIVOS FIJOS</td><td>Pagina 1 de 1</td></tr>
+    </table>
+    
+    <table><tr><td class="text-center bold bg-gray">Lineamientos para el Traslado Interno de Activos Fijos</td></tr></table>
+
+    <table>
+        <tr>
+            <td><span class="bold">Fecha de Traslado:</span> {{ detalles.fecha_traslado or movimiento.fecha.split(' ')[0] }}</td>
+            <td><span class="bold">Hora de Traslado:</span> {{ detalles.hora_traslado or movimiento.fecha.split(' ')[1] }}</td>
+            <td><span class="bold">Número de traslado:</span> {{ movimiento.id }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td class="text-center bold bg-gray">Tipo de traslado (marque con una x)</td>
+        </tr>
+        <tr>
+            {% set tipo_traslado_list = detalles.tipo_traslado if detalles.tipo_traslado is iterable else [] %}
+            <td class="no-border">
+                <span class="checkbox">{% if 'Retiro de funcionario' in tipo_traslado_list %}X{% endif %}</span> Retiro de funcionario <br>
+                <span class="checkbox">{% if 'Traslado de bodega por obsolescencia, desuso o reposición' in tipo_traslado_list %}X{% endif %}</span> Traslado a bodega por obsolescencia, desuso o reposición <br>
+                <span class="checkbox">{% if 'Activo de un funcionario a otro en la misma área' in tipo_traslado_list %}X{% endif %}</span> Activo de un funcionario a otro en la misma área <br>
+                <span class="checkbox">{% if 'Traslado de un activo de bodega a centro de costo' in tipo_traslado_list %}X{% endif %}</span> Traslado de bodega a centro de costo <br>
+                <span class="checkbox">{% if 'Activo de un centro de costo a otro' in tipo_traslado_list %}X{% endif %}</span> Activo de un centro de costo a otro
+            </td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr><td class="text-center bold bg-gray" colspan="2">Especificaciones de Ubicación</td></tr>
+        <tr>
+            <td class="w-50"><span class="bold">Ubicación inicial:</span> {{ detalles.ubicacion_inicial or 'N/A' }}</td>
+            <td class="w-50"><span class="bold">Ubicación final:</span> {{ detalles.ubicacion_final or 'N/A' }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td class="w-50 text-center bold bg-gray">Origen</td>
+            <td class="w-50 text-center bold bg-gray">Destino</td>
+        </tr>
+        <tr>
+            <td><span class="bold">Responsable actual:</span> {{ detalles.origen_responsable_nombre or 'N/A' }}</td>
+            <td><span class="bold">Funcionario nuevo responsable:</span> {{ detalles.nuevo_responsable_nombre or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td><span class="bold">Cédula:</span> {{ detalles.origen_responsable_cc or 'N/A' }}</td>
+            <td><span class="bold">Cédula:</span> {{ detalles.nuevo_responsable_cc or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td><span class="bold">Cargo:</span> {{ detalles.origen_responsable_cargo or 'N/A' }}</td>
+            <td><span class="bold">Cargo:</span> {{ detalles.nuevo_responsable_cargo or 'N/A' }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">N°</th><th rowspan="2">Descripción del activo</th><th rowspan="2">Placa</th><th rowspan="2">Marca</th><th rowspan="2">Modelo</th><th rowspan="2">Serie</th>
+                <th colspan="3" class="text-center">Estado Actual</th>
+            </tr>
+            <tr><th>Bueno</th><th>Regular</th><th>Malo</th></tr>
+        </thead>
+        <tbody>
+            {% for activo in activos %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td><td>{{ activo.nombre_activo }}</td><td>{{ activo.placa_codigo_interno or '' }}</td>
+                <td>{{ activo.marca or '' }}</td><td>{{ activo.modelo or '' }}</td><td>{{ activo.serie or '' }}</td>
+                <td class="text-center"><span class="checkbox">{% if activo.estado == 'Bueno' %}X{% endif %}</span></td>
+                <td class="text-center"><span class="checkbox">{% if activo.estado == 'Regular' %}X{% endif %}</span></td>
+                <td class="text-center"><span class="checkbox">{% if activo.estado == 'Malo' %}X{% endif %}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" style="height: 100px;">&nbsp;</td></tr>
+            {% endfor %}
+            <tr><td colspan="8" class="bold text-right">Total activos:</td><td class="text-center">{{ activos|length }}</td></tr>
+        </tbody>
+    </table>
+
+    <table>
+        <thead><tr><th>Descripción de accesorios</th><th>Referencia</th><th>Serial</th><th>Cantidad</th></tr></thead>
+        <tbody>
+            {% set total_accesorios = 0 %}
+            {% for activo in activos %}
+                {% if accesorios_por_activo.get(activo.id) %}
+                    {% for acc in accesorios_por_activo.get(activo.id, []) %}
+                        <tr><td>{{ acc.descripcion }} (del activo: {{ activo.placa_codigo_interno }})</td><td>{{ acc.referencia or '' }}</td><td>{{ acc.serial or '' }}</td><td class="text-center">{{ acc.cantidad }}</td></tr>
+                        {% set total_accesorios = total_accesorios + acc.cantidad %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            {% if total_accesorios == 0 %}
+                <tr><td style="height: 30px;">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            {% endif %}
+            <tr><td colspan="3" class="bold text-right">Total Accesorios:</td><td class="text-center">{{ total_accesorios }}</td></tr>
+        </tbody>
+    </table>
+    
+    <table>
+        <tr><td class="bold">Observaciones</td></tr>
+        <tr><td style="height: 40px;">{{ movimiento.observaciones_generales or 'Sin observaciones.' }}</td></tr>
+    </table>
+
+    <div class="signature-section">
+        <table class="no-border">
+            <tr>
+                <td class="text-center bold bg-gray w-50">Quién recibe</td>
+                <td class="text-center bold bg-gray w-50">Quién entrega</td>
+            </tr>
+        </table>
+        <div class="signature-row">
+            <div class="signature-box">
+                {% if firmas.get('Nuevo_Responsable') %}<img src="{{ firmas['Nuevo_Responsable'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">{{ detalles.nuevo_responsable_nombre or '____________________' }}<br>Nombre</div>
+            </div>
+            <div class="signature-box">
+                {% if firmas.get('Responsable_Origen') %}<img src="{{ firmas['Responsable_Origen'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">{{ detalles.origen_responsable_nombre or '____________________' }}<br>Nombre</div>
+            </div>
+        </div>
+        <div class="signature-row">
+            <div class="signature-box">
+                {% if firmas.get('Soporte_Tecnico') %}<img src="{{ firmas['Soporte_Tecnico'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">Soporte Técnico (correspondiente al activo)</div>
+            </div>
+            <div class="signature-box">
+                {% if firmas.get('VoBo_Activos_Fijos') %}<img src="{{ firmas['VoBo_Activos_Fijos'] }}" class="signature-img">{% endif %}
+                <div class="signature-line">Vo.Bo. Responsable activos fijos</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="clausula">
+        <span class="bold">Clausula de compromiso funcionario responsable:</span>
+        Declaro que los activos relacionados en el presente documento son propiedad de la empresa y que están bajo mi responsabilidad, que se trata de herramientas para la ejecución de mi labor, por lo cual me comprometo a aplicar los procedimientos establecidos para la administración de activos. En caso de perdida o robo presentaré denuncia correspondiente. Me responsabilizo de la correcta administración y conservación de los activos arriba relacionados y el incumplimiento de las medidas ordinarias de conservación constituye una falta a mis obligaciones.
+    </div>
+</body>
+</html>

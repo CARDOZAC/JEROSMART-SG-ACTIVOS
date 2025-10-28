@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Inventario de Activos{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold"><i class="bi bi-box-seam"></i> Inventario de Activos</h2>
+        <a href="{{ url_for('activos.crear') }}" class="btn btn-success btn-lg shadow-sm animated-btn">
+            <i class="bi bi-plus-circle"></i> Nuevo Activo
+        </a>
+    </div>
+
+    <!-- Buscador -->
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control form-control-lg shadow-sm"
+               placeholder="🔍 Buscar activo por nombre, serial o responsable...">
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive shadow-sm rounded-3">
+        <table class="table table-hover align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Serial</th>
+                    <th>Ubicación</th>
+                    <th>Responsable</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for activo in activos %}
+                <tr class="table-row">
+                    <td>{{ activo.id }}</td>
+                    <td>{{ activo.nombre }}</td>
+                    <td>{{ activo.serial }}</td>
+                    <td>{{ activo.ubicacion }}</td>
+                    <td>{{ activo.responsable }}</td>
+                    <td>
+                        <a href="{{ url_for('activos.editar', id=activo.id) }}" 
+                           class="btn btn-warning btn-sm me-1 animated-btn">
+                           <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <!-- Botón eliminar que abre modal -->
+                        <button type="button" class="btn btn-danger btn-sm animated-btn" 
+                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ activo.id }}">
+                        <i class="bi bi-trash3"></i> Eliminar
+                        </button>
+
+                      <!-- Modal -->
+                       <div class="modal fade" id="deleteModal{{ activo.id }}" tabindex="-1" aria-hidden="true">
+                     <div class="modal-dialog modal-dialog-centered">
+                     <div class="modal-content shadow-lg">
+                     <div class="modal-header bg-danger text-white">
+                     <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirmar eliminación</h5>
+                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                     </div>
+                     <div class="modal-body text-center">
+                     <p>¿Estás seguro de eliminar el activo <strong>{{ activo.nombre }}</strong> con serial <strong>{{ activo.serial }}</strong>?</p>
+                     <small class="text-muted">Esta acción no se puede deshacer.</small>
+                     </div>
+                    <div class="modal-footer">
+                     <button type="button" class="btn btn-secondary animated-btn" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{{ url_for('activos.eliminar', id=activo.id) }}" class="btn btn-danger animated-btn">Eliminar</a>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-muted">No hay activos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Script buscador -->
+<script>
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#tableBody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+        });
+    });
+</script>
+
+<style>
+    /* Hover Glow */
+    .table-row:hover {
+        background-color: #f8f9fa;
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
+        transition: 0.3s;
+    }
+
+    /* Botón animado */
+    .animated-btn {
+        transition: transform 0.2s ease;
+    }
+    .animated-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
