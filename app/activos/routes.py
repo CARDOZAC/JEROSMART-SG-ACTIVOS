@@ -10,7 +10,7 @@ from sqlalchemy import select, func, and_, or_, exc
 from ..extensions import db
 from ..models import (
     Activo, ClaseActivo, Funcionario, MovimientoActivo, Mantenimiento,
-    HojasDeVida
+    HojaDeVida
 )
 from ..decorators import login_required, role_required
 

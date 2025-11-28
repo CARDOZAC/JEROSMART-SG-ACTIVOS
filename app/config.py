@@ -1,29 +1,13 @@
 import os
 from pathlib import Path
 
-# Define la ruta base del proyecto de forma segura e independiente del SO.
-# BASE_DIR apunta al directorio raíz del proyecto (SIG MOVIMIENTOS ACTIVOS FIJOS).
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Config:
-    """
-    Clase de configuración principal para la aplicación Flask.
-    Centraliza todas las variables de configuración.
-    """
-    # --- Configuración de Seguridad ---
-    # Clave secreta para proteger sesiones y datos firmados (CSRF).
-    # Es CRÍTICO usar una variable de entorno en producción.
     SECRET_KEY = os.environ.get('SECRET_KEY', 'una-clave-secreta-muy-dificil-de-adivinar-para-desarrollo')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
 
-    # --- Configuración de la Base de Datos ---
-    # URI de la base de datos, configurada exclusivamente para SQLite.
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'activos_fijos_v4.db'}"
-    # Desactiva una característica de Flask-SQLAlchemy que no se necesita y consume recursos.
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # --- Configuración de Rutas de Archivos ---
-    # Se usa pathlib para una gestión de rutas moderna y robusta.
     UPLOAD_FOLDER = BASE_DIR / 'uploads'
     SIGNATURES_FOLDER = UPLOAD_FOLDER / 'signatures'
     HOJAS_DE_VIDA_FOLDER = UPLOAD_FOLDER / 'hojas_de_vida'
@@ -32,7 +16,6 @@ class Config:
     PURCHASE_ORDER_FOLDER = UPLOAD_FOLDER / 'purchase_orders'
     LOAN_CONTRACT_FOLDER = UPLOAD_FOLDER / 'loan_contracts'
 
-    # --- Constantes de la Aplicación ---
     ATRIBUTOS_POR_CLASE = {
         '1': [
             {'name': 'registro_invima', 'label': 'Registro Invima', 'type': 'text', 'required': False},
@@ -79,16 +62,31 @@ class Config:
 
     @staticmethod
     def init_app(app):
-        """
-        Realiza inicializaciones que dependen de la instancia de la aplicación.
-        Crea las carpetas necesarias si no existen.
-        """
         required_folders = [
             app.config['UPLOAD_FOLDER'], app.config['SIGNATURES_FOLDER'],
             app.config['HOJAS_DE_VIDA_FOLDER'], app.config['MAINTENANCE_PHOTOS_FOLDER'],
             app.config['INVOICE_FOLDER'], app.config['PURCHASE_ORDER_FOLDER'],
             app.config['LOAN_CONTRACT_FOLDER']
         ]
-
         for folder in required_folders:
             Path(folder).mkdir(parents=True, exist_ok=True)
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'activos_fijos_dev.db'}"
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        f"sqlite:///{BASE_DIR / 'activos_fijos_prod.db'}"
+
+config = {
+    'development': DevelopmentConfig,
+    'testing': TestingConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig
+}
