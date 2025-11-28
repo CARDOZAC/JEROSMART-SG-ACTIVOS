@@ -1,15 +1,16 @@
 import os
 from flask import Flask
-from .extensions import db, login_manager
-from .config import Config
+from .extensions import db, login_manager, Migrate
+from .config import config
 
-def create_app(config_class=Config):
+def create_app(config_name='default'):
     """Factory para crear la aplicación Flask."""
     app = Flask(__name__, instance_relative_config=True)
 
     # --- Configuración ---
     # Carga la configuración desde el objeto importado de config.py
-    app.config.from_object(config_class)
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
     # Asegúrate de que la carpeta de instancia exista
     try:
@@ -20,6 +21,8 @@ def create_app(config_class=Config):
     # --- Inicializar Extensiones ---
     db.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    migrate = Migrate(app, db)
 
     # --- Registrar Blueprints (módulos de rutas) ---
     # Los imports se hacen aquí para evitar importaciones circulares
@@ -42,6 +45,5 @@ def create_app(config_class=Config):
 
     # --- Crear carpetas de subida ---
     # Llama a la función de inicialización de la configuración
-    config_class.init_app(app)
 
     return app

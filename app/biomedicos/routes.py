@@ -12,7 +12,7 @@ import weasyprint
 from ..extensions import db
 # Asumo que tus modelos están definidos y se pueden importar.
 # Necesitaríamos crearlos si no existen.
-from ..models import Mantenimiento, Activo, MantenimientoTipo, HojasDeVida, MantenimientoFoto, User
+from ..models import Mantenimiento, Activo, MantenimientoTipo, HojaDeVida, MantenimientoFoto, User
 
 biomedicos_bp = Blueprint(
     "biomedicos",
