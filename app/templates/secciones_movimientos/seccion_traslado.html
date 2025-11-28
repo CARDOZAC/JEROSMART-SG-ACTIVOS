@@ -29,25 +29,76 @@
         <div class="col-md-6">
           <div class="form-check"><input class="form-check-input" type="checkbox" name="traslado_caracteristicas" value="Asignación temporal del activo" id="tc4"><label class="form-check-label" for="tc4">Asignación temporal del activo</label></div>
           <label class="form-label mt-2">Lugar o evento de destino:</label>
-          <input type="text" name="traslado_lugar_evento" class="form-control form-control-sm">
+          <input type="text" name="traslado_lugar_destino" class="form-control form-control-sm">
         </div>
       </div>
     </div>
 
     <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Especificaciones de Ubicación</h5></div>
     <div class="col-md-6"><label class="form-label">Ubicación Inicial</label><input type="text" name="traslado_ubicacion_inicial" class="form-control"></div>
-    <div class="col-md-6"><label class="form-label">Ubicación Final</label><input type="text" name="traslado_destino" class="form-control"></div>
+    <div class="col-md-6"><label class="form-label">Ubicación Final</label><input type="text" name="traslado_ubicacion_final" class="form-control"></div>
 
-    <div class="col-md-6 mt-3">
-      <h5 class="fs-6 fw-bold">Origen (Quién Entrega)</h5>
-      <input type="text" name="traslado_resp_actual" class="form-control" placeholder="Nombre del responsable actual...">
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Responsable Origen (Quién Entrega)</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Nombre Completo</label>
+      <input type="text" name="origen_responsable_nombre" id="origen_responsable_nombre" class="form-control" placeholder="Nombre del responsable actual">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cédula</label>
+      <input type="text" name="origen_responsable_cc" id="origen_responsable_cc" class="form-control" placeholder="Cédula">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cargo</label>
+      <input type="text" name="origen_responsable_cargo" id="origen_responsable_cargo" class="form-control" placeholder="Cargo">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Área</label>
+      <input type="text" name="origen_responsable_area" id="origen_responsable_area" class="form-control" placeholder="Área o Servicio">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Código de Costo</label>
+      <input type="text" name="origen_codigo_costo" class="form-control" placeholder="Código">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Centro de Costo</label>
+      <input type="text" name="origen_centro_costo" class="form-control" placeholder="Centro de Costo">
     </div>
 
-    <div class="col-md-6 mt-3 position-relative">
-      <h5 class="fs-6 fw-bold">Destino (Quién Recibe)</h5>
-      <input type="text" id="funcionario-traslado-search" class="form-control" placeholder="Buscar nuevo responsable...">
-      <div id="funcionario-traslado-search-results" class="list-group search-results mt-1"></div>
-      <input type="hidden" name="funcionario_id_nuevo">
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Responsable Destino (Quién Recibe)</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Nombre Completo</label>
+      <input type="text" name="nuevo_responsable_nombre" id="nuevo_responsable_nombre" class="form-control" placeholder="Buscar nuevo responsable">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cédula</label>
+      <input type="text" name="nuevo_responsable_cc" id="nuevo_responsable_cc" class="form-control" placeholder="Cédula">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cargo</label>
+      <input type="text" name="nuevo_responsable_cargo" id="nuevo_responsable_cargo" class="form-control" placeholder="Cargo">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Área</label>
+      <input type="text" name="nuevo_responsable_area" id="nuevo_responsable_area" class="form-control" placeholder="Área o Servicio">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Código de Costo</label>
+      <input type="text" name="nuevo_codigo_costo" class="form-control" placeholder="Código">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Centro de Costo</label>
+      <input type="text" name="nuevo_centro_costo" class="form-control" placeholder="Centro de Costo">
+    </div>
+
+    <div class="col-12 mt-3">
+      <label class="form-label">Estado del Activo</label>
+      <select name="estado_activo" class="form-select">
+        <option value="">Seleccione...</option>
+        <option value="Bueno">Bueno</option>
+        <option value="Regular">Regular</option>
+        <option value="Malo">Malo</option>
+        <option value="Fuera de Servicio">Fuera de Servicio</option>
+      </select>
     </div>
 
     <div class="col-12 mt-3">

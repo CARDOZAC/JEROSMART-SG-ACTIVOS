@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}{{ activo.nombre_activo }} - Detalle{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Diseño iOS-inspired con cards */
+    .detail-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .ios-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .ios-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+    }
+
+    .ios-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .ios-card-header h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .ios-card-body {
+        padding: 1.5rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: background 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: #e9ecef;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .timeline {
+        position: relative;
+        padding: 1rem 0;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 3rem;
+        padding-bottom: 2rem;
+        border-left: 2px solid #dee2e6;
+    }
+
+    .timeline-item:last-child {
+        border-left-color: transparent;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -6px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #667eea;
+        box-shadow: 0 0 0 4px white, 0 0 0 6px #667eea40;
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .timeline-content:hover {
+        transform: translateX(5px);
+        background: #e9ecef;
+    }
+
+    .timeline-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .tab-container {
+        display: flex;
+        gap: 1rem;
+        border-bottom: 2px solid #dee2e6;
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        color: #667eea;
+    }
+
+    .tab-btn.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .depreciation-chart {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .circular-progress {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 150px;
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .action-btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .action-btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="container">
+        <!-- Header con breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('activos.ver_activos') }}"><i class="bi bi-house-fill"></i> Activos</a></li>
+                <li class="breadcrumb-item active">{{ activo.nombre_activo }}</li>
+            </ol>
+        </nav>
+
+        <!-- Card principal con información general -->
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3><i class="bi bi-box-seam me-2"></i>{{ activo.nombre_activo }}</h3>
+                        <p class="mb-0 mt-2" style="opacity: 0.9;">Placa: {{ activo.placa_codigo_interno }}</p>
+                    </div>
+                    <div>
+                        {% set estado_map = {
+                            'Operativo': {'class': 'bg-success', 'icon': 'bi-check-circle-fill'},
+                            'En Mantenimiento': {'class': 'bg-warning text-dark', 'icon': 'bi-tools'},
+                            'En préstamo': {'class': 'bg-info text-dark', 'icon': 'bi-arrow-left-right'},
+                            'Dañado': {'class': 'bg-danger', 'icon': 'bi-x-octagon-fill'},
+                            'Retirado': {'class': 'bg-secondary', 'icon': 'bi-box-arrow-left'}
+                        } %}
+                        {% set estado_info = estado_map.get(activo.estado, {'class': 'bg-light text-dark', 'icon': 'bi-question-circle'}) %}
+                        <span class="status-badge {{ estado_info.class }}">
+                            <i class="bi {{ estado_info.icon }} me-2"></i>{{ activo.estado }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="ios-card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-tag me-1"></i>Marca</span>
+                        <span class="info-value">{{ activo.marca or 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-gear me-1"></i>Modelo</span>
+                        <span class="info-value">{{ activo.modelo or 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-123 me-1"></i>Serie</span>
+                        <span class="info-value">{{ activo.serie or 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-geo-alt me-1"></i>Ubicación</span>
+                        <span class="info-value">{{ activo.ubicacion or 'N/A' }}</span>
+                    </div>
+                    {% if clase %}
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-folder me-1"></i>Clase</span>
+                        <span class="info-value">{{ clase.nombre_clase }}</span>
+                    </div>
+                    {% endif %}
+                    {% if funcionario %}
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-person-badge me-1"></i>Responsable</span>
+                        <span class="info-value">{{ funcionario.nombres }} {{ funcionario.apellidos }}</span>
+                    </div>
+                    {% endif %}
+                    {% if activo.valor_comercial %}
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-currency-dollar me-1"></i>Valor Comercial</span>
+                        <span class="info-value text-success">${{ '{:,.0f}'.format(activo.valor_comercial) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-graph-down me-1"></i>Depreciación</span>
+                        <span class="info-value text-warning">${{ '{:,.0f}'.format(activo.depreciacion_acumulada) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-calculator me-1"></i>Valor en Libros</span>
+                        <span class="info-value text-primary">${{ '{:,.0f}'.format(activo.valor_en_libros) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if activo.observaciones %}
+                <div class="mt-4">
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-chat-left-text me-1"></i>Observaciones</span>
+                        <span class="info-value">{{ activo.observaciones }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Atributos dinámicos específicos por clase -->
+        {% if atributos_dinamicos %}
+        <div class="ios-card">
+            <div class="ios-card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3><i class="bi bi-sliders me-2"></i>Características Técnicas</h3>
+            </div>
+            <div class="ios-card-body">
+                <div class="info-grid">
+                    {% for attr_spec in atributos_spec %}
+                        {% if atributos_dinamicos.get(attr_spec.name) %}
+                        <div class="info-item">
+                            <span class="info-label">{{ attr_spec.label }}</span>
+                            <span class="info-value">{{ atributos_dinamicos[attr_spec.name] }}</span>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tabs para historial -->
+        <div class="ios-card">
+            <div class="ios-card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3><i class="bi bi-clock-history me-2"></i>Historial del Activo</h3>
+            </div>
+            <div class="ios-card-body">
+                <div class="tab-container">
+                    <button class="tab-btn active" onclick="switchTab('movimientos')">
+                        <i class="bi bi-arrow-left-right me-2"></i>Movimientos
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('mantenimientos')">
+                        <i class="bi bi-tools me-2"></i>Mantenimientos
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('depreciacion')">
+                        <i class="bi bi-graph-down me-2"></i>Depreciación
+                    </button>
+                </div>
+
+                <!-- Tab Movimientos -->
+                <div id="tab-movimientos" class="tab-content active">
+                    {% if movimientos %}
+                    <div class="timeline">
+                        {% for ma in movimientos %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-date">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ ma.movimiento.fecha }}
+                                </div>
+                                <strong>{{ ma.movimiento.tipo_movimiento }}</strong>
+                                {% if ma.movimiento.observaciones_generales %}
+                                <p class="mb-0 mt-2 text-muted">{{ ma.movimiento.observaciones_generales }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No hay movimientos registrados</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Mantenimientos -->
+                <div id="tab-mantenimientos" class="tab-content">
+                    {% if mantenimientos %}
+                    <div class="timeline">
+                        {% for mant in mantenimientos %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="background: #28a745;"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-date">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ mant.fecha_mantenimiento }}
+                                </div>
+                                <strong>{{ mant.tipo.nombre }}</strong>
+                                <span class="badge bg-{{ 'success' if mant.estado == 'Completado' else 'warning' }} ms-2">
+                                    {{ mant.estado }}
+                                </span>
+                                {% if mant.observaciones %}
+                                <p class="mb-0 mt-2 text-muted">{{ mant.observaciones }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-wrench"></i>
+                        <p>No hay mantenimientos registrados</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Depreciación -->
+                <div id="tab-depreciacion" class="tab-content">
+                    {% if activo.valor_comercial %}
+                    <div class="depreciation-chart">
+                        <h5 class="mb-4">Estado de Depreciación</h5>
+                        <div class="circular-progress mb-4">
+                            <svg width="200" height="200">
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="#e9ecef" stroke-width="20"></circle>
+                                <circle
+                                    cx="100"
+                                    cy="100"
+                                    r="90"
+                                    fill="none"
+                                    stroke="#ffc107"
+                                    stroke-width="20"
+                                    stroke-dasharray="{{ (activo.depreciacion_acumulada / activo.valor_comercial * 565) if activo.valor_comercial else 0 }} 565"
+                                    class="progress-ring"
+                                ></circle>
+                                <text x="100" y="105" text-anchor="middle" font-size="24" font-weight="bold" fill="#ffc107">
+                                    {{ '{:.1f}'.format((activo.depreciacion_acumulada / activo.valor_comercial * 100) if activo.valor_comercial else 0) }}%
+                                </text>
+                            </svg>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Valor Original</h6>
+                                <h4 class="text-success">${{ '{:,.0f}'.format(activo.valor_comercial) }}</h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Depreciación</h6>
+                                <h4 class="text-warning">${{ '{:,.0f}'.format(activo.depreciacion_acumulada) }}</h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Valor Actual</h6>
+                                <h4 class="text-primary">${{ '{:,.0f}'.format(activo.valor_en_libros) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-graph-down"></i>
+                        <p>No hay información de depreciación disponible</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="ios-card">
+            <div class="ios-card-body">
+                <div class="quick-actions">
+                    <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="action-btn action-btn-primary">
+                        <i class="bi bi-pencil-square"></i> Editar Activo
+                    </a>
+                    {% if clase and clase.nombre_clase == 'Equipo Biomédico' %}
+                    <a href="{{ url_for('biomedicos.api_generar_pdf_consolidado', activo_id=activo.id) }}" class="action-btn action-btn-success">
+                        <i class="bi bi-file-medical"></i> Ver Hoja de Vida
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('movimientos.add_movimiento') }}?activo_id={{ activo.id }}" class="action-btn action-btn-warning">
+                        <i class="bi bi-arrow-left-right"></i> Registrar Movimiento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(tabName) {
+    // Desactivar todos los tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    // Activar el tab seleccionado
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+}
+</script>
+{% endblock %}

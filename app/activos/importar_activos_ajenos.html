@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Migrar Activos Ajenos{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 fw-bold">
+                    <i class="bi bi-cloud-upload-fill text-primary me-3"></i>Migración de Activos Ajenos
+                </h1>
+                <a href="{{ url_for('activos.ver_activos', filtro_tipo='Ajeno') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4 p-lg-5">
+
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading">Instrucciones</h5>
+                            <p class="mb-1">Seleccione un archivo en formato <strong>.csv</strong> para migrar los activos ajenos. El archivo debe contener las siguientes columnas (el orden no importa):</p>
+                            <ul class="mb-0">
+                                <li><code>nombre</code></li>
+                                <li><code>placa_codigo_interno</code> (debe ser único)</li>
+                                <li><code>serial</code></li>
+                                <li><code>referencia</code> (se mapeará al campo 'modelo')</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('activos.importar_activos_ajenos') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                        <div class="mb-3">
+                            <label for="archivo_csv" class="form-label fs-5">Seleccionar archivo CSV</label>
+                            <input class="form-control form-control-lg" type="file" id="archivo_csv" name="archivo_csv" accept=".csv" required>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-play-circle-fill me-2"></i>Iniciar Migración
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Módulo de Reportes{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Módulo de Reportes{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+    <p class="lead text-muted mb-4">
+        Seleccione uno de los reportes disponibles para generar y visualizar los datos consolidados del sistema.
+    </p>
+
+    <div class="row g-4 mt-4">
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('reportes.reporte_depreciacion') }}" class="text-decoration-none">
+                <div class="action-card h-100 ios-glass">
+                    <div class="action-card-icon bg-primary-light text-primary">
+                        <i class="bi bi-graph-down-arrow"></i>
+                    </div>
+                    <h4 class="action-card-title">Reporte de Depreciación</h4>
+                    <p class="action-card-text">Calcula y muestra la depreciación acumulada y el valor en libros de los activos.</p>
+                </div>
+            </a>
+        </div>
+        <!-- Aquí se pueden añadir más tarjetas para futuros reportes -->
+    </div>
+</div>
+{% endblock %}

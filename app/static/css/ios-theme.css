@@ -1,0 +1,765 @@
+/**
+ * ========================================================================
+ * iOS THEME - GLASSMORPHISM & MODERN UI
+ * Sistema de Gestión de Activos Fijos - Clínica Primavera
+ *
+ * Este archivo implementa el diseño completo estilo iOS con:
+ * - Glassmorphism (backdrop-filter blur)
+ * - Typography SF Pro / Inter
+ * - Animaciones spring bounce
+ * - Colores oficiales iOS
+ * - Componentes modernos
+ * ========================================================================
+ */
+
+/* ========================================================================
+   IMPORTAR FUENTE INTER (Equivalente open-source de SF Pro)
+   ======================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ========================================================================
+   VARIABLES GLOBALES iOS
+   ======================================================================== */
+:root {
+    /* === TYPOGRAPHY === */
+    --ios-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --ios-font-size-large-title: 34px;  /* Large Title */
+    --ios-font-size-title1: 28px;       /* Title 1 */
+    --ios-font-size-title2: 22px;       /* Title 2 */
+    --ios-font-size-title3: 20px;       /* Title 3 */
+    --ios-font-size-headline: 17px;     /* Headline (bold) */
+    --ios-font-size-body: 17px;         /* Body */
+    --ios-font-size-callout: 16px;      /* Callout */
+    --ios-font-size-subhead: 15px;      /* Subhead */
+    --ios-font-size-footnote: 13px;     /* Footnote */
+    --ios-font-size-caption1: 12px;     /* Caption 1 */
+    --ios-font-size-caption2: 11px;     /* Caption 2 */
+
+    /* === COLORES iOS === */
+    --ios-blue: #007AFF;                /* Azul primario iOS */
+    --ios-blue-dark: #0051D5;           /* Azul oscuro (hover) */
+    --ios-blue-light: #5AC8FA;          /* Azul claro */
+    --ios-green: #34C759;               /* Verde (success) */
+    --ios-yellow: #FFCC00;              /* Amarillo (warning) */
+    --ios-orange: #FF9500;              /* Naranja */
+    --ios-red: #FF3B30;                 /* Rojo (danger) */
+    --ios-pink: #FF2D55;                /* Rosa */
+    --ios-purple: #AF52DE;              /* Morado */
+    --ios-indigo: #5856D6;              /* Índigo */
+    --ios-teal: #5AC8FA;                /* Verde agua */
+    --ios-cyan: #32ADE6;                /* Cian */
+
+    /* === GRISES iOS === */
+    --ios-gray-1: #8E8E93;              /* Gray (texto secundario) */
+    --ios-gray-2: #AEAEB2;              /* Gray 2 */
+    --ios-gray-3: #C7C7CC;              /* Gray 3 */
+    --ios-gray-4: #D1D1D6;              /* Gray 4 */
+    --ios-gray-5: #E5E5EA;              /* Gray 5 (borders) */
+    --ios-gray-6: #F2F2F7;              /* Gray 6 (backgrounds) */
+
+    /* === FONDOS === */
+    --ios-bg-primary: #FFFFFF;          /* Fondo principal */
+    --ios-bg-secondary: #F2F2F7;        /* Fondo secundario */
+    --ios-bg-tertiary: #E5E5EA;         /* Fondo terciario */
+
+    /* === GLASSMORPHISM === */
+    --ios-glass-bg: rgba(255, 255, 255, 0.75);
+    --ios-glass-bg-light: rgba(255, 255, 255, 0.85);
+    --ios-glass-bg-heavy: rgba(255, 255, 255, 0.95);
+    --ios-glass-border: rgba(255, 255, 255, 0.3);
+    --ios-blur: 20px;
+    --ios-blur-heavy: 30px;
+    --ios-saturation: 180%;
+
+    /* === SOMBRAS iOS === */
+    --ios-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+    --ios-shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.08),
+                     0 0 0 0.5px rgba(0, 0, 0, 0.03);
+    --ios-shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.12),
+                     0 0 0 0.5px rgba(0, 0, 0, 0.03);
+    --ios-shadow-xl: 0 16px 48px 0 rgba(0, 0, 0, 0.15),
+                     0 0 0 0.5px rgba(0, 0, 0, 0.03);
+
+    /* === BORDER RADIUS === */
+    --ios-radius-sm: 8px;               /* Pequeño */
+    --ios-radius-md: 12px;              /* Mediano (botones) */
+    --ios-radius-lg: 16px;              /* Grande (cards) */
+    --ios-radius-xl: 20px;              /* Extra grande (modals) */
+    --ios-radius-2xl: 24px;             /* 2X Grande */
+    --ios-radius-full: 9999px;          /* Circular */
+
+    /* === TRANSICIONES === */
+    --ios-easing: cubic-bezier(0.4, 0, 0.2, 1);  /* Easing iOS */
+    --ios-easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* Spring bounce */
+    --ios-duration-fast: 0.2s;
+    --ios-duration-normal: 0.3s;
+    --ios-duration-slow: 0.5s;
+
+    /* === ESPACIADO === */
+    --ios-space-1: 4px;
+    --ios-space-2: 8px;
+    --ios-space-3: 12px;
+    --ios-space-4: 16px;
+    --ios-space-5: 20px;
+    --ios-space-6: 24px;
+    --ios-space-8: 32px;
+    --ios-space-10: 40px;
+    --ios-space-12: 48px;
+}
+
+/* ========================================================================
+   DARK MODE (iOS automático)
+   ======================================================================== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ios-bg-primary: #000000;
+        --ios-bg-secondary: #1C1C1E;
+        --ios-bg-tertiary: #2C2C2E;
+        --ios-glass-bg: rgba(30, 30, 30, 0.8);
+        --ios-glass-bg-light: rgba(30, 30, 30, 0.9);
+        --ios-glass-bg-heavy: rgba(30, 30, 30, 0.95);
+        --ios-glass-border: rgba(255, 255, 255, 0.1);
+        --ios-gray-1: #AEAEB2;
+        --ios-gray-5: #3A3A3C;
+        --ios-gray-6: #2C2C2E;
+    }
+}
+
+/* ========================================================================
+   RESET & BASE
+   ======================================================================== */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--ios-font-family) !important;
+    font-size: var(--ios-font-size-body);
+    font-weight: 400;
+    line-height: 1.47059;  /* iOS line-height ratio */
+    letter-spacing: -0.02em;  /* iOS tracking */
+    background-color: var(--ios-bg-secondary);
+    color: #000000;
+}
+
+/* ========================================================================
+   TYPOGRAPHY iOS
+   ======================================================================== */
+h1, .ios-large-title {
+    font-size: var(--ios-font-size-large-title);
+    font-weight: 700;
+    line-height: 1.11765;
+    letter-spacing: -0.02em;
+}
+
+h2, .ios-title1 {
+    font-size: var(--ios-font-size-title1);
+    font-weight: 700;
+    line-height: 1.14286;
+    letter-spacing: -0.02em;
+}
+
+h3, .ios-title2 {
+    font-size: var(--ios-font-size-title2);
+    font-weight: 600;
+    line-height: 1.27273;
+    letter-spacing: -0.015em;
+}
+
+h4, .ios-title3 {
+    font-size: var(--ios-font-size-title3);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+h5, .ios-headline {
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    line-height: 1.29412;
+    letter-spacing: -0.01em;
+}
+
+.ios-body {
+    font-size: var(--ios-font-size-body);
+    font-weight: 400;
+    line-height: 1.47059;
+    letter-spacing: -0.02em;
+}
+
+.ios-callout {
+    font-size: var(--ios-font-size-callout);
+    font-weight: 400;
+    line-height: 1.375;
+    letter-spacing: -0.01em;
+}
+
+.ios-subhead {
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 400;
+    line-height: 1.33333;
+    letter-spacing: -0.01em;
+}
+
+.ios-footnote {
+    font-size: var(--ios-font-size-footnote);
+    font-weight: 400;
+    line-height: 1.38462;
+    letter-spacing: -0.01em;
+    color: var(--ios-gray-1);
+}
+
+.ios-caption1 {
+    font-size: var(--ios-font-size-caption1);
+    font-weight: 400;
+    line-height: 1.33333;
+    color: var(--ios-gray-1);
+}
+
+.ios-caption2 {
+    font-size: var(--ios-font-size-caption2);
+    font-weight: 400;
+    line-height: 1.36364;
+    color: var(--ios-gray-1);
+}
+
+/* ========================================================================
+   GLASSMORPHISM - APLICAR A TODAS LAS CARDS
+   ======================================================================== */
+.card,
+.stat-card,
+.action-card,
+.movimiento-card,
+.filter-container,
+.dashboard-table-container,
+.chart-container,
+.alert,
+.modal-content {
+    background: var(--ios-glass-bg) !important;
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 0.5px solid var(--ios-glass-border) !important;
+    box-shadow: var(--ios-shadow-md) !important;
+    transition: all var(--ios-duration-normal) var(--ios-easing) !important;
+}
+
+/* Cards con hover */
+.card:hover,
+.stat-card:hover,
+.action-card:hover,
+.movimiento-card:hover {
+    background: var(--ios-glass-bg-light) !important;
+    box-shadow: var(--ios-shadow-lg) !important;
+    transform: translateY(-4px) scale(1.01);
+}
+
+/* Cards activas (al presionar) */
+.card:active,
+.stat-card:active,
+.action-card:active,
+.movimiento-card:active {
+    transform: translateY(-2px) scale(0.98);
+    transition: all var(--ios-duration-fast) var(--ios-easing);
+}
+
+/* ========================================================================
+   BORDER RADIUS iOS (16px para cards)
+   ======================================================================== */
+.card,
+.stat-card,
+.action-card,
+.movimiento-card,
+.chart-container,
+.filter-container,
+.dashboard-table-container {
+    border-radius: var(--ios-radius-lg) !important;
+}
+
+.alert {
+    border-radius: var(--ios-radius-md) !important;
+}
+
+.modal-content {
+    border-radius: var(--ios-radius-xl) !important;
+}
+
+/* ========================================================================
+   BOTONES iOS
+   ======================================================================== */
+.btn {
+    font-family: var(--ios-font-family);
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border-radius: var(--ios-radius-md) !important;
+    padding: 12px 24px;
+    border: none;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+}
+
+.btn:active {
+    transform: scale(0.96);
+    transition: all var(--ios-duration-fast) var(--ios-easing);
+}
+
+/* Botón primario iOS */
+.btn-primary {
+    background: var(--ios-blue) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px 0 rgba(0, 122, 255, 0.3);
+}
+
+.btn-primary:hover {
+    background: var(--ios-blue-dark) !important;
+    box-shadow: 0 4px 16px 0 rgba(0, 122, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Botón secundario */
+.btn-secondary {
+    background: var(--ios-gray-6) !important;
+    color: var(--ios-blue) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--ios-gray-5) !important;
+}
+
+/* Botón success */
+.btn-success {
+    background: var(--ios-green) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px 0 rgba(52, 199, 89, 0.3);
+}
+
+.btn-success:hover {
+    background: #30B955 !important;
+    box-shadow: 0 4px 16px 0 rgba(52, 199, 89, 0.4);
+}
+
+/* Botón danger */
+.btn-danger {
+    background: var(--ios-red) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px 0 rgba(255, 59, 48, 0.3);
+}
+
+.btn-danger:hover {
+    background: #E8362F !important;
+    box-shadow: 0 4px 16px 0 rgba(255, 59, 48, 0.4);
+}
+
+/* Botón outline */
+.btn-outline-primary {
+    background: transparent !important;
+    border: 1.5px solid var(--ios-blue) !important;
+    color: var(--ios-blue) !important;
+}
+
+.btn-outline-primary:hover {
+    background: var(--ios-blue) !important;
+    color: white !important;
+}
+
+/* Botones grandes */
+.btn-lg {
+    border-radius: 14px !important;
+    padding: 16px 32px;
+    font-size: 18px;
+}
+
+/* Botones pequeños */
+.btn-sm {
+    border-radius: 10px !important;
+    padding: 8px 16px;
+    font-size: 15px;
+}
+
+/* ========================================================================
+   NAVBAR iOS (con blur)
+   ======================================================================== */
+.navbar-custom {
+    background: var(--ios-glass-bg-light) !important;
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(var(--ios-saturation));
+    border-bottom: 0.5px solid var(--ios-gray-5);
+    box-shadow: none !important;  /* iOS no usa sombras fuertes en navbar */
+}
+
+.navbar-custom.scrolled {
+    background: var(--ios-glass-bg-heavy) !important;
+}
+
+.navbar-brand {
+    font-size: var(--ios-font-size-title3);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.navbar-custom .nav-link {
+    font-size: var(--ios-font-size-body);
+    font-weight: 500;
+    transition: color var(--ios-duration-normal) var(--ios-easing);
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active-link {
+    color: var(--ios-blue) !important;
+}
+
+/* ========================================================================
+   FORMULARIOS iOS
+   ======================================================================== */
+.form-control,
+.form-select {
+    font-family: var(--ios-font-family);
+    font-size: var(--ios-font-size-body);
+    padding: 12px 16px;
+    border-radius: var(--ios-radius-md) !important;
+    border: 1px solid var(--ios-gray-5);
+    background: var(--ios-bg-primary);
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+.form-label {
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 500;
+    color: var(--ios-gray-1);
+    margin-bottom: 8px;
+}
+
+/* ========================================================================
+   BADGES iOS
+   ======================================================================== */
+.badge {
+    font-size: var(--ios-font-size-footnote);
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--ios-radius-full);
+}
+
+.badge-movimiento {
+    font-size: var(--ios-font-size-footnote);
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: var(--ios-radius-full);
+}
+
+/* ========================================================================
+   MODALS iOS (Bottom Sheet Style)
+   ======================================================================== */
+.modal.ios-modal {
+    display: flex;
+    align-items: flex-end;
+}
+
+.modal.ios-modal .modal-dialog {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: translateY(100%);
+    transition: transform var(--ios-duration-slow) var(--ios-easing);
+}
+
+.modal.ios-modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
+.modal.ios-modal .modal-content {
+    border-radius: var(--ios-radius-xl) var(--ios-radius-xl) 0 0 !important;
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(var(--ios-saturation));
+    background: var(--ios-glass-bg-heavy) !important;
+    border: none;
+    padding-top: 8px;
+}
+
+/* Drag handle (barrita superior del modal) */
+.modal.ios-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 5px;
+    background: var(--ios-gray-3);
+    border-radius: 3px;
+}
+
+/* ========================================================================
+   ANIMACIONES iOS
+   ======================================================================== */
+
+/* Spring Bounce (característico de iOS) */
+@keyframes springBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Fade In */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide Up (para modals) */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Slide Down */
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Shimmer Loading (skeleton screens iOS) */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Aplicar animaciones */
+.fade-in-item {
+    animation: fadeIn var(--ios-duration-slow) var(--ios-easing) forwards;
+    opacity: 0;
+}
+
+.spring-bounce {
+    animation: springBounce var(--ios-duration-normal) var(--ios-easing-spring);
+}
+
+/* ========================================================================
+   SKELETON LOADING iOS
+   ======================================================================== */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--ios-gray-6) 0%,
+        var(--ios-gray-5) 50%,
+        var(--ios-gray-6) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--ios-radius-md);
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    margin-bottom: 12px;
+}
+
+.skeleton-text {
+    height: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.skeleton-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+/* ========================================================================
+   TOAST NOTIFICATIONS iOS
+   ======================================================================== */
+.ios-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--ios-glass-bg-heavy);
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(var(--ios-saturation));
+    color: #000;
+    padding: 16px 24px;
+    border-radius: var(--ios-radius-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 500;
+    z-index: 9999;
+    transition: transform var(--ios-duration-slow) var(--ios-easing);
+    box-shadow: var(--ios-shadow-xl);
+    border: 0.5px solid var(--ios-glass-border);
+}
+
+.ios-toast.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.ios-toast-success {
+    background: rgba(52, 199, 89, 0.9);
+    color: white;
+}
+
+.ios-toast-error {
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+}
+
+.ios-toast-warning {
+    background: rgba(255, 204, 0, 0.9);
+    color: #000;
+}
+
+/* ========================================================================
+   PROGRESS BAR iOS
+   ======================================================================== */
+.progress {
+    height: 4px;
+    background: var(--ios-gray-5);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--ios-blue) 0%, var(--ios-blue-dark) 100%);
+    border-radius: 2px;
+    transition: width var(--ios-duration-normal) var(--ios-easing);
+}
+
+/* ========================================================================
+   HERO SECTION (Dashboard)
+   ======================================================================== */
+.hero-section {
+    background: var(--ios-glass-bg) !important;
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 0.5px solid var(--ios-glass-border);
+    box-shadow: var(--ios-shadow-md);
+}
+
+/* ========================================================================
+   STAT CARDS (Dashboard)
+   ======================================================================== */
+.stat-card .stat-icon i {
+    font-size: 3rem;
+    padding: 1.25rem;
+    border-radius: var(--ios-radius-md);
+    color: var(--ios-blue);
+    background: var(--ios-bg-secondary);
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+}
+
+.stat-card:hover .stat-icon i {
+    color: white;
+    background: var(--ios-blue);
+    transform: scale(1.1);
+}
+
+/* ========================================================================
+   ACTION CARDS (Dashboard)
+   ======================================================================== */
+.action-card .card-icon {
+    color: var(--ios-blue);
+    transition: all var(--ios-duration-normal) var(--ios-easing-spring);
+}
+
+.action-card:hover .card-icon {
+    color: var(--ios-green);
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* ========================================================================
+   TABLAS iOS
+   ======================================================================== */
+.table {
+    font-size: var(--ios-font-size-body);
+}
+
+.table thead th {
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 600;
+    color: var(--ios-gray-1);
+    border-bottom: 1px solid var(--ios-gray-5);
+    padding: 16px;
+}
+
+.table tbody td {
+    padding: 16px;
+    border-bottom: 0.5px solid var(--ios-gray-5);
+}
+
+.table-hover tbody tr:hover {
+    background: var(--ios-bg-secondary);
+}
+
+/* ========================================================================
+   RESPONSIVE iOS
+   ======================================================================== */
+@media (max-width: 768px) {
+    :root {
+        --ios-font-size-large-title: 28px;
+        --ios-font-size-title1: 24px;
+        --ios-font-size-title2: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+    }
+
+    .stat-card {
+        padding: 16px !important;
+    }
+}
+
+/* ========================================================================
+   UTILIDADES
+   ======================================================================== */
+.ios-glass {
+    background: var(--ios-glass-bg) !important;
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 0.5px solid var(--ios-glass-border);
+}
+
+.ios-shadow-sm { box-shadow: var(--ios-shadow-sm); }
+.ios-shadow-md { box-shadow: var(--ios-shadow-md); }
+.ios-shadow-lg { box-shadow: var(--ios-shadow-lg); }
+.ios-shadow-xl { box-shadow: var(--ios-shadow-xl); }
+
+.ios-radius-sm { border-radius: var(--ios-radius-sm) !important; }
+.ios-radius-md { border-radius: var(--ios-radius-md) !important; }
+.ios-radius-lg { border-radius: var(--ios-radius-lg) !important; }
+.ios-radius-xl { border-radius: var(--ios-radius-xl) !important; }
+.ios-radius-full { border-radius: var(--ios-radius-full) !important; }
+
+/* ========================================================================
+   FIN DE iOS THEME
+   ======================================================================== */

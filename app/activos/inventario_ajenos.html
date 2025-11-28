@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Activos Ajenos{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    /* Estilos adicionales para esta página si son necesarios */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- iOS Navigation Header -->
+    <div class="ios-navbar-large mb-4 ios-fade-in">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="ios-navbar-large-title mb-0">Activos Ajenos</h1>
+                <p class="ios-text-caption mt-1">Gestión de equipos en comodato, arriendo y leasing.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('activos.add_activo', tipo='Ajeno') }}" class="ios-btn ios-btn-primary ios-pulse">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Registrar Activo Ajeno
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- iOS Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-4 col-md-6 ios-fade-in" style="animation-delay: 0.1s;">
+            <div class="ios-stat-card">
+                <div class="ios-stat-icon" style="background: rgba(255, 149, 0, 0.1); color: var(--ios-orange);">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div class="ios-stat-value">{{ total_activos_ajenos or 0 }}</div>
+                <div class="ios-stat-label">Activos Ajenos Totales</div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 ios-fade-in" style="animation-delay: 0.2s;">
+            <div class="ios-stat-card">
+                <div class="ios-stat-icon" style="background: rgba(255, 59, 48, 0.1); color: var(--ios-red);">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div class="ios-stat-value">${{ '{:,.0f}'.format(costo_mensual_total or 0) }}</div>
+                <div class="ios-stat-label">Costo Mensual Estimado</div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-12 ios-fade-in" style="animation-delay: 0.3s;">
+            <div class="ios-stat-card">
+                <div class="ios-stat-icon" style="background: rgba(255, 204, 0, 0.15); color: var(--ios-yellow);">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="ios-stat-value">{{ alertas_vencimiento or 0 }}</div>
+                <div class="ios-stat-label">Contratos por Vencer</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- iOS Action Cards -->
+    <h2 class="ios-text-headline mb-4 ios-fade-in" style="animation-delay: 0.4s;">Acciones Rápidas</h2>
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-6 ios-fade-in" style="animation-delay: 0.5s;">
+            <a href="{{ url_for('activos.ver_activos', filtro_tipo='Ajeno') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 48px; color: var(--ios-blue); margin-bottom: var(--ios-space-md);"><i class="bi bi-card-checklist"></i></div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Ver Inventario Completo</h4>
+                    <p class="ios-text-caption mb-0">Consulta, busca y filtra todos los activos de terceros.</p>
+                </div>
+            </a>
+        </div>
+        
+        {% if session.get('rol') == 'Admin' %}
+        <div class="col-xl-4 col-lg-6 ios-fade-in" style="animation-delay: 0.6s;">
+            <a href="{{ url_for('activos.importar_activos_ajenos') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 48px; color: var(--ios-purple); margin-bottom: var(--ios-space-md);"><i class="bi bi-cloud-upload-fill"></i></div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Migrar Activos Ajenos</h4>
+                    <p class="ios-text-caption mb-0">Importa masivamente activos desde un archivo CSV.</p>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="col-xl-4 col-lg-6 ios-fade-in" style="animation-delay: 0.7s;">
+            <a href="#" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 48px; color: var(--ios-green); margin-bottom: var(--ios-space-md);"><i class="bi bi-file-earmark-text-fill"></i></div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Generar Reportes</h4>
+                    <p class="ios-text-caption mb-0">Exporta informes de contratos, costos y vencimientos.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scripts específicos para esta página si son necesarios
+</script>
+{% endblock %}

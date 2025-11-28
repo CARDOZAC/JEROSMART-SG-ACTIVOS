@@ -1,0 +1,451 @@
+{% extends "biomedicos/base_biomedico.html" %}
+
+{% block breadcrumb_active %}Editar Hoja de Vida{% endblock %}
+{% block page_title %}Editar Hoja de Vida{% endblock %}
+{% block page_subtitle %}{{ activo.nombre_activo }} - {{ activo.placa_codigo_interno }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('biomedicos.detalle_hoja_vida', activo_id=activo.id) }}" class="ios-btn ios-btn-secondary" style="text-decoration: none;">
+    <i class="bi bi-x-circle"></i> Cancelar
+</a>
+{% endblock %}
+
+{% block biomedico_content %}
+
+<!-- Wizard Progress Bar -->
+<div class="wizard-progress-container mb-4">
+    <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">1</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Datos Generales</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="2">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">2</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Datos Técnicos</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="3">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">3</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Documentos</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="4">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">4</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Resumen</div>
+        </div>
+    </div>
+</div>
+
+<!-- Wizard Content Container -->
+<div class="wizard-content-container">
+
+    <!-- PASO 1: Datos Generales -->
+    <div class="wizard-step-content active" id="paso-1">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 1: Datos Generales</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <!-- Información del Activo (solo lectura) -->
+                <div id="info-activo-seleccionado">
+                    <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                        Información del Activo
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Placa / Código:</span>
+                                <span class="info-value">{{ activo.placa_codigo_interno }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Marca:</span>
+                                <span class="info-value">{{ activo.marca or 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Modelo:</span>
+                                <span class="info-value">{{ activo.modelo or 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Serie:</span>
+                                <span class="info-value">{{ activo.serie or 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="info-item">
+                                <span class="info-label">Ubicación:</span>
+                                <span class="info-value">{{ activo.ubicacion or 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Datos de Adquisición -->
+                <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                    Datos de Adquisición
+                </h6>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Proveedor / Distribuidor</label>
+                        <input type="text" class="form-control" id="distribuidor" value="{{ hoja_vida_data.distribuidor }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Forma de Adquisición</label>
+                        <select class="form-select" id="forma_adquisicion">
+                            <option value="">Seleccione...</option>
+                            <option value="Compra" {% if hoja_vida_data.forma_adquisicion == 'Compra' %}selected{% endif %}>Compra</option>
+                            <option value="Donación" {% if hoja_vida_data.forma_adquisicion == 'Donación' %}selected{% endif %}>Donación</option>
+                            <option value="Comodato" {% if hoja_vida_data.forma_adquisicion == 'Comodato' %}selected{% endif %}>Comodato</option>
+                            <option value="Arrendamiento" {% if hoja_vida_data.forma_adquisicion == 'Arrendamiento' %}selected{% endif %}>Arrendamiento</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Teléfono Proveedor</label>
+                        <input type="tel" class="form-control" id="telefono" value="{{ hoja_vida_data.telefono }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="correo_electronico" value="{{ hoja_vida_data.correo_electronico }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Ingreso</label>
+                        <input type="date" class="form-control" id="fecha_ingreso" value="{{ hoja_vida_data.fecha_ingreso }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Costo de Adquisición</label>
+                        <input type="number" step="0.01" class="form-control" id="costo" value="{{ hoja_vida_data.costo }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">N° Factura</label>
+                        <input type="text" class="form-control" id="n_factura" value="{{ hoja_vida_data.n_factura }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">N° Orden de Compra</label>
+                        <input type="text" class="form-control" id="n_orden_compra" value="{{ hoja_vida_data.n_orden_compra }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Fabricación</label>
+                        <input type="date" class="form-control" id="fecha_fabricacion" value="{{ hoja_vida_data.fecha_fabricacion }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Instalación</label>
+                        <input type="date" class="form-control" id="fecha_instalacion" value="{{ hoja_vida_data.fecha_instalacion }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vencimiento de Garantía</label>
+                        <input type="date" class="form-control" id="vencimiento_garantia" value="{{ hoja_vida_data.vencimiento_garantia }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vida Útil (años)</label>
+                        <input type="number" class="form-control" id="vida_util_anios" value="{{ hoja_vida_data.vida_util_anios }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Permiso de Comercialización (INVIMA)</label>
+                        <input type="text" class="form-control" id="permiso_comercializacion" value="{{ hoja_vida_data.permiso_comercializacion }}">
+                    </div>
+                </div>
+
+            </div>
+            <div class="ios-card-footer">
+                <button type="button" class="ios-btn ios-btn-primary" onclick="siguientePaso(2)">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 2: Datos Técnicos -->
+    <div class="wizard-step-content" id="paso-2">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 2: Datos Técnicos</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                    Especificaciones Eléctricas
+                </h6>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Voltaje</label>
+                        <input type="text" class="form-control" id="voltaje" value="{{ hoja_vida_data.voltaje }}" placeholder="Ej: 120V">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Frecuencia</label>
+                        <input type="text" class="form-control" id="frecuencia" value="{{ hoja_vida_data.frecuencia }}" placeholder="Ej: 60Hz">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Corriente</label>
+                        <input type="text" class="form-control" id="corriente" value="{{ hoja_vida_data.corriente }}" placeholder="Ej: 2A">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Potencia</label>
+                        <input type="text" class="form-control" id="potencia" value="{{ hoja_vida_data.potencia }}" placeholder="Ej: 240W">
+                    </div>
+                </div>
+
+                <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                    Características Físicas
+                </h6>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Dimensiones</label>
+                        <input type="text" class="form-control" id="dimensiones" value="{{ hoja_vida_data.dimensiones }}" placeholder="Ej: 50x40x30 cm">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Peso</label>
+                        <input type="text" class="form-control" id="peso" value="{{ hoja_vida_data.peso }}" placeholder="Ej: 15 kg">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Tipo de Equipo</label>
+                        <select class="form-select" id="equipo_fijo_movil">
+                            <option value="">Seleccione...</option>
+                            <option value="Fijo" {% if hoja_vida_data.equipo_fijo_movil == 'Fijo' %}selected{% endif %}>Fijo</option>
+                            <option value="Móvil" {% if hoja_vida_data.equipo_fijo_movil == 'Móvil' %}selected{% endif %}>Móvil</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                    Condiciones Ambientales
+                </h6>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Humedad Relativa</label>
+                        <input type="text" class="form-control" id="humedad_relativa" value="{{ hoja_vida_data.humedad_relativa }}" placeholder="Ej: 30-70%">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Temperatura de Trabajo</label>
+                        <input type="text" class="form-control" id="temperatura_trabajo" value="{{ hoja_vida_data.temperatura_trabajo }}" placeholder="Ej: 15-25°C">
+                    </div>
+                </div>
+
+                <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                    Clasificación y Manuales
+                </h6>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Clasificación de Riesgo Biomédico</label>
+                        <select class="form-select" id="clasificacion_riesgo">
+                            <option value="">Seleccione...</option>
+                            <option value="I" {% if hoja_vida_data.clasificacion_riesgo == 'I' %}selected{% endif %}>Clase I - Riesgo Bajo</option>
+                            <option value="IIA" {% if hoja_vida_data.clasificacion_riesgo == 'IIA' %}selected{% endif %}>Clase IIA - Riesgo Moderado</option>
+                            <option value="IIB" {% if hoja_vida_data.clasificacion_riesgo == 'IIB' %}selected{% endif %}>Clase IIB - Riesgo Alto</option>
+                            <option value="III" {% if hoja_vida_data.clasificacion_riesgo == 'III' %}selected{% endif %}>Clase III - Riesgo Muy Alto</option>
+                        </select>
+                        <small class="form-text text-muted">Clasificación según Decreto 4725 de 2005</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Clasificación Biomédica (Propósito)</label>
+                        <select class="form-select" id="clasificacion_biomedica">
+                            <option value="">Seleccione...</option>
+                            <option value="Diagnóstico" {% if hoja_vida_data.clasificacion_biomedica == 'Diagnóstico' %}selected{% endif %}>Diagnóstico</option>
+                            <option value="Tratamiento" {% if hoja_vida_data.clasificacion_biomedica == 'Tratamiento' %}selected{% endif %}>Tratamiento</option>
+                            <option value="Rehabilitación" {% if hoja_vida_data.clasificacion_biomedica == 'Rehabilitación' %}selected{% endif %}>Rehabilitación</option>
+                            <option value="Prevención" {% if hoja_vida_data.clasificacion_biomedica == 'Prevención' %}selected{% endif %}>Prevención</option>
+                            <option value="Análisis de laboratorio" {% if hoja_vida_data.clasificacion_biomedica == 'Análisis de laboratorio' %}selected{% endif %}>Análisis de Laboratorio</option>
+                            <option value="Soporte de Vida" {% if hoja_vida_data.clasificacion_biomedica == 'Soporte de Vida' %}selected{% endif %}>Soporte de Vida</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="manual_usuario" {% if hoja_vida_data.manual_usuario %}checked{% endif %}>
+                            <label class="form-check-label" for="manual_usuario">
+                                Tiene Manual de Usuario
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="manual_servicio" {% if hoja_vida_data.manual_servicio %}checked{% endif %}>
+                            <label class="form-check-label" for="manual_servicio">
+                                Tiene Manual de Servicio
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="requiere_calibracion" {% if hoja_vida_data.requiere_calibracion %}checked{% endif %}>
+                            <label class="form-check-label" for="requiere_calibracion">
+                                Requiere Calibración
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Periodicidad de Mantenimiento</label>
+                        <select class="form-select" id="periodicidad_mantenimiento">
+                            <option value="">Seleccione...</option>
+                            <option value="Mensual" {% if hoja_vida_data.periodicidad_mantenimiento == 'Mensual' %}selected{% endif %}>Mensual</option>
+                            <option value="Bimestral" {% if hoja_vida_data.periodicidad_mantenimiento == 'Bimestral' %}selected{% endif %}>Bimestral</option>
+                            <option value="Trimestral" {% if hoja_vida_data.periodicidad_mantenimiento == 'Trimestral' %}selected{% endif %}>Trimestral</option>
+                            <option value="Semestral" {% if hoja_vida_data.periodicidad_mantenimiento == 'Semestral' %}selected{% endif %}>Semestral</option>
+                            <option value="Anual" {% if hoja_vida_data.periodicidad_mantenimiento == 'Anual' %}selected{% endif %}>Anual</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Periodicidad de Calibración</label>
+                        <select class="form-select" id="periodicidad_metrologia">
+                            <option value="">Seleccione...</option>
+                            <option value="Semestral" {% if hoja_vida_data.periodicidad_metrologia == 'Semestral' %}selected{% endif %}>Semestral</option>
+                            <option value="Anual" {% if hoja_vida_data.periodicidad_metrologia == 'Anual' %}selected{% endif %}>Anual</option>
+                            <option value="Bianual" {% if hoja_vida_data.periodicidad_metrologia == 'Bianual' %}selected{% endif %}>Bianual</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+            <div class="ios-card-footer d-flex justify-content-between">
+                <button type="button" class="ios-btn ios-btn-secondary" onclick="anteriorPaso(1)">
+                    <i class="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" class="ios-btn ios-btn-primary" onclick="siguientePaso(3)">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 3: Documentos -->
+    <div class="wizard-step-content" id="paso-3">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 3: Documentos Adjuntos</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle"></i> Los documentos actuales se conservarán a menos que seleccione nuevos archivos para reemplazarlos.
+                </div>
+
+                <!-- Mostrar documentos actuales -->
+                {% if hoja_vida.documentos %}
+                <div class="mb-4">
+                    <h6 class="mb-3">Documentos Actuales</h6>
+                    <div class="list-group">
+                        {% for doc in hoja_vida.documentos %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-pdf text-danger"></i>
+                                {{ doc.tipo_documento.replace('_', ' ').title() }}
+                                {% if doc.nombre_archivo_original %}
+                                <small class="text-muted">- {{ doc.nombre_archivo_original }}</small>
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('biomedicos.descargar_documento', doc_id=doc.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Descargar
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <hr>
+                {% endif %}
+
+                <p class="text-muted mb-3">
+                    <i class="bi bi-cloud-upload"></i> Puede adjuntar documentos nuevos o reemplazar los existentes
+                </p>
+
+                <!-- Formulario para actualizar documentos -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Foto del Equipo</label>
+                        <input type="file" class="form-control" id="foto_activo" accept="image/*">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Factura (PDF)</label>
+                        <input type="file" class="form-control" id="pdf_factura" accept=".pdf">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Registro INVIMA (PDF)</label>
+                        <input type="file" class="form-control" id="pdf_invima" accept=".pdf">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Certificado de Importación (PDF)</label>
+                        <input type="file" class="form-control" id="pdf_importacion" accept=".pdf">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Manual de Usuario (PDF)</label>
+                        <input type="file" class="form-control" id="pdf_manual_usuario" accept=".pdf">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Manual de Servicio (PDF)</label>
+                        <input type="file" class="form-control" id="pdf_manual_servicio" accept=".pdf">
+                    </div>
+                </div>
+
+            </div>
+            <div class="ios-card-footer d-flex justify-content-between">
+                <button type="button" class="ios-btn ios-btn-secondary" onclick="anteriorPaso(2)">
+                    <i class="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" class="ios-btn ios-btn-primary" onclick="siguientePaso(4)">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 4: Resumen y Confirmación -->
+    <div class="wizard-step-content" id="paso-4">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 4: Revisar y Guardar Cambios</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> Revise la información antes de guardar los cambios
+                </div>
+
+                <div id="resumen-datos"></div>
+
+            </div>
+            <div class="ios-card-footer d-flex justify-content-between">
+                <button type="button" class="ios-btn ios-btn-secondary" onclick="anteriorPaso(3)">
+                    <i class="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" class="ios-btn ios-btn-success" id="btn-guardar-cambios">
+                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Hidden field con el activo_id -->
+<input type="hidden" id="activo_id" value="{{ activo.id }}">
+
+<!-- Estilos del Wizard -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wizard.css') }}">
+
+<!-- JavaScript del editor -->
+<script src="{{ url_for('static', filename='js/biomedicos/hojas_vida/editar_hoja_vida.js') }}"></script>
+
+{% endblock %}

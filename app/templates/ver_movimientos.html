@@ -4,20 +4,19 @@
 
 {% block head_extra %}
 <style>
-    /* Estilos específicos para la vista de movimientos */
+    /* Estilos específicos para la vista de movimientos (Efectos reducidos 90%) */
     .movimiento-card {
         background-color: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--card-radius);
         box-shadow: var(--card-shadow);
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        transition: none;
         height: 100%;
         display: flex;
         flex-direction: column;
     }
     .movimiento-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--card-shadow-hover);
+        /* Efectos hover removidos */
     }
     .movimiento-header {
         padding: 1.5rem;
@@ -34,10 +33,10 @@
         font-size: 2.5rem;
         margin-right: 1rem;
         color: var(--accent-blue-dark);
-        transition: color 0.2s ease-in-out;
+        transition: none;
     }
     .movimiento-card:hover .movimiento-icon {
-        color: var(--accent-blue);
+        /* Efecto hover removido */
     }
     .movimiento-info {
         flex-grow: 1;
@@ -99,14 +98,14 @@
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h3 fw-bold mb-0">Gestión de Movimientos</h2>
-        <a href="{{ url_for('add_movimiento') }}" class="btn btn-primary">
+        <a href="{{ url_for('movimientos.add_movimiento') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i> Nuevo Movimiento
         </a>
     </div>
 
     <!-- Sección de Filtros -->
     <div class="filter-container mb-4">
-        <form id="filter-form" action="{{ url_for('ver_movimientos') }}" method="GET">
+        <form id="filter-form" action="{{ url_for('movimientos.ver_movimientos') }}" method="GET">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label for="search-input" class="form-label">Buscar por proveedor, funcionario u observación</label>
@@ -124,7 +123,7 @@
                 </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
-                    <a href="{{ url_for('ver_movimientos') }}" class="btn btn-outline-secondary w-100">Limpiar</a>
+                    <a href="{{ url_for('movimientos.ver_movimientos') }}" class="btn btn-outline-secondary w-100">Limpiar</a>
                 </div>
             </div>
         </form>
@@ -157,24 +156,15 @@
                             </div>
                             <div class="movimiento-body">
                                 <p class="mb-1"><small class="text-muted">Fecha:</small> <strong>{{ movimiento.fecha|formatdatetime('%d/%m/%Y %H:%M') }}</strong></p>
-                                <p class="mb-1"><small class="text-muted">Registrado por:</small> <strong>{{ movimiento.usuario_nombre }}</strong></p>
-                                {% if movimiento.funcionario_nombre %}
-                                    <p class="mb-1"><small class="text-muted">Funcionario Relacionado:</small> <strong>{{ movimiento.funcionario_nombre }}</strong></p>
-                                {% endif %}
-                                {% if movimiento.proveedor_nombre %}
-                                    <p class="mb-1"><small class="text-muted">Proveedor:</small> <strong>{{ movimiento.proveedor_nombre }}</strong></p>
-                                {% endif %}
+                                <p class="mb-1"><small class="text-muted">Registrado por:</small> <strong>{{ movimiento.usuario_nombre or 'N/A' }}</strong></p>
                                 <p class="mb-1"><small class="text-muted">Activos en el acta:</small> <strong>{{ movimiento.asset_count }}</strong></p>
                             </div>
                             <div class="movimiento-footer">
                                 <div class="btn-group" role="group">
-                                    <a href="{{ url_for('ver_movimiento', movimiento_id=movimiento.id) }}" class="btn btn-outline-secondary">
+                                    <a href="{{ url_for('movimientos.ver_movimiento', movimiento_id=movimiento.id) }}" class="btn btn-outline-secondary">
                                         <i class="bi bi-eye-fill me-1"></i> Ver Detalles
                                     </a>
-                                    {% set pdf_url = 'generar_pdf_entrega' if movimiento.tipo_movimiento == 'Entrega'
-                                                     else 'generar_pdf_traslado' if movimiento.tipo_movimiento == 'Traslado'
-                                                     else 'generar_pdf_entrada_salida' if movimiento.tipo_movimiento == 'Entrada/Salida'
-                                                     else 'generar_pdf_paz_y_salvo' %}
+                                    {% set pdf_url = 'movimientos.generar_acta_pdf' %}
                                     <a href="{{ url_for(pdf_url, movimiento_id=movimiento.id) }}" class="btn btn-outline-primary" target="_blank">
                                         <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
                                     </a>
@@ -190,7 +180,7 @@
                 <i class="bi bi-box-seam fs-1 mb-3"></i>
                 <h4 class="alert-heading">¡No hay movimientos!</h4>
                 <p>No se encontraron movimientos que coincidan con los criterios de búsqueda.</p>
-                <a href="{{ url_for('ver_movimientos') }}" class="btn btn-info mt-2">Borrar filtros</a>
+                <a href="{{ url_for('movimientos.ver_movimientos') }}" class="btn btn-info mt-2">Borrar filtros</a>
             </div>
         {% endif %}
     </div>
@@ -230,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (deleteButton) {
             e.preventDefault();
             const movimientoId = deleteButton.dataset.id;
-            deleteForm.action = '{{ url_for("eliminar_movimiento", movimiento_id=0) }}'.replace('0', movimientoId);
+            deleteForm.action = '{{ url_for("movimientos.eliminar_movimiento", movimiento_id=0) }}'.replace('0', movimientoId);
             deleteModal.show();
         }
     });

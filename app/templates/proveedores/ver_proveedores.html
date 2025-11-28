@@ -1,68 +1,246 @@
 {% extends "base.html" %}
-{% block title %}Gestionar Proveedores{% endblock %}
+
+{% block title %}Proveedores{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Eliminar TODOS los efectos visuales */
+    * {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    *:hover,
+    *:active,
+    *:focus {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .proveedor-row {
+        display: flex;
+        align-items: center;
+        padding: var(--ios-space-md);
+        border-bottom: 0.5px solid var(--ios-separator);
+        cursor: pointer;
+        background: transparent;
+    }
+
+    .proveedor-row:last-child {
+        border-bottom: none;
+    }
+
+    .proveedor-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--ios-radius-md);
+        background: linear-gradient(135deg, var(--ios-blue) 0%, #0A84FF 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: white;
+        margin-right: var(--ios-space-md);
+        flex-shrink: 0;
+    }
+
+    .proveedor-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .proveedor-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ios-label-primary);
+        margin-bottom: 4px;
+    }
+
+    .proveedor-subtitle {
+        font-size: 15px;
+        color: var(--ios-label-secondary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .proveedor-detail {
+        font-size: 13px;
+        color: var(--ios-label-tertiary);
+        margin-top: 4px;
+    }
+
+    .proveedor-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        margin-left: var(--ios-space-md);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--ios-space-xxl);
+        color: var(--ios-label-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        color: var(--ios-label-tertiary);
+        margin-bottom: var(--ios-space-md);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h2 class="h3 mb-0"><i class="bi bi-truck me-2"></i>Gestión de Proveedores</h2>
-        <a href="{{ url_for('add_proveedor') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle-fill me-2"></i>Añadir Proveedor
-        </a>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ url_for('ver_proveedores') }}" class="row g-2 align-items-center">
-                <div class="col">
-                    <input type="search" class="form-control" name="q" placeholder="Buscar por Razón Social o NIT..." value="{{ query }}">
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">Buscar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Razón Social</th>
-                            <th>NIT</th>
-                            <th>Contacto</th>
-                            <th>Teléfono</th>
-                            <th class="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for proveedor in proveedores %}
-                        <tr>
-                            <td><strong>{{ proveedor['razon_social'] }}</strong></td>
-                            <td>{{ proveedor['nit'] or 'N/A' }}</td>
-                            <td>{{ proveedor['persona_contacto'] or 'N/A' }}</td>
-                            <td>{{ proveedor['numero_contacto'] or 'N/A' }}</td>
-                            <td class="text-end">
-                                <a href="{{ url_for('edit_proveedor', proveedor_id=proveedor['id']) }}" class="btn btn-sm btn-outline-primary me-2" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ url_for('delete_proveedor', proveedor_id=proveedor['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este proveedor?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">No se encontraron proveedores.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div class="container-fluid py-4">
+    <!-- iOS Navigation Header -->
+    <div class="ios-navbar-large mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="ios-navbar-large-title mb-0">Proveedores</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('proveedores.importar_proveedores') }}" class="ios-btn ios-btn-secondary">
+                    <i class="bi bi-cloud-upload-fill"></i>
+                    Importar CSV
+                </a>
+                <a href="{{ url_for('proveedores.nuevo_proveedor') }}" class="ios-btn ios-btn-primary ios-btn-lg">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Nuevo Proveedor
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- iOS Search Bar -->
+    <div class="ios-search-bar mb-4">
+        <form method="GET" action="{{ url_for('proveedores.listar_proveedores') }}">
+            <i class="bi bi-search ios-search-icon"></i>
+            <input
+                type="text"
+                name="q"
+                value="{{ search_query or '' }}"
+                class="ios-search-input"
+                placeholder="Buscar por nombre, NIT o contacto..."
+                autofocus>
+        </form>
+    </div>
+
+    <!-- Proveedores List -->
+    <div class="ios-card" style="overflow: hidden;">
+        {% if proveedores.items %}
+            {% for proveedor in proveedores.items %}
+            <div class="proveedor-row">
+                <div class="proveedor-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+
+                <div class="proveedor-content">
+                    <div class="proveedor-title">{{ proveedor.razon_social }}</div>
+                    <div class="proveedor-subtitle">
+                        <span>
+                            <i class="bi bi-card-text"></i> {{ proveedor.nit }}
+                        </span>
+                        {% if proveedor.persona_contacto %}
+                        <span>
+                            <i class="bi bi-person"></i> {{ proveedor.persona_contacto }}
+                        </span>
+                        {% endif %}
+                        {% if proveedor.numero_contacto %}
+                        <span>
+                            <i class="bi bi-telephone"></i> {{ proveedor.numero_contacto }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if proveedor.direccion %}
+                    <div class="proveedor-detail">
+                        <i class="bi bi-geo-alt-fill"></i> {{ proveedor.direccion }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="proveedor-actions">
+                    <a href="{{ url_for('proveedores.editar_proveedor', id=proveedor.id) }}"
+                       class="ios-btn ios-btn-secondary ios-btn-sm"
+                       title="Editar proveedor">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form action="{{ url_for('proveedores.eliminar_proveedor', id=proveedor.id) }}"
+                          method="POST"
+                          style="display: inline;"
+                          onsubmit="return confirm('¿Estás seguro de eliminar el proveedor \"{{ proveedor.razon_social }}\"?\n\nEsta acción no se puede deshacer.');">
+                        <button type="submit"
+                                class="ios-btn ios-btn-danger ios-btn-sm"
+                                title="Eliminar proveedor">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <h3 class="ios-text-headline">No hay proveedores</h3>
+                <p class="ios-text-body">
+                    {% if search_query %}
+                        No se encontraron proveedores que coincidan con "{{ search_query }}"
+                    {% else %}
+                        Comienza agregando tu primer proveedor o importa desde un archivo CSV
+                    {% endif %}
+                </p>
+                {% if not search_query %}
+                <div class="mt-4">
+                    <a href="{{ url_for('proveedores.nuevo_proveedor') }}" class="ios-btn ios-btn-primary">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        Crear Primer Proveedor
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Paginación iOS Style -->
+    {% if proveedores.pages > 1 %}
+    <div class="ios-card mt-4" style="padding: var(--ios-space-md);">
+        <nav aria-label="Paginación de proveedores">
+            <ul class="pagination justify-content-center mb-0">
+                <!-- Previous -->
+                <li class="page-item {% if not proveedores.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{% if proveedores.has_prev %}{{ url_for('proveedores.listar_proveedores', page=proveedores.prev_num, q=search_query) }}{% else %}#{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                {% for page_num in proveedores.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == proveedores.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('proveedores.listar_proveedores', page=page_num, q=search_query) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Next -->
+                <li class="page-item {% if not proveedores.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{% if proveedores.has_next %}{{ url_for('proveedores.listar_proveedores', page=proveedores.next_num, q=search_query) }}{% else %}#{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="text-center mt-3 ios-text-caption">
+            Mostrando {{ proveedores.items|length }} de {{ proveedores.total }} proveedor{{ 'es' if proveedores.total != 1 else '' }}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Nuevo Mantenimiento</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}">Gestión</a></li>
+        <li class="breadcrumb-item active">Nuevo Mantenimiento</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus me-1"></i>
+            Registrar Nuevo Mantenimiento
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info text-center" role="alert">
+                <h4 class="alert-heading">Funcionalidad en Desarrollo</h4>
+                <p>La capacidad para crear nuevos registros de mantenimiento se está implementando y estará disponible próximamente.</p>
+                <hr>
+                <p class="mb-0">Gracias por su paciencia.</p>
+            </div>
+            <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

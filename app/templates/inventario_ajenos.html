@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Activos Ajenos{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Dashboard Profesional para Activos Ajenos */
+    .ajenos-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    .kpi-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .kpi-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .kpi-icon {
+        font-size: 3rem;
+        opacity: 0.1;
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .alert-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(245, 87, 108, 0.3);
+    }
+
+    .alert-card h4 {
+        margin: 0 0 1rem 0;
+        font-weight: 600;
+    }
+
+    .alert-item {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .alert-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .tenencia-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    .tenencia-comodato {
+        background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        color: #004d40;
+    }
+
+    .tenencia-arriendo {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #8b4513;
+    }
+
+    .tenencia-leasing {
+        background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        color: #01579b;
+    }
+
+    .activos-table-card {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+
+    .table-header h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .table-container {
+        padding: 1.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .days-remaining {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+    }
+
+    .days-critical {
+        background: #dc3545;
+        color: white;
+    }
+
+    .days-warning {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .days-ok {
+        background: #28a745;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        opacity: 0.2;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ajenos-container">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb" style="background: transparent;">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" style="color: white;"><i class="bi bi-house-fill"></i> Inicio</a></li>
+                <li class="breadcrumb-item active" style="color: rgba(255,255,255,0.8);">Activos Ajenos</li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="text-white mb-5">
+            <h1 class="display-5 fw-bold mb-2">
+                <i class="bi bi-briefcase-fill me-3"></i>Gestión de Activos Ajenos
+            </h1>
+            <p class="lead mb-0">Control de equipos en comodato, arriendo y leasing según normativa de la Superintendencia de Salud</p>
+        </div>
+
+        <!-- KPIs -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card position-relative">
+                    <i class="bi bi-box-seam kpi-icon"></i>
+                    <div class="kpi-number">{{ total_ajenos }}</div>
+                    <div class="kpi-label">Total Activos Ajenos</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card position-relative">
+                    <i class="bi bi-gift kpi-icon"></i>
+                    <div class="kpi-number">{{ total_comodato }}</div>
+                    <div class="kpi-label">En Comodato</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card position-relative">
+                    <i class="bi bi-cash-coin kpi-icon"></i>
+                    <div class="kpi-number">${{ '{:,.0f}'.format(costo_mensual_total) if costo_mensual_total else '0' }}</div>
+                    <div class="kpi-label">Costo Mensual Total</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card position-relative">
+                    <i class="bi bi-exclamation-triangle kpi-icon"></i>
+                    <div class="kpi-number text-danger">{{ contratos_proximos_vencer }}</div>
+                    <div class="kpi-label">Próximos a Vencer</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas de Contratos Próximos a Vencer -->
+        {% if alertas %}
+        <div class="alert-card">
+            <h4><i class="bi bi-bell-fill me-2"></i>Alertas de Vencimiento de Contratos</h4>
+            {% for alerta in alertas %}
+            <div class="alert-item">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <strong>{{ alerta.nombre_activo }}</strong>
+                        <br>
+                        <small>Propietario: {{ alerta.propietario_ajeno }}</small>
+                    </div>
+                    <div class="text-end mt-2 mt-md-0">
+                        <div class="days-remaining {{ 'days-critical' if alerta.dias_restantes < 30 else 'days-warning' }}">
+                            {{ alerta.dias_restantes }} días restantes
+                        </div>
+                        <small class="d-block mt-1">Vence: {{ alerta.fecha_fin_contrato }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Botones de Acción -->
+        <div class="action-buttons">
+            <a href="{{ url_for('activos.add_activo') }}" class="action-btn btn-primary-gradient">
+                <i class="bi bi-plus-circle-fill"></i>
+                Registrar Activo Ajeno
+            </a>
+            <button class="action-btn btn-light" onclick="window.print()">
+                <i class="bi bi-printer-fill text-primary"></i>
+                Imprimir Listado
+            </button>
+        </div>
+
+        <!-- Tabla de Activos Ajenos -->
+        <div class="activos-table-card">
+            <div class="table-header">
+                <h3><i class="bi bi-table me-2"></i>Listado de Activos Ajenos</h3>
+            </div>
+            <div class="table-container">
+                {% if activos_ajenos %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Nombre del Activo</th>
+                                <th>Propietario</th>
+                                <th>Tipo de Tenencia</th>
+                                <th>Fecha Ingreso</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activo in activos_ajenos %}
+                            <tr>
+                                <td><strong class="text-primary">{{ activo.placa_codigo_interno }}</strong></td>
+                                <td>
+                                    <div class="fw-bold">{{ activo.nombre_activo }}</div>
+                                    <small class="text-muted">{{ activo.marca or 'Sin marca' }} - {{ activo.modelo or 'Sin modelo' }}</small>
+                                </td>
+                                <td>
+                                    <div>{{ activo.propietario_ajeno or 'No especificado' }}</div>
+                                    {% if activo.contacto_propietario %}
+                                    <small class="text-muted">{{ activo.contacto_propietario }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if activo.condicion_tenencia %}
+                                        {% set tenencia_class = 'tenencia-comodato' if activo.condicion_tenencia == 'Comodato' else ('tenencia-arriendo' if activo.condicion_tenencia == 'Arriendo' else 'tenencia-leasing') %}
+                                        <span class="tenencia-badge {{ tenencia_class }}">
+                                            {{ activo.condicion_tenencia }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if activo.fecha_ingreso_ajeno %}
+                                        <i class="bi bi-calendar3 me-1"></i>{{ activo.fecha_ingreso_ajeno }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set estado_map = {
+                                        'Operativo': {'class': 'bg-success', 'icon': 'bi-check-circle-fill'},
+                                        'En Mantenimiento': {'class': 'bg-warning text-dark', 'icon': 'bi-tools'},
+                                        'Dañado': {'class': 'bg-danger', 'icon': 'bi-x-octagon-fill'}
+                                    } %}
+                                    {% set estado_info = estado_map.get(activo.estado, {'class': 'bg-light text-dark', 'icon': 'bi-question-circle'}) %}
+                                    <span class="badge {{ estado_info.class }}">
+                                        <i class="bi {{ estado_info.icon }} me-1"></i>{{ activo.estado }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('activos.detalle_activo', activo_id=activo.id) }}" class="btn btn-outline-primary btn-sm" title="Ver Detalles">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
+                                    <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="btn btn-outline-secondary btn-sm" title="Editar">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h5>No hay activos ajenos registrados</h5>
+                    <p class="text-muted">Comienza registrando equipos en comodato, arriendo o leasing</p>
+                    <a href="{{ url_for('activos.add_activo') }}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle me-2"></i>Registrar Primer Activo Ajeno
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estadísticas por Proveedor -->
+        {% if activos_por_proveedor %}
+        <div class="activos-table-card mt-4">
+            <div class="table-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3><i class="bi bi-building me-2"></i>Activos por Proveedor/Propietario</h3>
+            </div>
+            <div class="table-container">
+                <div class="row g-3">
+                    {% for proveedor in activos_por_proveedor %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="kpi-card">
+                            <h6 class="text-truncate">{{ proveedor.propietario }}</h6>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="text-muted">Activos:</span>
+                                <span class="fw-bold" style="font-size: 1.5rem;">{{ proveedor.cantidad }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Plantillas PDF - JeroSmart Activos{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-file-pdf"></i> Plantillas PDF para Aprobación</h2>
+                    <p class="text-muted">Descarga las plantillas en blanco de cada tipo de acta para su revisión y aprobación</p>
+                </div>
+                <a href="{{ url_for('movimientos.ver_movimientos') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a Movimientos
+                </a>
+            </div>
+
+            <!-- Alert info -->
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i>
+                <strong>Información:</strong> Estas plantillas contienen el formato visual de cada acta sin datos reales.
+                Son útiles para enviar por correo para su aprobación antes de la implementación.
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="row">
+                <!-- Acta de Entrega -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-handshake fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Acta de Entrega</h5>
+                            <p class="card-text text-muted">
+                                Plantilla para entregas de activos fijos desde proveedores o entre áreas
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='entrega') }}"
+                               class="btn btn-primary btn-block"
+                               target="_blank">
+                                <i class="fas fa-download"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acta de Traslado -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-exchange-alt fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">Acta de Traslado</h5>
+                            <p class="card-text text-muted">
+                                Plantilla para traslados de activos entre ubicaciones o responsables
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='traslado') }}"
+                               class="btn btn-success btn-block"
+                               target="_blank">
+                                <i class="fas fa-download"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acta de Entrada/Salida -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-sign-out-alt fa-3x text-warning"></i>
+                            </div>
+                            <h5 class="card-title">Acta de Entrada/Salida</h5>
+                            <p class="card-text text-muted">
+                                Plantilla para registrar salidas temporales o entradas de activos
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='entrada-salida') }}"
+                               class="btn btn-warning btn-block"
+                               target="_blank">
+                                <i class="fas fa-download"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acta de Paz y Salvo -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-user-check fa-3x text-danger"></i>
+                            </div>
+                            <h5 class="card-title">Acta de Paz y Salvo</h5>
+                            <p class="card-text text-muted">
+                                Plantilla para el proceso de desvinculación de funcionarios
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='paz-y-salvo') }}"
+                               class="btn btn-danger btn-block"
+                               target="_blank">
+                                <i class="fas fa-download"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instrucciones de uso -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> ¿Cómo usar estas plantillas?</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li class="mb-2">
+                            <strong>Descargar:</strong> Haz clic en el botón "Descargar PDF" de la plantilla que deseas revisar.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Revisar:</strong> Abre el PDF descargado y verifica el formato, campos y estructura del documento.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Compartir:</strong> Envía el PDF por correo electrónico a los responsables para su aprobación.
+                        </li>
+                        <li class="mb-2">
+                            <strong>Aprobar:</strong> Una vez aprobados, los formatos están listos para ser usados en la aplicación.
+                        </li>
+                    </ol>
+
+                    <div class="alert alert-light border mt-3">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <strong>Nota:</strong> Las plantillas se generan con campos vacíos para que puedas ver la estructura completa del documento.
+                        Cuando generes actas reales desde los movimientos, todos los campos se llenarán automáticamente con los datos correspondientes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacto -->
+            <div class="card mt-4 mb-4">
+                <div class="card-body bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-2"><i class="fas fa-envelope"></i> ¿Necesitas hacer cambios a las plantillas?</h6>
+                            <p class="mb-0 text-muted">
+                                Si requieres modificaciones en el formato, campos adicionales o ajustes en el diseño,
+                                contacta al administrador del sistema.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-right">
+                            <a href="mailto:soporte@jerosmart.com" class="btn btn-outline-primary">
+                                <i class="fas fa-paper-plane"></i> Contactar Soporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .btn-block {
+        width: 100%;
+    }
+
+    .fa-3x {
+        font-size: 3em;
+    }
+</style>
+{% endblock %}

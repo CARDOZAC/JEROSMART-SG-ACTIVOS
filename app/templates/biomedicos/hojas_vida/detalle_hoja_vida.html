@@ -1,0 +1,464 @@
+{% extends "biomedicos/base_biomedico.html" %}
+
+{% block breadcrumb_active %}Detalle Hoja de Vida{% endblock %}
+{% block page_title %}Hoja de Vida - {{ activo.nombre_activo }}{% endblock %}
+{% block page_subtitle %}{{ activo.placa_codigo_interno }} • {{ activo.marca or 'Sin marca' }} {{ activo.modelo or '' }}{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <a href="{{ url_for('biomedicos.editar_hoja_vida', activo_id=activo.id) }}" class="ios-btn ios-btn-secondary">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <button onclick="generarPDF({{ activo.id }})" class="ios-btn ios-btn-primary">
+        <i class="bi bi-file-pdf"></i> Generar PDF
+    </button>
+    <button onclick="eliminarHojaVida({{ activo.id }})" class="ios-btn" style="background: var(--ios-red); color: white;">
+        <i class="bi bi-trash"></i> Eliminar
+    </button>
+</div>
+{% endblock %}
+
+{% block biomedico_content %}
+
+<!-- Información del Activo -->
+<div class="ios-card mb-4">
+    <div class="ios-card-header">
+        <h5 class="ios-card-title">
+            <i class="bi bi-info-circle" style="color: var(--ios-blue);"></i>
+            Información del Activo
+        </h5>
+    </div>
+    <div class="ios-card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Placa / Código</div>
+                    <div class="detail-value">{{ activo.placa_codigo_interno }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Nombre</div>
+                    <div class="detail-value">{{ activo.nombre_activo }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Marca</div>
+                    <div class="detail-value">{{ activo.marca or '-' }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Modelo</div>
+                    <div class="detail-value">{{ activo.modelo or '-' }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Serie</div>
+                    <div class="detail-value">{{ activo.numero_serie or '-' }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Ubicación</div>
+                    <div class="detail-value">{{ activo.ubicacion or '-' }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="detail-item">
+                    <div class="detail-label">Estado</div>
+                    <div class="detail-value">
+                        <span class="badge" style="background: var(--ios-green); color: white;">
+                            {{ activo.estado or 'Activo' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secciones Expandibles -->
+<div class="accordion" id="accordionHojaVida">
+
+    <!-- SECCIÓN 1: Datos Generales -->
+    <div class="accordion-item ios-accordion-item">
+        <h2 class="accordion-header" id="headingGenerales">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGenerales" aria-expanded="true">
+                <i class="bi bi-clipboard-data me-2" style="color: var(--ios-blue);"></i>
+                Datos Generales
+            </button>
+        </h2>
+        <div id="collapseGenerales" class="accordion-collapse collapse show" data-bs-parent="#accordionHojaVida">
+            <div class="accordion-body">
+                <div class="row g-3">
+                    {% if hoja_vida.fecha_ingreso %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha de Adquisición</div>
+                            <div class="detail-value">{{ hoja_vida.fecha_ingreso.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.forma_adquisicion %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Forma de Adquisición</div>
+                            <div class="detail-value">{{ hoja_vida.forma_adquisicion }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.distribuidor %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Proveedor</div>
+                            <div class="detail-value">{{ hoja_vida.distribuidor }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.telefono %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Teléfono Proveedor</div>
+                            <div class="detail-value">{{ hoja_vida.telefono }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.correo_electronico %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Email Proveedor</div>
+                            <div class="detail-value">{{ hoja_vida.correo_electronico }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.costo %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Costo de Adquisición</div>
+                            <div class="detail-value">${{ "{:,.2f}".format(hoja_vida.costo) }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.vida_util_anios %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Vida Útil</div>
+                            <div class="detail-value">{{ hoja_vida.vida_util_anios }} años</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2: Datos Técnicos -->
+    <div class="accordion-item ios-accordion-item">
+        <h2 class="accordion-header" id="headingTecnicos">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTecnicos">
+                <i class="bi bi-gear-fill me-2" style="color: var(--ios-green);"></i>
+                Datos Técnicos
+            </button>
+        </h2>
+        <div id="collapseTecnicos" class="accordion-collapse collapse" data-bs-parent="#accordionHojaVida">
+            <div class="accordion-body">
+                <div class="row g-3">
+                    {% if hoja_vida.clasificacion_biomedica %}
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">Clasificación Biomédica</div>
+                            <div class="detail-value">{{ hoja_vida.clasificacion_biomedica }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.clasificacion_riesgo %}
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">Clasificación de Riesgo</div>
+                            <div class="detail-value">{{ hoja_vida.clasificacion_riesgo }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.voltaje %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Voltaje</div>
+                            <div class="detail-value">{{ hoja_vida.voltaje }} V</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.corriente %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Corriente</div>
+                            <div class="detail-value">{{ hoja_vida.corriente }} A</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hoja_vida.potencia %}
+                    <div class="col-md-4">
+                        <div class="detail-item">
+                            <div class="detail-label">Potencia</div>
+                            <div class="detail-value">{{ hoja_vida.potencia }} W</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">Requiere Calibración</div>
+                            <div class="detail-value">
+                                {% if hoja_vida.requiere_calibracion %}
+                                    <span class="badge" style="background: var(--ios-orange); color: white;">Sí</span>
+                                {% else %}
+                                    <span class="badge" style="background: var(--ios-gray-3); color: white;">No</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if hoja_vida.periodicidad_metrologia %}
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <div class="detail-label">Periodicidad de Calibración</div>
+                            <div class="detail-value">{{ hoja_vida.periodicidad_metrologia }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 3: Documentos Adjuntos -->
+    <div class="accordion-item ios-accordion-item">
+        <h2 class="accordion-header" id="headingDocumentos">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDocumentos">
+                <i class="bi bi-file-earmark-pdf me-2" style="color: var(--ios-red);"></i>
+                Documentos Adjuntos
+                <span class="badge ms-2" style="background: var(--ios-blue); color: white;">
+                    {{ hoja_vida.documentos|length }}
+                </span>
+            </button>
+        </h2>
+        <div id="collapseDocumentos" class="accordion-collapse collapse" data-bs-parent="#accordionHojaVida">
+            <div class="accordion-body">
+                {% if hoja_vida.documentos %}
+                    <div class="ios-list-grouped">
+                        {% for doc in hoja_vida.documentos %}
+                        <div class="ios-list-item">
+                            <div class="ios-list-content">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-file-pdf" style="font-size: 32px; color: var(--ios-red); margin-right: 16px;"></i>
+                                    <div style="flex: 1;">
+                                        <div class="ios-list-title">{{ doc.nombre_archivo_original }}</div>
+                                        <div class="ios-list-subtitle">
+                                            {{ doc.tipo_documento }} •
+                                            {{ (doc.tamano_bytes / 1024)|round(2) }} KB •
+                                            {{ doc.fecha_carga.strftime('%d/%m/%Y %H:%M') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('biomedicos.descargar_documento', doc_id=doc.id) }}"
+                               class="btn btn-sm btn-outline-primary"
+                               target="_blank">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4" style="color: var(--ios-label-secondary);">
+                        <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                        <p class="mt-2">No hay documentos adjuntos</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4: Historial de Mantenimientos -->
+    <div class="accordion-item ios-accordion-item">
+        <h2 class="accordion-header" id="headingMantenimientos">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMantenimientos">
+                <i class="bi bi-wrench me-2" style="color: var(--ios-purple);"></i>
+                Historial de Mantenimientos
+                <span class="badge ms-2" style="background: var(--ios-purple); color: white;">
+                    {{ hoja_vida.mantenimientos|length }}
+                </span>
+            </button>
+        </h2>
+        <div id="collapseMantenimientos" class="accordion-collapse collapse" data-bs-parent="#accordionHojaVida">
+            <div class="accordion-body">
+                {% if hoja_vida.mantenimientos %}
+                    <div class="timeline">
+                        {% for mant in hoja_vida.mantenimientos|sort(attribute='fecha', reverse=True) %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker" style="background: {% if mant.tipo == 'Preventivo' %}var(--ios-green){% else %}var(--ios-orange){% endif %};"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">{{ mant.tipo }}</h6>
+                                    <span class="text-muted" style="font-size: var(--ios-font-size-footnote);">
+                                        {{ mant.fecha.strftime('%d/%m/%Y') }}
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-1" style="font-size: var(--ios-font-size-subhead);">
+                                    {{ mant.descripcion or 'Sin descripción' }}
+                                </p>
+                                {% if mant.tecnico_responsable %}
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> {{ mant.tecnico_responsable }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4" style="color: var(--ios-label-secondary);">
+                        <i class="bi bi-wrench" style="font-size: 48px;"></i>
+                        <p class="mt-2">No hay mantenimientos registrados</p>
+                        <a href="{{ url_for('biomedicos.nuevo_mantenimiento', activo_id=activo.id) }}"
+                           class="btn mt-2"
+                           style="background: var(--ios-purple); color: white;">
+                            <i class="bi bi-plus-circle"></i> Registrar Mantenimiento
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block biomedico_scripts %}
+<script src="{{ url_for('static', filename='js/biomedicos/hojas_vida/detalle_hoja_vida.js') }}"></script>
+
+<style>
+/* Estilos para el detalle de hoja de vida */
+.detail-item {
+    padding: 12px;
+    background: var(--ios-bg-tertiary);
+    border-radius: var(--ios-radius-xs);
+    height: 100%;
+}
+
+.detail-label {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-label-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-label-primary);
+    font-weight: 500;
+}
+
+/* Accordion iOS Style */
+.ios-accordion-item {
+    background: var(--ios-bg-secondary);
+    border: none;
+    margin-bottom: 8px;
+    border-radius: var(--ios-radius-md);
+    overflow: hidden;
+}
+
+.ios-accordion-item .accordion-button {
+    background: var(--ios-bg-secondary);
+    color: var(--ios-label-primary);
+    border: none;
+    padding: 16px 20px;
+    font-weight: 500;
+    font-size: var(--ios-font-size-body);
+}
+
+.ios-accordion-item .accordion-button:not(.collapsed) {
+    background: var(--ios-bg-tertiary);
+    color: var(--ios-blue);
+    box-shadow: none;
+}
+
+.ios-accordion-item .accordion-button:focus {
+    box-shadow: none;
+    border: none;
+}
+
+.ios-accordion-item .accordion-button::after {
+    background-image: none;
+    content: "\F285";
+    font-family: "bootstrap-icons";
+    color: var(--ios-gray-3);
+    transition: transform 0.3s ease;
+}
+
+.ios-accordion-item .accordion-button:not(.collapsed)::after {
+    transform: rotate(90deg);
+}
+
+.ios-accordion-item .accordion-body {
+    padding: 20px;
+    background: var(--ios-bg-secondary);
+}
+
+/* Timeline para mantenimientos */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--ios-separator);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -27px;
+    top: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid var(--ios-bg-secondary);
+}
+
+.timeline-content {
+    background: var(--ios-bg-tertiary);
+    padding: 12px 16px;
+    border-radius: var(--ios-radius-sm);
+}
+</style>
+{% endblock %}

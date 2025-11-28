@@ -1,0 +1,153 @@
+<!-- ============================================================================
+     MODAL: AGREGAR MANTENIMIENTO
+     ============================================================================ -->
+<div
+    x-show="showModalMantenimiento"
+    x-cloak
+    class="modal-overlay"
+    @click.self="showModalMantenimiento = false"
+    style="display: none;"
+>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Registrar Mantenimiento</h2>
+        </div>
+
+        <form method="POST"
+              action="{{ url_for('activos_v2.agregar_mantenimiento', activo_id=activo.id) }}"
+              enctype="multipart/form-data">
+            {{ form.csrf_token }}
+
+            <div class="modal-body">
+                <!-- Fecha -->
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    {{ form.fecha_mantenimiento.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                    {{ form.fecha_mantenimiento(
+                        class="form-control",
+                        style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                    ) }}
+                    {% if form.fecha_mantenimiento.errors %}
+                        <span style="color: var(--danger-color); font-size: 13px;">
+                            {{ form.fecha_mantenimiento.errors[0] }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Tipo de Mantenimiento -->
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    {{ form.tipo_mantenimiento.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                    {{ form.tipo_mantenimiento(
+                        class="form-control",
+                        style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                    ) }}
+                    {% if form.tipo_mantenimiento.errors %}
+                        <span style="color: var(--danger-color); font-size: 13px;">
+                            {{ form.tipo_mantenimiento.errors[0] }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción -->
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    {{ form.descripcion.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                    {{ form.descripcion(
+                        class="form-control",
+                        style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%; resize: vertical;"
+                    ) }}
+                    {% if form.descripcion.errors %}
+                        <span style="color: var(--danger-color); font-size: 13px;">
+                            {{ form.descripcion.errors[0] }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Grid: Técnico y Empresa -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <!-- Técnico -->
+                    <div class="filter-group">
+                        {{ form.tecnico_nombre.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                        {{ form.tecnico_nombre(
+                            class="form-control",
+                            style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                        ) }}
+                    </div>
+
+                    <!-- Empresa -->
+                    <div class="filter-group">
+                        {{ form.tecnico_empresa.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                        {{ form.tecnico_empresa(
+                            class="form-control",
+                            style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                        ) }}
+                    </div>
+                </div>
+
+                <!-- Grid: Costo y Próximo Mantenimiento -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <!-- Costo -->
+                    <div class="filter-group">
+                        {{ form.costo.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                        {{ form.costo(
+                            class="form-control",
+                            style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                        ) }}
+                    </div>
+
+                    <!-- Próximo Mantenimiento -->
+                    <div class="filter-group">
+                        {{ form.proximo_mantenimiento.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                        {{ form.proximo_mantenimiento(
+                            class="form-control",
+                            style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%;"
+                        ) }}
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    {{ form.observaciones.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                    {{ form.observaciones(
+                        class="form-control",
+                        style="padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 15px; width: 100%; resize: vertical;"
+                    ) }}
+                </div>
+
+                <!-- Fotos -->
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    {{ form.fotos.label(style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;") }}
+                    <div style="border: 2px dashed var(--border-color); border-radius: var(--radius-sm); padding: 24px; text-align: center; background: var(--bg-secondary);">
+                        {{ form.fotos(
+                            multiple=true,
+                            accept="image/*",
+                            style="display: block; width: 100%;"
+                        ) }}
+                        <p style="margin: 12px 0 0 0; color: var(--text-tertiary); font-size: 13px;">
+                            Formatos permitidos: JPG, PNG, GIF (máx. 5MB por archivo)
+                        </p>
+                    </div>
+                    {% if form.fotos.errors %}
+                        <span style="color: var(--danger-color); font-size: 13px;">
+                            {{ form.fotos.errors[0] }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    @click="showModalMantenimiento = false"
+                    class="btn btn-secondary"
+                >
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                    </svg>
+                    Guardar Mantenimiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

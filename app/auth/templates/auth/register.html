@@ -1,0 +1,95 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Registrar Nuevo Usuario - SIG Activos Fijos{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="h3 fw-bold" style="color: var(--morado-oscuro);">Crear Nuevo Usuario</h2>
+</div>
+
+<form method="POST" action="{{ url_for('auth.register') }}" class="needs-validation" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        <label for="usuario" class="form-label">Nombre de Usuario <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+            {{ form.usuario(class="form-control", id="usuario", required=True) }}
+            <div class="invalid-feedback">El nombre de usuario es obligatorio.</div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="nombre" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+            {{ form.nombre(class="form-control", id="nombre", required=True) }}
+            <div class="invalid-feedback">El nombre completo es obligatorio.</div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                {{ form.password(class="form-control", id="password", required=True, minlength=6) }}
+                <div class="invalid-feedback">La contraseña es obligatoria (mín. 6 caracteres).</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label for="confirm_password" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                {{ form.confirm_password(class="form-control", id="confirm_password", required=True) }}
+                <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-4">
+        <label for="rol" class="form-label">Rol del Usuario <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person-badge-fill"></i></span>
+            {{ form.rol(class="form-select", id="rol", required=True) }}
+            <div class="invalid-feedback">Por favor, selecciona un rol.</div>
+        </div>
+    </div>
+
+    {{ form.submit(class="btn btn-primary fw-bold w-100") }}
+    
+    <div class="text-center mt-3">
+        <a href="{{ url_for('main.index') }}" class="text-decoration-none">Volver al panel principal</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (() => {
+        'use strict'
+        const form = document.querySelector('.needs-validation')
+        const password = document.getElementById('password')
+        const confirmPassword = document.getElementById('confirm_password')
+
+        function validatePasswordConfirmation() {
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('Las contraseñas no coinciden.');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        }
+        password.addEventListener('change', validatePasswordConfirmation);
+        confirmPassword.addEventListener('keyup', validatePasswordConfirmation);
+
+        form.addEventListener('submit', event => {
+            validatePasswordConfirmation();
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })()
+</script>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Activos{% endblock %}
+
+{% block head_extra %}
+    <!-- CSS del módulo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/activos-v2.css') }}">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="activos-v2-container" x-data="activosApp()">
+
+    <!-- ======================================================================
+         HEADER
+         ====================================================================== -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Gestión de Activos</h1>
+            <div class="stats-row">
+                <div class="stat-badge">
+                    <span>Total:</span>
+                    <span class="stat-number">{{ total_activos | default(0) }}</span>
+                </div>
+                <div class="stat-badge">
+                    <span>Operativos:</span>
+                    <span class="stat-number">{{ operativos | default(0) }}</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{{ url_for('activos.add_activo') }}" class="btn btn-primary btn-lg">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Agregar Activo
+            </a>
+
+            <a href="{{ url_for('activos.importar_activos') }}" class="btn btn-success btn-lg">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                </svg>
+                Importar Activos Fijos
+            </a>
+
+            <a href="{{ url_for('activos.importar_activos_ajenos') }}" class="btn btn-warning btn-lg">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                </svg>
+                Importar Activos Ajenos
+            </a>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         PANEL DE FILTROS
+         ====================================================================== -->
+    <div class="filters-panel">
+        <div class="filters-header" @click="showFilters = !showFilters">
+            <h3>Filtros de Búsqueda</h3>
+            <div class="filters-toggle">
+                <span x-text="showFilters ? 'Ocultar' : 'Mostrar'"></span>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"
+                     :style="showFilters ? 'transform: rotate(180deg)' : ''">
+                    <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div x-show="showFilters" x-collapse>
+            <form method="GET" action="{{ url_for('activos_v2.listado') }}">
+                <div class="filters-grid">
+                    <!-- Nombre -->
+                    <div class="filter-group">
+                        <label for="filtro-nombre">Nombre</label>
+                        <input
+                            type="text"
+                            id="filtro-nombre"
+                            name="nombre"
+                            placeholder="Buscar por nombre..."
+                            value="{{ filtros.nombre }}"
+                            x-model="filters.nombre"
+                        >
+                    </div>
+
+                    <!-- Placa -->
+                    <div class="filter-group">
+                        <label for="filtro-placa">Placa/Serie</label>
+                        <input
+                            type="text"
+                            id="filtro-placa"
+                            name="placa"
+                            placeholder="Buscar por placa..."
+                            value="{{ filtros.placa }}"
+                            x-model="filters.placa"
+                        >
+                    </div>
+
+                    <!-- Clase -->
+                    <div class="filter-group">
+                        <label for="filtro-clase">Clase de Activo</label>
+                        <select
+                            id="filtro-clase"
+                            name="clase_id"
+                            x-model="filters.clase_id"
+                        >
+                            <option value="">Todas las clases</option>
+                            {% for clase in clases %}
+                            <option value="{{ clase.id }}"
+                                    {% if filtros.clase_id == clase.id %}selected{% endif %}>
+                                {{ clase.nombre_clase }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ubicación -->
+                    <div class="filter-group">
+                        <label for="filtro-ubicacion">Ubicación</label>
+                        <select
+                            id="filtro-ubicacion"
+                            name="ubicacion_id"
+                            x-model="filters.ubicacion_id"
+                        >
+                            <option value="">Todas las ubicaciones</option>
+                            {% for ubicacion in ubicaciones %}
+                            <option value="{{ ubicacion.id }}"
+                                    {% if filtros.ubicacion_id == ubicacion.id %}selected{% endif %}>
+                                {{ ubicacion.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="filter-group">
+                        <label for="filtro-estado">Estado</label>
+                        <select
+                            id="filtro-estado"
+                            name="estado"
+                            x-model="filters.estado"
+                        >
+                            <option value="">Todos los estados</option>
+                            {% for estado in estados %}
+                            <option value="{{ estado }}"
+                                    {% if filtros.estado == estado %}selected{% endif %}>
+                                {{ estado }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filters-actions">
+                    <button type="button" @click="clearFilters()" class="btn btn-secondary">
+                        Limpiar Filtros
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         TABLA DE ACTIVOS
+         ====================================================================== -->
+    <div class="activos-table-container">
+        <div class="table-responsive">
+            <table id="tabla-activos" class="display" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Placa</th>
+                        <th>Nombre</th>
+                        <th>Clase</th>
+                        <th>Ubicación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activo in activos %}
+                    <tr>
+                        <td>{{ activo.placa_codigo_interno or 'S/N' }}</td>
+                        <td>{{ activo.nombre_activo }}</td>
+                        <td>{{ activo.clase.nombre_clase if activo.clase else 'N/A' }}</td>
+                        <td>{{ activo.ubicacion or 'N/A' }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'success' if activo.estado == 'Operativo' else 'warning' }}">
+                                {{ activo.estado or 'N/A' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <a href="{{ url_for('activos_v2.ver_detalle', id=activo.id) }}"
+                                   class="btn btn-info btn-sm" title="Ver Detalles">
+                                    Ver
+                                </a>
+                                <a href="{{ url_for('activos_v2.editar', id=activo.id) }}"
+                                   class="btn btn-warning btn-sm" title="Editar">
+                                    Editar
+                                </a>
+                                <form method="POST" action="{{ url_for('activos_v2.eliminar_activo', id=activo.id) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este activo? Esta acción no se puede deshacer.');" style="display: inline; margin: 0;">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-top;">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if pagination %}
+        <div style="padding: 20px; display: flex; justify-content: center;">
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('activos_v2.listado', page=pagination.prev_num, **filtros) }}"
+                   class="btn btn-secondary btn-sm">
+                    ← Anterior
+                </a>
+                {% endif %}
+
+                <span style="padding: 0 16px; color: var(--text-secondary);">
+                    Página {{ pagination.page }} de {{ pagination.pages }}
+                </span>
+
+                {% if pagination.has_next %}
+                <a href="{{ url_for('activos_v2.listado', page=pagination.next_num, **filtros) }}"
+                   class="btn btn-secondary btn-sm">
+                    Siguiente →
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- jQuery (requerido por DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <!-- Alpine.js Component -->
+    <script>
+        function activosApp() {
+            return {
+                showFilters: true,
+                filters: {
+                    nombre: '{{ filtros.nombre }}',
+                    placa: '{{ filtros.placa }}',
+                    clase_id: '{{ filtros.clase_id if filtros.clase_id else "" }}',
+                    ubicacion_id: '{{ filtros.ubicacion_id if filtros.ubicacion_id else "" }}',
+                    estado: '{{ filtros.estado }}'
+                },
+
+                clearFilters() {
+                    this.filters = {
+                        nombre: '',
+                        placa: '',
+                        clase_id: '',
+                        ubicacion_id: '',
+                        estado: ''
+                    };
+                    // Redirect to clear URL params
+                    window.location.href = '{{ url_for("activos_v2.listado") }}';
+                }
+            }
+        }
+
+        // Inicializar DataTables (opcional, para búsqueda local)
+        $(document).ready(function() {
+            $('#tabla-activos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                pageLength: 50,
+                order: [[0, 'desc']], // Ordenar por placa descendente
+                columnDefs: [
+                    { orderable: false, targets: 5 } // Columna de acciones no ordenable
+                ]
+            });
+        });
+    </script>
+{% endblock %}

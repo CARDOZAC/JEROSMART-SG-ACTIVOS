@@ -1,0 +1,55 @@
+.signature-wrapper {
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+}
+
+.signature-pad-container {
+    position: relative;
+    border: 2px dashed #adb5bd;
+    border-radius: .5rem;
+    background-color: #fff;
+    cursor: crosshair;
+}
+
+.signature-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #adb5bd;
+    text-align: center;
+    pointer-events: none;
+    font-size: 1.2rem;
+}
+
+.signature-placeholder i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: .5rem;
+}
+
+.signature-pad-container.signed .signature-placeholder {
+    display: none;
+}
+
+.signature-pad-container.saved {
+    border-style: solid;
+    border-color: #198754;
+}
+
+.signature-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    margin-top: 1rem;
+}
+
+.saved-state {
+    color: #198754;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}

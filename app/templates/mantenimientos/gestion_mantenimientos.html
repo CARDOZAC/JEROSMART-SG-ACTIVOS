@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Módulo de Mantenimientos{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    .ios-hero-section {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(88, 86, 214, 0.05), rgba(0, 122, 255, 0.05));
+        border-radius: 1.5rem;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .ios-hero-icon {
+        font-size: 4rem;
+        color: var(--ios-indigo);
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .feature-card {
+        background-color: var(--ios-secondary-background);
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-decoration: none;
+        color: var(--ios-primary-text);
+        display: block;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        color: var(--ios-primary-text);
+    }
+
+    .feature-card .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .feature-card p {
+        color: var(--ios-secondary-text);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Hero Section -->
+    <div class="ios-hero-section ios-fade-in">
+        <i class="bi bi-tools ios-hero-icon"></i>
+        <h1 class="ios-navbar-large-title">Módulo de Mantenimientos</h1>
+        <p class="ios-text-body text-secondary">Gestión de mantenimientos para equipos de TICs, mobiliario y equipos electro-industriales.</p>
+    </div>
+
+    <!-- Información sobre las clases gestionadas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="ios-card" style="background: rgba(88, 86, 214, 0.05); border-left: 4px solid #5856D6;">
+                <h4 style="color: #5856D6; margin-bottom: 1rem;">
+                    <i class="bi bi-info-circle-fill"></i> Clases de Activos Gestionadas
+                </h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div style="padding: 12px; background: white; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #5856D6;">
+                                <i class="bi bi-cpu-fill"></i> Equipos Electro-Industriales
+                            </div>
+                            <div style="font-size: 13px; color: var(--ios-label-secondary); margin-top: 4px;">
+                                Aires acondicionados, plantas eléctricas, motores, compresores
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="padding: 12px; background: white; border-radius: 8px;">
+                            <div style="font-weight: 600; color: var(--ios-green);">
+                                <i class="bi bi-pc-display-horizontal"></i> TICs
+                            </div>
+                            <div style="font-size: 13px; color: var(--ios-label-secondary); margin-top: 4px;">
+                                Computadores, impresoras, servidores, switches, routers
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="padding: 12px; background: white; border-radius: 8px;">
+                            <div style="font-weight: 600; color: var(--ios-orange);">
+                                <i class="bi bi-building"></i> Muebles y Enseres
+                            </div>
+                            <div style="font-size: 13px; color: var(--ios-label-secondary); margin-top: 4px;">
+                                Escritorios, sillas, archivadores, estanterías
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-5">
+            <a href="{{ url_for('mantenimientos.hojas_vida') }}" class="feature-card">
+                <div class="icon" style="color: var(--ios-blue);">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <h3>Hojas de Vida</h3>
+                <p>Registrar y gestionar las hojas de vida de los equipos con sus características comerciales, técnicas y específicas.</p>
+            </a>
+        </div>
+        <div class="col-md-5">
+            <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="feature-card">
+                <div class="icon" style="color: var(--ios-green);">
+                    <i class="bi bi-wrench-adjustable-circle-fill"></i>
+                </div>
+                <h3>Gestionar Mantenimientos</h3>
+                <p>Crear, ver y administrar registros de mantenimientos preventivos y correctivos en tabla detallada.</p>
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

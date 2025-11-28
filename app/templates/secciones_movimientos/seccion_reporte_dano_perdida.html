@@ -1,0 +1,209 @@
+<div id="seccion-reporte_dano_perdida" class="details-form">
+  <h4 class="mb-3">Detalles del Reporte de Daño o Pérdida</h4>
+
+  <div class="row g-3">
+    <!-- Tipo de Reporte -->
+    <div class="col-12">
+      <h5 class="fs-6 fw-bold">Tipo de Reporte</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="reporte_tipo" value="Daño" id="rt1" required>
+            <label class="form-check-label" for="rt1">Daño del Activo</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="reporte_tipo" value="Pérdida" id="rt2" required>
+            <label class="form-check-label" for="rt2">Pérdida del Activo</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fecha y Hora del Incidente -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Fecha y Hora del Incidente</h5>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Fecha del Incidente <span class="text-danger">*</span></label>
+      <input type="date" name="fecha_incidente" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Hora Aproximada</label>
+      <input type="time" name="hora_incidente" class="form-control">
+    </div>
+
+    <!-- Ubicación del Incidente -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Ubicación del Incidente</h5>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Área o Servicio <span class="text-danger">*</span></label>
+      <input type="text" name="area_incidente" class="form-control" placeholder="Ej: Urgencias, UCI, Quirófano" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Ubicación Específica</label>
+      <input type="text" name="ubicacion_especifica" class="form-control" placeholder="Ej: Habitación 101, Sala 2">
+    </div>
+
+    <!-- Descripción del Daño o Pérdida -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Descripción del Incidente</h5>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Descripción Detallada <span class="text-danger">*</span></label>
+      <textarea name="descripcion_incidente" class="form-control" rows="4"
+                placeholder="Describa detalladamente cómo ocurrió el daño o la pérdida del activo..." required></textarea>
+    </div>
+
+    <!-- Causa del Incidente -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Causa del Incidente</h5>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Uso inadecuado" id="causa1">
+            <label class="form-check-label" for="causa1">Uso inadecuado</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Accidente" id="causa2">
+            <label class="form-check-label" for="causa2">Accidente</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Fallo del equipo" id="causa3">
+            <label class="form-check-label" for="causa3">Fallo del equipo</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Robo" id="causa4">
+            <label class="form-check-label" for="causa4">Robo</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Extravío" id="causa5">
+            <label class="form-check-label" for="causa5">Extravío</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Desgaste natural" id="causa6">
+            <label class="form-check-label" for="causa6">Desgaste natural</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Negligencia" id="causa7">
+            <label class="form-check-label" for="causa7">Negligencia</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="causa_incidente" value="Otro" id="causa8">
+            <label class="form-check-label" for="causa8">Otro</label>
+          </div>
+          <input type="text" name="causa_incidente_otro" class="form-control form-control-sm mt-2"
+                 placeholder="Especifique otra causa">
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado del Activo -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Estado del Activo</h5>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Estado Actual <span class="text-danger">*</span></label>
+      <select name="estado_activo" class="form-select" required>
+        <option value="">Seleccione...</option>
+        <option value="Reparable">Reparable</option>
+        <option value="Irrecuperable">Irrecuperable</option>
+        <option value="Desaparecido">Desaparecido</option>
+        <option value="Extraviado">Extraviado</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">¿Requiere Reparación Inmediata?</label>
+      <select name="requiere_reparacion" class="form-select">
+        <option value="">Seleccione...</option>
+        <option value="Sí">Sí</option>
+        <option value="No">No</option>
+        <option value="N/A">No Aplica</option>
+      </select>
+    </div>
+
+    <!-- Costo Estimado del Daño -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Información Adicional</h5>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Costo Estimado del Daño/Pérdida</label>
+      <div class="input-group">
+        <span class="input-group-text">$</span>
+        <input type="number" name="costo_estimado" class="form-control" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Garantía Vigente</label>
+      <select name="garantia_vigente" class="form-select">
+        <option value="">Seleccione...</option>
+        <option value="Sí">Sí</option>
+        <option value="No">No</option>
+        <option value="No Aplica">No Aplica</option>
+      </select>
+    </div>
+
+    <!-- Responsable del Reporte -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Datos de Quien Reporta</h5>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+      <input type="text" name="responsable_reporte_nombre" id="responsable_reporte_nombre"
+             class="form-control" placeholder="Nombre completo" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cédula <span class="text-danger">*</span></label>
+      <input type="text" name="responsable_reporte_cc" id="responsable_reporte_cc"
+             class="form-control" placeholder="Número de cédula" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cargo <span class="text-danger">*</span></label>
+      <input type="text" name="responsable_reporte_cargo" id="responsable_reporte_cargo"
+             class="form-control" placeholder="Cargo" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Área <span class="text-danger">*</span></label>
+      <input type="text" name="responsable_reporte_area" id="responsable_reporte_area"
+             class="form-control" placeholder="Área o servicio" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Teléfono de Contacto</label>
+      <input type="tel" name="responsable_reporte_telefono" class="form-control" placeholder="Teléfono">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      <input type="email" name="responsable_reporte_email" class="form-control" placeholder="email@ejemplo.com">
+    </div>
+
+    <!-- Acciones Tomadas -->
+    <div class="col-12 mt-3">
+      <h5 class="fs-6 fw-bold">Acciones Tomadas</h5>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Descripción de Acciones Inmediatas</label>
+      <textarea name="acciones_tomadas" class="form-control" rows="3"
+                placeholder="Describa las acciones inmediatas tomadas tras el incidente..."></textarea>
+    </div>
+
+    <!-- Observaciones Adicionales -->
+    <div class="col-12 mt-3">
+      <label class="form-label">Observaciones Adicionales</label>
+      <textarea name="observaciones_adicionales" class="form-control" rows="3"
+                placeholder="Cualquier información adicional relevante..."></textarea>
+    </div>
+
+    <!-- Adjuntar Evidencia -->
+    <div class="col-12 mt-3">
+      <label class="form-label">Evidencia Fotográfica (Opcional)</label>
+      <input type="file" name="evidencia_fotos[]" class="form-control" multiple accept="image/*">
+      <small class="form-text text-muted">Puede adjuntar fotografías del daño o del lugar del incidente</small>
+    </div>
+  </div>
+</div>

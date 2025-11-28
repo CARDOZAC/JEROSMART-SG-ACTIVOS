@@ -24,23 +24,53 @@
       <input type="date" name="entrega_fecha_contrato" class="form-control">
     </div>
 
+    <div class="col-md-4">
+      <label class="form-label">Tipo de Contrato</label>
+      <select name="tipo_contrato" class="form-select">
+        <option value="">Seleccione...</option>
+        <option value="Compra">Compra</option>
+        <option value="Comodato">Comodato</option>
+        <option value="Arriendo">Arriendo</option>
+        <option value="Leasing">Leasing</option>
+        <option value="Donación">Donación</option>
+        <option value="No Aplica">No Aplica</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Valor del Contrato</label>
+      <input type="number" name="valor_contrato" class="form-control" step="0.01" placeholder="Valor en COP">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Garantía (Meses)</label>
+      <input type="number" name="garantia_meses" class="form-control" min="0" placeholder="Meses">
+    </div>
+
     <div class="col-12">
       <label class="form-label">Objeto del Contrato</label>
-      <textarea name="entrega_objeto" class="form-control" rows="2"></textarea>
+      <textarea name="entrega_objeto_contrato" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Lugar de Entrega Actual</label>
+      <input type="text" name="lugar_entrega_actual" class="form-control" placeholder="Lugar donde se realiza la entrega">
     </div>
 
     <div class="col-12 mt-4">
       <h5 class="fs-6 fw-bold">Tipo de Elemento Entregado</h5>
       <div class="row">
         <div class="col-md-4">
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipos biomédicos" id="cb_bio"><label class="form-check-label" for="cb_bio">Equipos biomédicos</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipos TIC" id="cb_tic"><label class="form-check-label" for="cb_tic">Equipos TIC</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Mobiliario y enseres" id="cb_myn"><label class="form-check-label" for="cb_myn">Mobiliario y enseres</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Equipo de vigilancia" id="cb_vig"><label class="form-check-label" for="cb_vig">Equipo de vigilancia</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos biomédicos" id="cb_bio"><label class="form-check-label" for="cb_bio">Equipos biomédicos</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipo Electroindustrial" id="cb_electro"><label class="form-check-label" for="cb_electro">Equipo Electroindustrial</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos TIC" id="cb_tic"><label class="form-check-label" for="cb_tic">Equipos TIC</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Mobiliario y enseres" id="cb_myn"><label class="form-check-label" for="cb_myn">Mobiliario y enseres</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipo de vigilancia" id="cb_vig"><label class="form-check-label" for="cb_vig">Equipo de vigilancia</label></div>
         </div>
         <div class="col-md-4">
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Mobiliario y enseres hospitalarios" id="cb_myh"><label class="form-check-label" for="cb_myh">Mobiliario y enseres hospitalarios</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="tipo_elementos" value="Maquinaria y equipo industrial" id="cb_maq"><label class="form-check-label" for="cb_maq">Maquinaria y equipo industrial</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Mobiliario y enseres hospitalarios" id="cb_myh"><label class="form-check-label" for="cb_myh">Mobiliario y enseres hospitalarios</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Maquinaria y equipo industrial" id="cb_maq"><label class="form-check-label" for="cb_maq">Maquinaria y equipo industrial</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="incluye_accesorios" value="1" id="cb_acc"><label class="form-check-label" for="cb_acc">Incluye accesorios</label></div>
           <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_montaje" value="1" id="cb_mon"><label class="form-check-label" for="cb_mon">Requiere montaje</label></div>
           <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_capacitacion" value="1" id="cb_cap"><label class="form-check-label" for="cb_cap">Requiere Capacitación</label></div>
         </div>
@@ -69,19 +99,19 @@
 
     <div class="col-md-6 mt-4">
       <h5 class="fs-6 fw-bold">Quién Entrega</h5>
-      <input type="text" name="entrega_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
-      <input type="text" name="entrega_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
-      <input type="text" name="entrega_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
-      <input type="text" name="entrega_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
-      <input type="text" name="entrega_responsable_centro_costo" class="form-control" placeholder="Centro de Costo">
+      <input type="text" name="entrega_responsable_nombre" id="entrega_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
+      <input type="text" name="entrega_responsable_cc" id="entrega_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
+      <input type="text" name="entrega_responsable_cargo" id="entrega_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
+      <input type="text" name="entrega_responsable_area" id="entrega_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
+      <input type="text" name="quien_entrega_centro_costo" class="form-control" placeholder="Centro de Costo">
     </div>
 
     <div class="col-md-6 mt-4">
       <h5 class="fs-6 fw-bold">Quién Recibe</h5>
-      <input type="text" name="recibe_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
-      <input type="text" name="recibe_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
-      <input type="text" name="recibe_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
-      <input type="text" name="recibe_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
+      <input type="text" name="recibe_responsable_nombre" id="recibe_responsable_nombre" class="form-control mb-2" placeholder="Nombre Responsable">
+      <input type="text" name="recibe_responsable_cc" id="recibe_responsable_cc" class="form-control mb-2" placeholder="CC o NIT">
+      <input type="text" name="recibe_responsable_cargo" id="recibe_responsable_cargo" class="form-control mb-2" placeholder="Cargo">
+      <input type="text" name="recibe_responsable_area" id="recibe_responsable_area" class="form-control mb-2" placeholder="Área o Servicio">
       <input type="text" name="recibe_responsable_centro_costo" class="form-control" placeholder="Centro de Costo">
     </div>
 

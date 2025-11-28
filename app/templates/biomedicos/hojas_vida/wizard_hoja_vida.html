@@ -1,0 +1,787 @@
+{% extends "biomedicos/base_biomedico.html" %}
+
+{% block breadcrumb_active %}Nueva Hoja de Vida{% endblock %}
+{% block page_title %}Crear Hoja de Vida{% endblock %}
+{% block page_subtitle %}Registro digital de equipos biomédicos{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('biomedicos.ver_hojas_vida') }}" class="ios-btn ios-btn-secondary" style="text-decoration: none;">
+    <i class="bi bi-x-circle"></i> Cancelar
+</a>
+{% endblock %}
+
+{% block biomedico_content %}
+
+<!-- Wizard Progress Bar -->
+<div class="wizard-progress-container mb-4">
+    <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">1</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Datos Generales</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="2">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">2</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Datos Técnicos</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="3">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">3</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Documentos</div>
+        </div>
+        <div class="wizard-step-line"></div>
+        <div class="wizard-step" data-step="4">
+            <div class="wizard-step-circle">
+                <span class="wizard-step-number">4</span>
+                <i class="bi bi-check wizard-step-check"></i>
+            </div>
+            <div class="wizard-step-label">Resumen</div>
+        </div>
+    </div>
+</div>
+
+<!-- Wizard Content Container -->
+<div class="wizard-content-container">
+
+    <!-- PASO 1: Datos Generales -->
+    <div class="wizard-step-content active" id="paso-1">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 1: Seleccionar Activo y Datos Generales</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <!-- Selector de Activo con Select2 -->
+                <div class="mb-4">
+                    <label class="form-label required">Seleccionar Equipo Biomédico</label>
+                    <select class="form-select" id="activo_id" required style="width: 100%;">
+                        <option value="">-- Buscar por placa o nombre del activo --</option>
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-search"></i> Escriba para buscar. Solo activos biomédicos sin hoja de vida.
+                    </small>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Información del Activo (se llena automáticamente) -->
+                <div id="info-activo-seleccionado" style="display: none;">
+                    <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                        Información del Activo
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Placa / Código:</span>
+                                <span class="info-value" id="info-placa">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Marca:</span>
+                                <span class="info-value" id="info-marca">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Modelo:</span>
+                                <span class="info-value" id="info-modelo">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Serie:</span>
+                                <span class="info-value" id="info-serie">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Datos Generales de la Hoja de Vida -->
+                    <h6 class="mb-3" style="color: var(--ios-label-secondary); font-size: var(--ios-font-size-footnote); text-transform: uppercase;">
+                        Datos Generales
+                    </h6>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Fecha de Adquisición</label>
+                            <input type="date" class="form-control" id="fecha_adquisicion" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Forma de Adquisición</label>
+                            <select class="form-select" id="forma_adquisicion" required>
+                                <option value="">-- Seleccione --</option>
+                                <option value="Compra">Compra</option>
+                                <option value="Donación">Donación</option>
+                                <option value="Comodato">Comodato</option>
+                                <option value="Leasing">Leasing</option>
+                                <option value="Arrendamiento">Arrendamiento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor</label>
+                            <input type="text" class="form-control" id="proveedor" placeholder="Nombre del proveedor">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono Proveedor</label>
+                            <input type="tel" class="form-control" id="telefono_proveedor" placeholder="3001234567">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Proveedor</label>
+                            <input type="email" class="form-control" id="email_proveedor" placeholder="contacto@proveedor.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Costo de Adquisición</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="costo_adquisicion" placeholder="0" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observaciones Generales</label>
+                            <textarea class="form-control" id="observaciones_generales" rows="3" placeholder="Información adicional sobre el equipo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 2: Datos Técnicos -->
+    <div class="wizard-step-content" id="paso-2">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 2: Datos Técnicos del Equipo</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Clasificación de Riesgo Biomédico</label>
+                        <select class="form-select" id="clasificacion_riesgo">
+                            <option value="">-- Seleccione --</option>
+                            <option value="I">Clase I - Riesgo Bajo</option>
+                            <option value="IIA">Clase IIA - Riesgo Moderado</option>
+                            <option value="IIB">Clase IIB - Riesgo Alto</option>
+                            <option value="III">Clase III - Riesgo Muy Alto</option>
+                        </select>
+                        <small class="form-text text-muted">Clasificación según Decreto 4725 de 2005</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Clasificación Biomédica (Propósito)</label>
+                        <select class="form-select" id="clasificacion_biomedica">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Diagnóstico">Diagnóstico</option>
+                            <option value="Tratamiento">Tratamiento</option>
+                            <option value="Rehabilitación">Rehabilitación</option>
+                            <option value="Prevención">Prevención</option>
+                            <option value="Análisis de laboratorio">Análisis de Laboratorio</option>
+                            <option value="Soporte de Vida">Soporte de Vida</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tecnología Predominante</label>
+                        <select class="form-select" id="tecnologia_predominante">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Electrica">Eléctrica</option>
+                            <option value="Electronica">Electrónica</option>
+                            <option value="Mecanica">Mecánica</option>
+                            <option value="Hidraulica">Hidráulica</option>
+                            <option value="Neumatica">Neumática</option>
+                            <option value="Vapor">Vapor</option>
+                            <option value="Mixta">Mixta</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Voltaje</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="voltaje" placeholder="110/220">
+                            <span class="input-group-text">V</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Corriente</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="corriente" placeholder="5">
+                            <span class="input-group-text">A</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Potencia</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="potencia" placeholder="500">
+                            <span class="input-group-text">W</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Frecuencia de Uso</label>
+                        <select class="form-select" id="frecuencia_uso">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Continuo">Continuo (24/7)</option>
+                            <option value="Alto">Alto (> 8h diarias)</option>
+                            <option value="Medio">Medio (4-8h diarias)</option>
+                            <option value="Bajo">Bajo (< 4h diarias)</option>
+                            <option value="Ocasional">Ocasional</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vida Útil Estimada</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="vida_util" placeholder="10" min="0">
+                            <span class="input-group-text">años</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Requiere Calibración</label>
+                        <select class="form-select" id="requiere_calibracion">
+                            <option value="0">No</option>
+                            <option value="1">Sí</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Periodicidad Calibración</label>
+                        <select class="form-select" id="periodicidad_calibracion">
+                            <option value="">N/A</option>
+                            <option value="Mensual">Mensual</option>
+                            <option value="Trimestral">Trimestral</option>
+                            <option value="Semestral">Semestral</option>
+                            <option value="Anual">Anual</option>
+                            <option value="Bienal">Bienal</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Especificaciones Técnicas Adicionales</label>
+                        <textarea class="form-control" id="especificaciones_tecnicas" rows="4" placeholder="Descripción técnica detallada del equipo, accesorios incluidos, características especiales, etc."></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 3: Carga de Documentos -->
+    <div class="wizard-step-content" id="paso-3">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 3: Documentos Adjuntos</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <p class="text-muted mb-4">
+                    Cargue los documentos relacionados con el equipo. Todos los documentos deben estar en formato PDF.
+                </p>
+
+                <!-- Categoría 1: Calibraciones -->
+                <div class="mb-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-rulers" style="color: var(--ios-blue);"></i>
+                        Calibraciones
+                    </h6>
+                    <div id="dropzone-calibraciones" class="dropzone" style="border: 2px dashed var(--ios-separator); border-radius: var(--ios-radius-md); padding: 32px; text-align: center; cursor: pointer; background: var(--ios-bg-tertiary);">
+                        <div class="dz-message">
+                            <i class="bi bi-cloud-upload" style="font-size: 48px; color: var(--ios-gray-3);"></i>
+                            <p style="margin: 8px 0 4px 0; color: var(--ios-label-primary); font-weight: 500;">Arrastre archivos PDF aquí o haga clic para seleccionar</p>
+                            <small style="color: var(--ios-label-secondary);">Certificados de calibración del equipo</small>
+                        </div>
+                    </div>
+                    <div class="file-list mt-2" id="file-list-calibraciones"></div>
+                </div>
+
+                <!-- Categoría 2: Mantenimiento Preventivo -->
+                <div class="mb-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-wrench-adjustable" style="color: var(--ios-green);"></i>
+                        Mantenimiento Preventivo
+                    </h6>
+                    <div id="dropzone-preventivo" class="dropzone" style="border: 2px dashed var(--ios-separator); border-radius: var(--ios-radius-md); padding: 32px; text-align: center; cursor: pointer; background: var(--ios-bg-tertiary);">
+                        <div class="dz-message">
+                            <i class="bi bi-cloud-upload" style="font-size: 48px; color: var(--ios-gray-3);"></i>
+                            <p style="margin: 8px 0 4px 0; color: var(--ios-label-primary); font-weight: 500;">Arrastre archivos PDF aquí o haga clic para seleccionar</p>
+                            <small style="color: var(--ios-label-secondary);">Registros de mantenimientos preventivos</small>
+                        </div>
+                    </div>
+                    <div class="file-list mt-2" id="file-list-preventivo"></div>
+                </div>
+
+                <!-- Categoría 3: Mantenimiento Correctivo -->
+                <div class="mb-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-tools" style="color: var(--ios-orange);"></i>
+                        Mantenimiento Correctivo
+                    </h6>
+                    <div id="dropzone-correctivo" class="dropzone" style="border: 2px dashed var(--ios-separator); border-radius: var(--ios-radius-md); padding: 32px; text-align: center; cursor: pointer; background: var(--ios-bg-tertiary);">
+                        <div class="dz-message">
+                            <i class="bi bi-cloud-upload" style="font-size: 48px; color: var(--ios-gray-3);"></i>
+                            <p style="margin: 8px 0 4px 0; color: var(--ios-label-primary); font-weight: 500;">Arrastre archivos PDF aquí o haga clic para seleccionar</p>
+                            <small style="color: var(--ios-label-secondary);">Registros de reparaciones y mantenimientos correctivos</small>
+                        </div>
+                    </div>
+                    <div class="file-list mt-2" id="file-list-correctivo"></div>
+                </div>
+
+                <!-- Categoría 4: Documentación Legal -->
+                <div class="mb-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-file-earmark-text" style="color: var(--ios-purple);"></i>
+                        Documentación Legal
+                    </h6>
+                    <div id="dropzone-legal" class="dropzone" style="border: 2px dashed var(--ios-separator); border-radius: var(--ios-radius-md); padding: 32px; text-align: center; cursor: pointer; background: var(--ios-bg-tertiary);">
+                        <div class="dz-message">
+                            <i class="bi bi-cloud-upload" style="font-size: 48px; color: var(--ios-gray-3);"></i>
+                            <p style="margin: 8px 0 4px 0; color: var(--ios-label-primary); font-weight: 500;">Arrastre archivos PDF aquí o haga clic para seleccionar</p>
+                            <small style="color: var(--ios-label-secondary);">Registros INVIMA, manuales, garantías, etc.</small>
+                        </div>
+                    </div>
+                    <div class="file-list mt-2" id="file-list-legal"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 4: Resumen y Confirmación -->
+    <div class="wizard-step-content" id="paso-4">
+        <div class="ios-card">
+            <div class="ios-card-header">
+                <h5 class="ios-card-title">Paso 4: Resumen y Confirmación</h5>
+            </div>
+            <div class="ios-card-body">
+
+                <p class="text-muted mb-4">
+                    Revise la información antes de crear la hoja de vida. Puede volver a los pasos anteriores para modificar cualquier dato.
+                </p>
+
+                <!-- Resumen Datos Generales -->
+                <div class="resumen-seccion mb-4">
+                    <div class="resumen-seccion-header">
+                        <h6>Datos Generales</h6>
+                        <button class="btn btn-sm btn-link" onclick="irAPaso(1)">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                    <div class="resumen-seccion-body" id="resumen-generales">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Resumen Datos Técnicos -->
+                <div class="resumen-seccion mb-4">
+                    <div class="resumen-seccion-header">
+                        <h6>Datos Técnicos</h6>
+                        <button class="btn btn-sm btn-link" onclick="irAPaso(2)">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                    <div class="resumen-seccion-body" id="resumen-tecnicos">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Resumen Documentos -->
+                <div class="resumen-seccion mb-4">
+                    <div class="resumen-seccion-header">
+                        <h6>Documentos Adjuntos</h6>
+                        <button class="btn btn-sm btn-link" onclick="irAPaso(3)">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                    <div class="resumen-seccion-body" id="resumen-documentos">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Confirmación Final -->
+                <div class="alert" style="background: var(--ios-blue-light); border: 1px solid var(--ios-blue); border-radius: var(--ios-radius-sm);">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmar_datos">
+                        <label class="form-check-label" for="confirmar_datos">
+                            <strong>Confirmo que toda la información es correcta</strong>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Navigation Buttons -->
+<div class="wizard-navigation mt-4">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-lg" id="btn-anterior" onclick="anteriorPaso()" style="display: none;">
+            <i class="bi bi-chevron-left"></i> Anterior
+        </button>
+        <div></div>
+        <button type="button" class="btn btn-primary btn-lg" id="btn-siguiente" onclick="siguientePaso()">
+            Siguiente <i class="bi bi-chevron-right"></i>
+        </button>
+        <button type="button" class="btn btn-success btn-lg" id="btn-guardar" onclick="guardarHojaVida()" style="display: none;">
+            <i class="bi bi-check-circle"></i> Crear Hoja de Vida
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block biomedico_scripts %}
+<!-- Select2 para búsqueda dinámica -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Dropzone.js para carga de archivos -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.css">
+<script src="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.js"></script>
+
+<!-- Scripts del Wizard -->
+<script src="{{ url_for('static', filename='js/biomedicos/hojas_vida/wizard_hoja_vida.js') }}"></script>
+<script src="{{ url_for('static', filename='js/biomedicos/hojas_vida/upload_documentos.js') }}"></script>
+
+<style>
+/* Estilos adicionales para el wizard */
+.wizard-progress-container {
+    background: var(--ios-bg-secondary);
+    padding: var(--ios-space-lg);
+    border-radius: var(--ios-radius-md);
+    margin-bottom: var(--ios-space-lg);
+}
+
+.wizard-steps {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.wizard-step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ios-gray-5);
+    border: 2px solid var(--ios-separator);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.wizard-step.active .wizard-step-circle {
+    background: var(--ios-blue);
+    border-color: var(--ios-blue);
+}
+
+.wizard-step.completed .wizard-step-circle {
+    background: var(--ios-green);
+    border-color: var(--ios-green);
+}
+
+.wizard-step-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ios-gray-2);
+}
+
+.wizard-step.active .wizard-step-number,
+.wizard-step.completed .wizard-step-number {
+    color: white;
+}
+
+.wizard-step-check {
+    display: none;
+    font-size: 24px;
+    color: white;
+}
+
+.wizard-step.completed .wizard-step-check {
+    display: block;
+}
+
+.wizard-step.completed .wizard-step-number {
+    display: none;
+}
+
+.wizard-step-label {
+    margin-top: 12px;
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-label-secondary);
+    text-align: center;
+    font-weight: 400;
+}
+
+.wizard-step.active .wizard-step-label {
+    color: var(--ios-blue);
+    font-weight: 600;
+}
+
+.wizard-step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--ios-separator);
+    margin: 0 16px;
+    margin-bottom: 32px;
+}
+
+.wizard-step-content {
+    display: none;
+}
+
+.wizard-step-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.required::after {
+    content: " *";
+    color: var(--ios-red);
+}
+
+.info-item {
+    padding: 12px;
+    background: var(--ios-bg-tertiary);
+    border-radius: var(--ios-radius-xs);
+}
+
+.info-label {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-label-secondary);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-label-primary);
+    font-weight: 500;
+}
+
+/* Estilos de Dropzone - MEJORADOS */
+.dropzone {
+    transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+    border-color: var(--ios-blue) !important;
+    background: var(--ios-bg-secondary) !important;
+}
+
+.dropzone.dz-drag-hover {
+    border-color: var(--ios-blue) !important;
+    background: rgba(0, 122, 255, 0.05) !important;
+    transform: scale(1.01);
+}
+
+.dropzone .dz-message {
+    margin: 0;
+}
+
+.dropzone .dz-preview {
+    display: none; /* Las previews van en file-list */
+}
+
+.file-list {
+    margin-top: 12px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--ios-bg-secondary);
+    border-radius: var(--ios-radius-xs);
+    margin-bottom: 8px;
+}
+
+.file-item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-item-icon {
+    font-size: 24px;
+    color: var(--ios-red);
+}
+
+.file-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-item-name {
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-label-primary);
+}
+
+.file-item-size {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-label-secondary);
+}
+
+.resumen-seccion {
+    background: var(--ios-bg-secondary);
+    border-radius: var(--ios-radius-md);
+    overflow: hidden;
+}
+
+.resumen-seccion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--ios-bg-tertiary);
+    border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.resumen-seccion-header h6 {
+    margin: 0;
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    color: var(--ios-label-primary);
+}
+
+.resumen-seccion-body {
+    padding: 16px;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+}
+
+.resumen-item-label {
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-label-secondary);
+}
+
+.resumen-item-value {
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-label-primary);
+    font-weight: 500;
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .wizard-steps {
+        flex-wrap: wrap;
+    }
+
+    .wizard-step-line {
+        display: none;
+    }
+
+    .wizard-step {
+        margin-bottom: 16px;
+    }
+}
+
+/* Estilos iOS para Select2 */
+.select2-container--default .select2-selection--single {
+    border: 1px solid var(--ios-separator);
+    border-radius: var(--ios-radius-sm);
+    height: 44px;
+    padding: 8px 12px;
+    background: var(--ios-bg-secondary);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--ios-label-primary);
+    line-height: 26px;
+    padding-left: 0;
+    font-size: var(--ios-font-size-body);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: var(--ios-label-tertiary);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 42px;
+    right: 8px;
+}
+
+.select2-dropdown {
+    border: 1px solid var(--ios-separator);
+    border-radius: var(--ios-radius-sm);
+    background: var(--ios-bg-secondary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.select2-results__option {
+    padding: 12px 16px;
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-label-primary);
+}
+
+.select2-results__option--highlighted {
+    background-color: var(--ios-blue-light) !important;
+    color: var(--ios-blue) !important;
+}
+
+.select2-results__option--selected {
+    background-color: var(--ios-bg-tertiary);
+}
+
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid var(--ios-separator);
+    border-radius: var(--ios-radius-xs);
+    padding: 8px 12px;
+    background: var(--ios-bg-tertiary);
+    color: var(--ios-label-primary);
+    font-size: var(--ios-font-size-body);
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--ios-blue);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    color: var(--ios-gray-2);
+    margin-right: 20px;
+    font-size: 18px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear:hover {
+    color: var(--ios-red);
+}
+</style>
+{% endblock %}

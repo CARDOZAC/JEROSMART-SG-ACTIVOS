@@ -2,106 +2,507 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Acta de Paz y Salvo #{{ movimiento.id }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paz y Salvo Activos Fijos</title>
     <style>
-        @page { size: letter portrait; margin: 1.5cm; }
-        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 9pt; line-height: 1.3; color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        td, th { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: top; }
-        .header-table td { text-align: center; vertical-align: middle; font-weight: bold; }
-        .logo { width: 100px; height: auto; }
-        .bg-gray { background-color: #E7E6E6; }
-        .bold { font-weight: bold; }
-        .text-center { text-align: center; }
-        .signature-section { margin-top: 30px; page-break-inside: avoid; }
-        .signature-box { width: 48%; text-align: center; display: inline-block; margin-top: 40px; }
-        .signature-line { border-top: 1px solid #000; padding-top: 5px; font-size: 8pt; }
-        .signature-img { max-height: 40px; max-width: 100%; margin-bottom: 5px; }
-        h1 { font-size: 14pt; text-align: center; margin-bottom: 10px; }
-        .section-title { background-color: #E7E6E6; font-weight: bold; text-align: center; padding: 5px; }
-        .paragraph { text-align: justify; margin: 15px 0; }
+        @page {
+            size: Letter;
+            margin: 1.5cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 8.5pt;
+            line-height: 1.2;
+            color: #000;
+        }
+        
+        .container {
+            width: 100%;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        /* Header Table */
+        .header-table {
+            margin-bottom: 0;
+        }
+        
+        .header-table td {
+            border: 1px solid #000;
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+        
+        .logo-cell {
+            width: 110px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .logo-img {
+            width: 85px;
+            height: auto;
+            max-height: 70px;
+            object-fit: contain;
+        }
+
+        .logo-placeholder {
+            width: 85px;
+            height: 70px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 7.5pt;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.1;
+        }
+        
+        .header-center {
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+        
+        .header-center .title1 {
+            font-size: 10pt;
+        }
+        
+        .header-center .title2 {
+            font-size: 8.5pt;
+        }
+        
+        .header-center .title3 {
+            font-size: 9pt;
+            margin-top: 2px;
+        }
+        
+        .header-center .subtitle {
+            font-size: 8pt;
+            margin-top: 2px;
+        }
+        
+        .header-right {
+            width: 145px;
+            font-size: 7.5pt;
+            line-height: 1.4;
+        }
+        
+        /* Policy Section */
+        .policy-section {
+            border: 1px solid #000;
+            border-top: none;
+            padding: 5px 6px;
+            font-size: 7.5pt;
+            line-height: 1.3;
+            text-align: justify;
+            background-color: #e8e8e8;
+            font-weight: bold;
+        }
+        
+        .policy-text {
+            border: 1px solid #000;
+            border-top: none;
+            padding: 5px 6px;
+            font-size: 7.5pt;
+            line-height: 1.3;
+            text-align: justify;
+        }
+        
+        /* Form Tables */
+        .form-table {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        
+        .form-table td {
+            border: 1px solid #000;
+            padding: 2px 5px;
+            font-size: 8pt;
+            vertical-align: middle;
+        }
+        
+        .form-label {
+            font-weight: bold;
+        }
+        
+        .section-header {
+            background-color: #d9d9d9;
+            font-weight: bold;
+            text-align: center;
+            padding: 3px 5px;
+            font-size: 8.5pt;
+        }
+        
+        /* Assets Table */
+        .assets-table {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        
+        .assets-table th,
+        .assets-table td {
+            border: 1px solid #000;
+            padding: 2px 4px;
+            font-size: 8pt;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .assets-table th {
+            background-color: #d9d9d9;
+            font-weight: bold;
+        }
+        
+        .assets-table .align-left {
+            text-align: left;
+        }
+        
+        .data-row {
+            height: 22px;
+        }
+        
+        /* Note Box */
+        .note-box {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            font-size: 7pt;
+            line-height: 1.3;
+            text-align: justify;
+        }
+        
+        .note-header {
+            font-weight: bold;
+        }
+        
+        /* Observations Section */
+        .observations-section {
+            margin-top: 0;
+        }
+        
+        .observations-section td {
+            border: 1px solid #000;
+            padding: 3px 5px;
+            font-size: 8pt;
+        }
+        
+        .observations-header {
+            background-color: #d9d9d9;
+            font-weight: bold;
+            text-align: center;
+            padding: 3px 5px;
+        }
+        
+        .observations-text {
+            text-align: center;
+            padding: 5px;
+            font-size: 8pt;
+        }
+        
+        /* Signatures Table */
+        .signatures-table {
+            margin-top: 0;
+        }
+        
+        .signatures-table td {
+            border: 1px solid #000;
+            padding: 2px 5px;
+            font-size: 8pt;
+            vertical-align: middle;
+        }
+        
+        .signatures-table th {
+            border: 1px solid #000;
+            background-color: #d9d9d9;
+            font-weight: bold;
+            padding: 3px 5px;
+            font-size: 8pt;
+            text-align: center;
+        }
+        
+        .signature-space {
+            height: 35px;
+            text-align: center;
+            vertical-align: bottom;
+        }
+
+        .signature-space img {
+            max-height: 30px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* === METADATA DE AUDITORÍA === */
+        .audit-meta {
+            font-size: 6pt;
+            color: #666;
+            margin-top: 2px;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .audit-meta small {
+            display: block;
+        }
+
+        /* Final Certification */
+        .certification-section {
+            margin-top: 0;
+        }
+        
+        .certification-section td {
+            border: 1px solid #000;
+            padding: 3px 5px;
+            font-size: 7.5pt;
+        }
+        
+        .certification-header {
+            background-color: #d9d9d9;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .certification-text {
+            padding: 5px;
+            line-height: 1.3;
+            text-align: justify;
+        }
+        
+        .bold {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <table class="header-table">
-        <tr>
-            <td rowspan="3" style="width: 20%;"><img class="logo" src="{{ url_for('static', filename='img/logo_primavera_simple.png', _external=True) }}"></td>
-            <td rowspan="2" style="width: 50%;">CORPORACION CLINICA PRIMAVERA <br> NIT: 900213617-3</td>
-            <td style="width: 30%;">Código: 268.4-11.019</td>
-        </tr>
-        <tr><td>Versión: 1</td></tr>
-        <tr><td>PAZ Y SALVO DE ACTIVOS FIJOS</td><td>Pagina 1 de 1</td></tr>
-    </table>
-
-    <h1>PAZ Y SALVO #{{ movimiento.id }}</h1>
-
-    <table>
-        <tr>
-            <td><span class="bold">Fecha:</span> {{ movimiento.fecha.split(' ')[0] if movimiento.fecha }}</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="section-title" colspan="2">DATOS DEL FUNCIONARIO</td></tr>
-        <tr>
-            <td style="width: 50%;"><span class="bold">Nombre:</span> {{ detalles.nombre_funcionario or 'N/A' }}</td>
-            <td><span class="bold">Cédula:</span> {{ detalles.funcionario_desvinculado_id or 'N/A' }}</td>
-        </tr>
-        <tr>
-            <td><span class="bold">Cargo:</span> {{ detalles.cargo_funcionario or 'N/A' }}</td>
-            <td><span class="bold">Área:</span> {{ detalles.area_funcionario or 'N/A' }}</td>
-        </tr>
-    </table>
-
-    <p class="paragraph">
-        Por medio de la presente, el área de Activos Fijos de la CORPORACIÓN CLÍNICA PRIMAVERA certifica que el/la funcionario(a)
-        mencionado(a) se encuentra a <span class="bold">PAZ Y SALVO</span> por concepto de activos fijos a su cargo. Se ha verificado
-        la devolución y el estado de los elementos que le fueron asignados para el desempeño de sus labores.
-    </p>
-
-    <table>
-        <tr><td class="section-title" colspan="6">ACTIVOS VERIFICADOS</td></tr>
-        <thead>
-            <tr><th>N°</th><th>Descripción</th><th>Placa</th><th>Marca</th><th>Modelo</th><th>Serie</th></tr>
-        </thead>
-        <tbody>
-            {% for activo in activos %}
+    <div class="container">
+        <!-- Header -->
+        <table class="header-table">
             <tr>
-                <td class="text-center">{{ loop.index }}</td>
-                <td>{{ activo.nombre_activo }}</td>
-                <td>{{ activo.placa_codigo_interno }}</td>
+                <td class="logo-cell" rowspan="2">
+                    <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+                </td>
+                <td class="header-center" rowspan="2">
+                    <div class="title1">CORPORACION CLINICA PRIMAVERA</div>
+                    <div class="title2">NIT: 900213617-3</div>
+                    <div class="title3">PAZ Y SALVO ACTIVOS FIJOS</div>
+                    <div class="subtitle">Políticas internas</div>
+                </td>
+                <td class="header-right">
+                    <strong>Fecha de aprobacion:</strong><br>
+                    <strong>código: 000.0-00.000</strong>
+                </td>
+            </tr>
+            <tr>
+                <td class="header-right">
+                    <strong>Versión: 1</strong><br>
+                    <strong>Pagina 1 de 1</strong>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Policy Text -->
+        <div class="policy-text">
+            Mediante el presente documento, la Corporación Clínica Primavera certifica al empleado/a en trámite de desvinculación. A quien se le asigne alguna clase o tipo de activo fijo o ajeno debe devolverlo en óptimas condiciones los cuales fueron entregados al momento de su ingreso a la institución. Si los elementos han sido verificados y se encuentran en óptimas condiciones, se procederá a realizar el formato, si hay algún tipo de novedad o negativa ante los activos asignados se verificará, investigará y se concluirá si se debe hacer algún pago o reposición del activo dañado o perdido en su defecto.
+        </div>
+        
+        <!-- Basic Info Section -->
+        <table class="form-table">
+            <tr>
+                <td class="section-header" colspan="4">Información básica del funcionario</td>
+            </tr>
+        </table>
+        
+        <table class="form-table">
+            <tr>
+                <td class="form-label" style="width: 15%;">Nombre:</td>
+                <td style="width: 35%;">{{ nombre_funcionario or '' }}</td>
+                <td class="form-label" style="width: 15%;">Área:</td>
+                <td style="width: 35%;">{{ area_funcionario or '' }}</td>
+            </tr>
+        </table>
+        
+        <table class="form-table">
+            <tr>
+                <td class="form-label" style="width: 15%;">Cargo:</td>
+                <td style="width: 35%;">{{ cargo_funcionario or '' }}</td>
+                <td class="form-label" style="width: 15%;">Fecha Elaboración:</td>
+                <td style="width: 35%;">{{ fecha_formateada.date or '' }}</td>
+            </tr>
+        </table>
+        
+        <!-- Assets Table -->
+        <table class="assets-table">
+            <tr>
+                <th colspan="6">Activos Fijos relacionados y/o asignados</th>
+                <th colspan="3">Estado Actual<br>(marque con una x)</th>
+            </tr>
+            <tr>
+                <th style="width: 6%;">Ítems</th>
+                <th style="width: 23%;">Descripción</th>
+                <th style="width: 12%;">Placa</th>
+                <th style="width: 12%;">Marca</th>
+                <th style="width: 12%;">Modelo</th>
+                <th style="width: 13%;">Serial</th>
+                <th style="width: 7%;">Bueno</th>
+                <th style="width: 7%;">Malo</th>
+                <th style="width: 8%;">Regular</th>
+            </tr>
+            {% for activo in activos_a_cargo %}
+            <tr>
+                <td class="data-row">{{ loop.index }}</td>
+                <td class="align-left">{{ activo.nombre_activo or '' }}</td>
+                <td>{{ activo.placa_codigo_interno or '' }}</td>
                 <td>{{ activo.marca or '' }}</td>
                 <td>{{ activo.modelo or '' }}</td>
                 <td>{{ activo.serie or '' }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center" style="height: 50px;">El funcionario no tenía activos a su cargo.</td></tr>
+            <tr>
+                <td class="data-row" colspan="9" style="text-align: center;">No hay activos asignados a este funcionario.</td>
+            </tr>
             {% endfor %}
-        </tbody>
-    </table>
 
-    <table>
-        <tr><td class="section-title">OBSERVACIONES</td></tr>
-        <tr><td style="height: 50px;">{{ detalles.observaciones_paz_salvo or movimiento.observaciones_generales or 'Sin observaciones.' }}</td></tr>
-    </table>
-
-    <div class="signature-section">
-        <div style="width: 100%; text-align: center;">
-            <div class="signature-box">
-                {% if firmas.get('Funcionario') %}<img src="{{ firmas['Funcionario'] }}" class="signature-img">{% endif %}
-                <div class="signature-line">
-                    {{ detalles.nombre_funcionario or '____________________________' }}<br>
-                    <span class="bold">Funcionario</span>
-                </div>
-            </div>
-            <div class="signature-box">
-                {% if firmas.get('Responsable_Activos_Fijos') %}<img src="{{ firmas['Responsable_Activos_Fijos'] }}" class="signature-img">{% endif %}
-                <div class="signature-line">
-                    ____________________________<br>
-                    <span class="bold">Responsable Activos Fijos</span>
-                </div>
-            </div>
+            {% for i in range(8 - (activos_a_cargo|length)) %}
+            <tr>
+                <td class="data-row">&nbsp;</td>
+                <td class="align-left"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="9" style="padding: 4px 5px; font-size: 7pt; text-align: center; line-height: 1.3;">
+                    Por medio de esta relación hago entrega de los elementos asignados para el desempeño de mis funciones, con el fin de que se han descargados de mi responsabilidad, los cuales son devueltos a satisfacción del servicio.
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Note Box -->
+        <div class="note-box">
+            <span class="note-header">Nota:</span> cada funcionario junto con el Jefe inmediato o de dependencia son los responsables del control de los bienes que tengan asignados para el desarrollo de sus funciones, por tal razón deben informar sobre cualquier movimiento de estos bienes que se encuentran bajo su custodia y cuidado con el fin de dar control y seguimiento a estos activos en caso tal sea algun equipo biomedico portable o computador portatil deben reposar en el área correspondiente entregado por el jefe inmediato de la persona en tramite de desvinculación.
         </div>
+        
+        <!-- Observations -->
+        <table class="observations-section">
+            <tr>
+                <td class="observations-header">Observaciones</td>
+            </tr>
+            <tr>
+                <td class="observations-text">
+                    El(La) funcionario/a se encuentra a paz y salvo con la Corporación Clinica Primavera.
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Signatures Section -->
+        <table class="signatures-table">
+            <tr>
+                <th colspan="2">Quién entrega (funcionario)</th>
+                <th colspan="2">V° B° Quién recibe (Jefe inmediato)</th>
+            </tr>
+            <tr>
+                <td class="form-label" style="width: 12%;">Nombre:</td>
+                <td style="width: 38%;">{{ nombre_funcionario or '' }}</td>
+                <td class="form-label" style="width: 12%;">Nombre:</td>
+                <td style="width: 38%;"></td>
+            </tr>
+            <tr>
+                <td class="form-label">Cédula:</td>
+                <td>{{ cedula_funcionario or '' }}</td>
+                <td class="form-label">Cédula:</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="form-label">Firma:</td>
+                <td class="signature-space">
+                    {% set firma_obj = firmas_objetos.get('Funcionario_Entrega') if firmas_objetos else None %}
+                    {% if firma_obj and firma_obj.firma_svg %}
+                        {# Firma SVG vectorial con metadata #}
+                        <img src="{{ firma_obj.firma_base64 }}" alt="Firma" />
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}{{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                    {% elif firmas and firmas.get('Funcionario_Entrega') %}
+                        {# Fallback: firma legacy #}
+                        <img src="{{ firmas['Funcionario_Entrega'] }}" alt="Firma" />
+                    {% endif %}
+                </td>
+                <td class="form-label">Firma:</td>
+                <td class="signature-space">
+                    {% set firma_obj = firmas_objetos.get('Jefe_Inmediato') if firmas_objetos else None %}
+                    {% if firma_obj and firma_obj.firma_svg %}
+                        {# Firma SVG vectorial con metadata #}
+                        <img src="{{ firma_obj.firma_base64 }}" alt="Firma" />
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}{{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                    {% elif firmas and firmas.get('Jefe_Inmediato') %}
+                        {# Fallback: firma legacy #}
+                        <img src="{{ firmas['Jefe_Inmediato'] }}" alt="Firma" />
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Final Certification -->
+        <table class="certification-section">
+            <tr>
+                <td class="certification-header">V° B° Activos fijos</td>
+            </tr>
+            <tr>
+                <td class="certification-text">
+                    Mediante el presente documento, se certifica que a la fecha el señor(a) {{ nombre_funcionario or '[____________________]' }}, identificado(a) con cédula de ciudadanía número {{ cedula_funcionario or '[___________________]' }}, se encuentra al día en la devolución de todos los activos fijos asignados durante su vinculación laboral a esta institución. Los activos han sido recibidos en perfectas condiciones por el jefe inmediato del servicio, quien tendrá que informar sobre los activos en custodia al área de activos fijos para su respectiva asignación u organización dentro de la institución.
+                </td>
+            </tr>
+        </table>
+        
+        <table class="form-table">
+            <tr>
+                <td class="form-label" style="width: 15%;">Funcionario:</td>
+                <td style="width: 55%;">DAVID ALEXANDER CARDOZA CABALLERO</td>
+                <td class="form-label" style="width: 10%;">Fecha:</td>
+                <td style="width: 20%;">{{ fecha_formateada.date or '' }}</td>
+            </tr>
+        </table>
+        
+        <table class="form-table">
+            <tr>
+                <td class="form-label" style="width: 15%;">Observaciones:</td>
+                <td>{{ detalle_paz_salvo.observaciones_paz_salvo or '' }}</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="height: 35px; vertical-align: top;"></td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

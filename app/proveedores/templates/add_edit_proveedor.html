@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    /* Estilos específicos para el formulario, siguiendo el patrón iOS */
+    .ios-form-group {
+        margin-bottom: var(--ios-space-md);
+    }
+
+    .ios-label {
+        font-size: 15px;
+        font-weight: 400;
+        color: var(--ios-label-secondary);
+        margin-bottom: var(--ios-space-xs);
+        display: block;
+    }
+
+    .ios-input, .ios-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: var(--ios-radius-sm);
+        border: 0.5px solid var(--ios-separator);
+        background: var(--ios-bg-secondary);
+        font-size: 17px;
+        color: var(--ios-label-primary);
+        transition: all var(--ios-transition-base);
+    }
+
+    .ios-input:focus, .ios-textarea:focus {
+        outline: none;
+        border-color: var(--ios-blue);
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    }
+
+    .ios-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .ios-error-message {
+        font-size: 13px;
+        color: var(--ios-red);
+        margin-top: var(--ios-space-xs);
+    }
+
+    .ios-card-form {
+        padding: var(--ios-space-lg);
+        border-radius: var(--ios-radius-lg);
+        background: var(--ios-bg-primary);
+        box-shadow: var(--ios-shadow-sm);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- iOS Navigation Header -->
+    <div class="ios-navbar-large mb-4 ios-fade-in">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="ios-navbar-large-title mb-0">{{ title }}</h1>
+            <a href="{{ url_for('proveedores.ver_proveedores') }}" class="ios-btn ios-btn-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="ios-card-form ios-fade-in" style="animation-delay: 0.1s;">
+                <form method="POST">
+                    {{ form.csrf_token }}
+
+                    <div class="ios-form-group">
+                        {{ form.nit.label(class="ios-label") }}
+                        {{ form.nit(class="ios-input", **{'aria-describedby': 'nitHelp'}) }}
+                        {% if form.nit.errors %}
+                            {% for error in form.nit.errors %}
+                                <div class="ios-error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="ios-form-group">
+                        {{ form.razon_social.label(class="ios-label") }}
+                        {{ form.razon_social(class="ios-input") }}
+                        {% if form.razon_social.errors %}
+                            {% for error in form.razon_social.errors %}
+                                <div class="ios-error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="ios-form-group">
+                        {{ form.direccion.label(class="ios-label") }}
+                        {{ form.direccion(class="ios-input") }}
+                        {% if form.direccion.errors %}
+                            {% for error in form.direccion.errors %}
+                                <div class="ios-error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="ios-form-group">
+                        {{ form.numero_contacto.label(class="ios-label") }}
+                        {{ form.numero_contacto(class="ios-input") }}
+                        {% if form.numero_contacto.errors %}
+                            {% for error in form.numero_contacto.errors %}
+                                <div class="ios-error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="ios-form-group">
+                        {{ form.persona_contacto.label(class="ios-label") }}
+                        {{ form.persona_contacto(class="ios-input") }}
+                        {% if form.persona_contacto.errors %}
+                            {% for error in form.persona_contacto.errors %}
+                                <div class="ios-error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="ios-form-group mt-4">
+                        {{ form.submit(class="ios-btn ios-btn-primary ios-btn-lg w-100") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,191 +3,410 @@
 {% block title %}Inventario General de Activos{% endblock %}
 
 {% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
 <style>
-    .main-card {
-        background-color: #ffffff;
-        border-radius: 1rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
-        border: none;
-        overflow: hidden;
+    .ios-search-bar {
+        position: relative;
+        margin-bottom: var(--ios-space-lg);
     }
-    .table-hover tbody tr {
-        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+    .ios-search-input {
+        width: 100%;
+        padding: 12px 16px 12px 40px;
+        border-radius: var(--ios-radius-sm);
+        border: 0.5px solid var(--ios-separator);
+        background: var(--ios-bg-secondary);
+        font-size: 17px;
+        transition: none;
     }
-    .table-hover tbody tr:hover {
-        background-color: #f1f5f9;
-        transform: scale(1.015);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    .ios-search-input:focus {
+        outline: none;
+        border-color: var(--ios-blue);
+        box-shadow: none;
+    }
+
+    .ios-search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ios-label-tertiary);
+        font-size: 18px;
+    }
+
+    .ios-asset-row {
+        display: flex;
+        align-items: center;
+        padding: var(--ios-space-md);
+        border-bottom: 0.5px solid var(--ios-separator);
+        transition: none !important;
+        transform: none !important;
         cursor: pointer;
+        background: transparent;
     }
-    .thead-custom {
-        background-color: #4a5568;
+
+    .ios-asset-row:last-child {
+        border-bottom: none;
+    }
+
+    .ios-asset-row:hover {
+        transition: none !important;
+        transform: none !important;
+        background: transparent !important;
+    }
+
+    .ios-asset-row:active {
+        transition: none !important;
+        transform: none !important;
+        background: transparent !important;
+    }
+
+    .ios-asset-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--ios-radius-md);
+        background: var(--ios-bg-tertiary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin-right: var(--ios-space-md);
+        flex-shrink: 0;
+    }
+
+    .ios-asset-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ios-asset-title {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--ios-label-primary);
+        margin-bottom: 4px;
+    }
+
+    .ios-asset-subtitle {
+        font-size: 15px;
+        color: var(--ios-label-secondary);
+    }
+
+    .ios-asset-meta {
+        text-align: right;
+        flex-shrink: 0;
+        margin-left: var(--ios-space-md);
+    }
+
+    .ios-asset-value {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ios-green);
+        margin-bottom: 4px;
+    }
+
+    .ios-filter-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: var(--ios-radius-pill);
+        background: var(--ios-bg-tertiary);
+        border: 0.5px solid var(--ios-separator);
+        font-size: 15px;
+        color: var(--ios-label-primary);
+        cursor: pointer;
+        transition: none !important;
+        transform: none !important;
+        margin-right: var(--ios-space-sm);
+        margin-bottom: var(--ios-space-sm);
+    }
+
+    .ios-filter-chip:hover {
+        background: var(--ios-bg-tertiary) !important;
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .ios-filter-chip.active {
+        background: var(--ios-blue);
         color: white;
+        border-color: var(--ios-blue);
     }
-    .filter-bar {
-        background-color: #f8f9fa;
-        padding: 1rem 1.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid #dee2e6;
+
+    /* Eliminar TODOS los efectos visuales - transiciones y transformaciones */
+    * {
+        transition: none !important;
+        transform: none !important;
     }
-    .badge-propio {
-        background-color: #e0f2fe !important;
-        color: #0c4a6e !important;
+
+    *:hover,
+    *:active,
+    *:focus {
+        transition: none !important;
+        transform: none !important;
     }
-    .badge-ajeno {
-        background-color: #fef3c7 !important;
-        color: #92400e !important;
+
+    /* Botones de acción */
+    .ios-action-buttons {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        justify-content: flex-end;
     }
-    .clickable-row {
+
+    .ios-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        font-size: 16px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
         cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .ios-action-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .ios-action-btn.delete-btn {
+        color: var(--ios-red) !important;
+    }
+
+    .ios-action-btn.delete-btn:hover {
+        background: rgba(255, 59, 48, 0.1) !important;
+    }
+
+    .ios-action-btn i {
+        font-size: 18px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="card main-card">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <h2 class="h3 mb-0 text-dark fw-bold"><i class="bi bi-collection-fill me-2 text-primary"></i>Inventario General de Activos</h2>
-                <div>
-                    {% if session.get('rol') == 'admin' %}
-                    <a href="{{ url_for('importar_activos') }}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar CSV</a>
-                    <a href="{{ url_for('add_activo') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Agregar Activo</a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Barra de Búsqueda y Filtros Mejorada -->
-            <div class="filter-bar mb-4">
-                <form method="GET" action="{{ url_for('ver_activos') }}" class="row g-3 align-items-end">
-                    <div class="col-md-5">
-                        <label for="q" class="form-label fw-semibold">Buscar Activo</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" name="q" id="q" value="{{ filtros.q or '' }}" class="form-control" placeholder="Nombre, placa, serie...">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="filtro_tipo" class="form-label fw-semibold">Tipo de Propiedad</label>
-                        <select name="filtro_tipo" id="filtro_tipo" class="form-select">
-                            <option value="">Todos los Tipos</option>
-                            <option value="Propio" {% if filtros.tipo == 'Propio' %}selected{% endif %}>Propios</option>
-                            <option value="Ajeno" {% if filtros.tipo == 'Ajeno' %}selected{% endif %}>Ajenos</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="filtro_clase" class="form-label fw-semibold">Clase de Activo</label>
-                        <select name="filtro_clase" id="filtro_clase" class="form-select">
-                            <option value="">Todas las Clases</option>
-                            {% for clase in clases %}
-                            <option value="{{ clase.id }}" {% if filtros.clase|string == clase.id|string %}selected{% endif %}>{{ clase.nombre_clase }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-1 d-flex">
-                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Tabla de Activos Unificada -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="thead-custom">
-                        <tr>
-                            <th>Placa</th>
-                            <th>Nombre del Activo</th>
-                            <th>Tipo / Clase</th>
-                            <th>Propietario / Responsable</th>
-                            <th>Estado</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for activo in activos %}
-                        <tr class='clickable-row' data-href="{{ url_for('edit_activo', activo_id=activo.id) }}">
-                            <td><strong class="text-primary">{{ activo.placa_codigo }}</strong></td>
-                            <td>
-                                <div class="fw-bold">{{ activo.nombre_activo }}</div>
-                                <small class="text-muted">S/N: {{ activo.serie or 'N/A' }}</small>
-                            </td>
-                            <td>
-                                {% if activo.tipo_propiedad == 'Propio' %}
-                                    <span class="badge rounded-pill badge-propio fs-6">
-                                        <i class="bi bi-building me-1"></i>Propio
-                                    </span>
-                                    <div class="text-muted small">{{ activo.nombre_clase or 'Sin clase' }}</div>
-                                {% elif activo.tipo_propiedad == 'Ajeno' %}
-                                    <span class="badge rounded-pill badge-ajeno fs-6">
-                                        <i class="bi bi-person-badge me-1"></i>Ajeno
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if activo.tipo_propiedad == 'Ajeno' %}
-                                    <div class="fw-bold" title="Propietario del activo">{{ activo.propietario_ajeno or 'No especificado' }}</div>
-                                {% else %}
-                                    <div class="fw-bold" title="Responsable del activo">{{ activo.funcionario_responsable or 'Sin Asignar' }}</div>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% set estado_map = {
-                                    'Operativo': {'class': 'bg-success', 'icon': 'bi-check-circle-fill'},
-                                    'En Mantenimiento': {'class': 'bg-warning text-dark', 'icon': 'bi-tools'},
-                                    'En préstamo': {'class': 'bg-info text-dark', 'icon': 'bi-arrow-left-right'},
-                                    'Dañado': {'class': 'bg-danger', 'icon': 'bi-x-octagon-fill'},
-                                    'Retirado': {'class': 'bg-secondary', 'icon': 'bi-box-arrow-left'}
-                                } %}
-                                {% set estado_info = estado_map.get(activo.estado, {'class': 'bg-light text-dark', 'icon': 'bi-question-circle'}) %}
-                                <span class="badge {{ estado_info.class }}"><i class="bi {{ estado_info.icon }} me-1"></i>{{ activo.estado }}</span>
-                            </td>
-                            <td class="text-center">
-                                {% if session.get('rol') == 'admin' %}
-                                    <a href="{{ url_for('edit_activo', activo_id=activo.id) }}" class="btn btn-outline-secondary btn-sm" title="Editar Activo">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-delete-url="{{ url_for('delete_activo', activo_id=activo.id) }}" data-asset-name="{{ activo.nombre_activo }}" title="Eliminar Activo" onclick="event.stopPropagation();">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                {% else %}
-                                    <span class="text-muted small">-</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
-                                <i class="bi bi-folder-x fs-2"></i>
-                                <h5 class="mt-2">No se encontraron activos</h5>
-                                <p>Intenta con otros términos de búsqueda o agrega un nuevo activo.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div class="container-fluid py-4">
+    <!-- iOS Navigation Header -->
+    <div class="ios-navbar-large mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="ios-navbar-large-title mb-0">Inventario</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('activos.add_activo') }}" class="ios-btn ios-btn-primary ios-btn-lg">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Nuevo Activo
+                </a>
+                <a href="{{ url_for('activos.importar_activos') }}" class="ios-btn ios-btn-secondary">
+                    <i class="bi bi-upload"></i>
+                    Importar CSV
+                </a>
+                {% if filtros.tipo == 'Ajeno' %}
+                <a href="{{ url_for('activos.importar_activos_ajenos') }}" class="ios-btn ios-btn-secondary">
+                    <i class="bi bi-cloud-upload-fill"></i> Migrar Ajenos
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- iOS Search Bar -->
+    <div class="ios-search-bar">
+        <form method="GET" action="{{ url_for('activos.ver_activos') }}">
+            <i class="bi bi-search ios-search-icon"></i>
+            <input type="text" name="q" value="{{ filtros.q or '' }}"
+                   class="ios-search-input"
+                   placeholder="Buscar activos..."
+                   autofocus>
+        </form>
+    </div>
+
+    <!-- iOS Filter Chips -->
+    <div class="mb-4">
+        <form method="GET" action="{{ url_for('activos.ver_activos') }}" id="filterForm">
+            <input type="hidden" name="q" value="{{ filtros.q or '' }}">
+
+            <div class="mb-3">
+                <label class="ios-label">Tipo de Propiedad</label>
+                <div>
+                    <span class="ios-filter-chip {% if not filtros.tipo %}active{% endif %}" onclick="setFilter('filtro_tipo', '')">
+                        <i class="bi bi-grid-fill me-2"></i>Todos
+                    </span>
+                    <span class="ios-filter-chip {% if filtros.tipo == 'Propio' %}active{% endif %}" onclick="setFilter('filtro_tipo', 'Propio')">
+                        <i class="bi bi-building me-2"></i>Propios
+                    </span>
+                    <span class="ios-filter-chip {% if filtros.tipo == 'Ajeno' %}active{% endif %}" onclick="setFilter('filtro_tipo', 'Ajeno')">
+                        <i class="bi bi-person-badge me-2"></i>Ajenos
+                    </span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="ios-label">Clase de Activo</label>
+                <div class="ios-card" style="padding: var(--ios-space-sm); display: inline-block;">
+                    <select name="filtro_clase" class="ios-select ios-input" onchange="this.form.submit()" style="width: 250px; padding: 8px 12px;">
+                        <option value="">Todas las Clases</option>
+                        {% for clase in clases %}
+                        <option value="{{ clase.id }}" {% if filtros.clase|string == clase.id|string %}selected{% endif %}>
+                            {{ clase.nombre_clase }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="ios-label">Ubicación</label>
+                <div class="ios-card" style="padding: var(--ios-space-sm); display: inline-block;">
+                    <select name="filtro_ubicacion" id="filtro_ubicacion" class="ios-select ios-input ubicacion-selector" onchange="this.form.submit()" style="width: 300px; padding: 8px 12px;">
+                        <option value="">Todas las Ubicaciones</option>
+                    </select>
+                </div>
+            </div>
+
+            <input type="hidden" name="filtro_tipo" id="filtro_tipo" value="{{ filtros.tipo or '' }}">
+        </form>
+    </div>
+
+    <!-- iOS List Cards -->
+    <div class="ios-card" style="overflow: hidden;">
+        {% for activo in activos %}
+        <div class="ios-asset-row" 
+             data-detail-url="{{ url_for('activos.detalle_activo', activo_id=activo.id) }}"
+             data-edit-url="{{ url_for('activos.edit_activo', activo_id=activo.id) }}"
+             style="cursor: pointer;">
+            <div class="ios-asset-icon {% if activo.tipo_propiedad == 'Propio' %}icon-propio-bg{% else %}icon-ajeno-bg{% endif %}">
+                <i class="bi {% if activo.tipo_propiedad == 'Propio' %}bi-box-seam icon-propio-color{% else %}bi-briefcase icon-ajeno-color{% endif %}"></i>
+            </div>
+
+            <div class="ios-asset-content">
+                <div class="ios-asset-title">{{ activo.nombre_activo }}</div>
+                <div class="ios-asset-subtitle">
+                    <span class="ios-badge {% if activo.tipo_propiedad == 'Propio' %}ios-badge-blue{% else %}ios-badge-orange{% endif %}" style="font-size: 12px; padding: 2px 8px;">
+                        {% if activo.tipo_propiedad == 'Propio' %}
+                            <i class="bi bi-building"></i> Propio
+                        {% else %}
+                            <i class="bi bi-person-badge"></i> Ajeno
+                        {% endif %}
+                    </span>
+                    <span style="margin-left: 8px;">{{ activo.placa_codigo }}</span>
+                    {% if activo.nombre_clase %}
+                    <span style="margin-left: 8px;">• {{ activo.nombre_clase }}</span>
+                    {% endif %}
+                </div>
+                <div class="ios-text-caption mt-1">
+                    {% if activo.tipo_propiedad == 'Ajeno' %}
+                        <i class="bi bi-person"></i> {{ activo.propietario_ajeno or 'No especificado' }}
+                    {% else %}
+                        <i class="bi bi-person"></i> {{ activo.funcionario_responsable or 'Sin Asignar' }}
+                    {% endif %}
+                </div>
+                <div class="ios-text-caption mt-1" style="color: var(--ios-label-secondary);">
+                    <i class="bi bi-geo-alt-fill"></i> <strong>Ubicación:</strong> {{ activo.ubicacion or 'Sin ubicación' }}
+                </div>
+            </div>
+
+            <div class="ios-asset-meta">
+                {% if activo.valor_comercial %}
+                <div class="ios-asset-value">${{ '{:,.0f}'.format(activo.valor_comercial) }}</div>
+                {% endif %}
+                <div>
+                    {% set estado_colors = {
+                        'Operativo': 'ios-badge-green',
+                        'En Mantenimiento': 'ios-badge-orange',
+                        'En préstamo': 'ios-badge-blue',
+                        'Dañado': 'ios-badge-red',
+                        'Retirado': 'ios-badge-gray'
+                    } %}
+                    <span class="ios-badge {{ estado_colors.get(activo.estado, 'ios-badge-gray') }}" style="font-size: 13px;">
+                        {{ activo.estado }}
+                    </span>
+                </div>
+                <div class="mt-2 ios-action-buttons">
+                    {% if session.get('role') == 'Admin' %}
+                    <button type="button" class="ios-action-btn delete-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-delete-url="{{ url_for('activos.delete_activo', activo_id=activo.id) }}"
+                            data-asset-name="{{ activo.nombre_activo }}"
+                            onclick="event.stopPropagation();"
+                            title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                    <button type="button" class="ios-action-btn edit-btn" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="ios-action-btn edit-btn" title="Ver detalles">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: var(--ios-space-2xl); color: var(--ios-label-secondary);">
+            <div style="font-size: 48px; color: var(--ios-label-tertiary); margin-bottom: var(--ios-space-md);">
+                <i class="bi bi-folder-x"></i>
+            </div>
+            <h3 class="ios-text-headline">No se encontraron activos</h3>
+            <p class="ios-text-caption">Intenta con otros términos de búsqueda o agrega un nuevo activo.</p>
+            <a href="{{ url_for('activos.add_activo') }}" class="ios-btn ios-btn-primary mt-3">
+                <i class="bi bi-plus-circle"></i>
+                Agregar Primer Activo
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- iOS Stats Summary -->
+    {% if activos %}
+    <div class="row g-3 mt-4">
+        <div class="col-md-4">
+            <div class="ios-card" style="padding: var(--ios-space-md); text-align: center;">
+                <div class="ios-text-caption mb-1">Total Activos</div>
+                <div class="ios-stat-value" style="font-size: 28px;">{{ activos|length }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ios-card" style="padding: var(--ios-space-md); text-align: center;">
+                <div class="ios-text-caption mb-1">Valor Total</div>
+                <div class="ios-stat-value" style="font-size: 28px; color: var(--ios-green);">
+                    ${{ '{:,.0f}'.format(activos|selectattr('valor_comercial', 'ne', None)|sum(attribute='valor_comercial')|default(0)) }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ios-card" style="padding: var(--ios-space-md); text-align: center;">
+                <div class="ios-text-caption mb-1">Operativos</div>
+                <div class="ios-stat-value" style="font-size: 28px; color: var(--ios-blue);">
+                    {{ activos|selectattr('estado', 'equalto', 'Operativo')|list|length }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Modal de Confirmación de Eliminación -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+<!-- iOS Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de que quieres eliminar permanentemente el activo: <strong id="assetName"></strong>?</p>
-                <p class="text-danger"><strong>Advertencia:</strong> Esta acción no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form id="deleteForm" method="POST" action="">
-                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
-                </form>
+        <div class="modal-content" style="border-radius: var(--ios-radius-lg); border: none; overflow: hidden;">
+            <div class="ios-alert" style="max-width: 100%; border-radius: 0;">
+                <div class="ios-alert-title">Eliminar Activo</div>
+                <div class="ios-alert-message">
+                    ¿Estás seguro de que quieres eliminar permanentemente el activo: <strong id="assetName"></strong>?
+                    <br><br>
+                    <span style="color: var(--ios-red);">Esta acción no se puede deshacer.</span>
+                </div>
+                <div class="ios-alert-actions">
+                    <button type="button" class="ios-btn ios-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="deleteForm" method="POST" action="" style="width: 100%;">
+                        <button type="submit" class="ios-btn ios-btn-danger" style="width: 100%;">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -196,28 +415,53 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Lógica para hacer las filas de la tabla clicables
-    const rows = document.querySelectorAll('.clickable-row');
-    rows.forEach(row => {
-        row.addEventListener('click', () => {
-            window.location.href = row.dataset.href;
-        });
-    });
+function setFilter(fieldName, value) {
+    document.getElementById(fieldName).value = value;
+    document.getElementById('filterForm').submit();
+}
 
-    // Lógica para el modal de confirmación de eliminación
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar selector de ubicación con valor preseleccionado
+    const ubicacionFiltro = "{{ filtros.ubicacion or '' }}";
+    if (ubicacionFiltro && typeof initUbicacionSelectorConBusqueda === 'function') {
+        // Esperar un momento para que ubicacion_selector.js se cargue
+        setTimeout(function() {
+            initUbicacionSelectorConBusqueda('filtro_ubicacion', ubicacionFiltro);
+        }, 100);
+    }
+
+    // Modal de confirmación de eliminación
     const confirmDeleteModal = document.getElementById('confirmDeleteModal');
     if (confirmDeleteModal) {
         confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             const deleteUrl = button.getAttribute('data-delete-url');
             const assetName = button.getAttribute('data-asset-name');
-            
+
             const modalAssetName = confirmDeleteModal.querySelector('#assetName');
             const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
-            
+
             modalAssetName.textContent = assetName;
             deleteForm.action = deleteUrl;
+        });
+
+        // Manejo de clics en las filas de activos
+        document.querySelectorAll('.ios-asset-row').forEach(row => {
+            row.addEventListener('click', function(event) {
+                // Si el clic fue en el botón de eliminar o sus hijos, no hacer nada (el modal se abre automáticamente)
+                if (event.target.closest('.delete-btn')) {
+                    event.stopPropagation();
+                    return;
+                }
+                // Si el clic fue en el botón de editar o un hijo del botón
+                if (event.target.closest('.edit-btn')) {
+                    event.stopPropagation(); // Detener la propagación para no activar el clic de la fila
+                    window.location.href = this.dataset.editUrl;
+                } else {
+                    // Si el clic fue en cualquier otra parte de la fila
+                    window.location.href = this.dataset.detailUrl;
+                }
+            });
         });
     }
 });

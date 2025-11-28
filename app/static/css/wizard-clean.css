@@ -1,0 +1,428 @@
+/* ============================================================================
+   WIZARD LIMPIO - ESTILO iOS MINIMALISTA
+   Sin efectos innecesarios, diseño profesional y moderno
+   ============================================================================ */
+
+/* ============================================================================
+   CONTENEDOR PRINCIPAL
+   ============================================================================ */
+.wizard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+.wizard-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.wizard-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 8px 0;
+}
+
+.wizard-header p {
+    font-size: 15px;
+    color: #8E8E93;
+    margin: 0;
+}
+
+/* ============================================================================
+   PROGRESS BAR
+   ============================================================================ */
+.wizard-progress {
+    height: 4px;
+    background: #E5E5EA;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+
+.wizard-progress-bar {
+    height: 100%;
+    background: #007AFF;
+    transition: width 0.3s ease;
+}
+
+/* ============================================================================
+   MENSAJES
+   ============================================================================ */
+.wizard-message {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 15px;
+}
+
+.wizard-message.success {
+    background: #D1F4E0;
+    color: #00783E;
+}
+
+.wizard-message.error {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+/* ============================================================================
+   CONTENIDO
+   ============================================================================ */
+.wizard-content {
+    min-height: 400px;
+    margin-bottom: 32px;
+}
+
+.step-content h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 8px 0;
+}
+
+.step-subtitle {
+    font-size: 15px;
+    color: #8E8E93;
+    margin: 0 0 32px 0;
+}
+
+/* ============================================================================
+   TYPE SELECTOR (PASO 1)
+   ============================================================================ */
+.type-selector {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+@media (min-width: 640px) {
+    .type-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.type-card {
+    background: #FFF;
+    border: 2px solid #E5E5EA;
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.type-card:hover {
+    border-color: #007AFF;
+}
+
+.type-card.selected {
+    background: #F0F8FF;
+    border-color: #007AFF;
+    border-width: 2px;
+}
+
+.type-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.type-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 8px 0;
+}
+
+.type-card p {
+    font-size: 15px;
+    color: #8E8E93;
+    margin: 0;
+}
+
+/* ============================================================================
+   FORM GRID
+   ============================================================================ */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 640px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+/* ============================================================================
+   FORM FIELDS
+   ============================================================================ */
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.field .required {
+    color: #FF3B30;
+    margin-left: 2px;
+}
+
+.field input,
+.field select,
+.field textarea {
+    font-family: inherit;
+    font-size: 17px;
+    padding: 12px 16px;
+    border: 1px solid #D1D1D6;
+    border-radius: 10px;
+    background: #FFF;
+    color: #000;
+    transition: border-color 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: #007AFF;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* ============================================================================
+   ALERT
+   ============================================================================ */
+.alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.alert-warning {
+    background: #FFF3CD;
+    color: #856404;
+}
+
+.alert-info {
+    background: #D1ECF1;
+    color: #0C5460;
+}
+
+/* ============================================================================
+   CONFIRMACIÓN
+   ============================================================================ */
+.confirm-section {
+    background: #F9F9F9;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.confirm-section h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 16px 0;
+}
+
+.confirm-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .confirm-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.confirm-grid div {
+    font-size: 15px;
+    color: #3C3C43;
+}
+
+.confirm-grid strong {
+    font-weight: 600;
+    color: #000;
+}
+
+/* ============================================================================
+   NAVEGACIÓN
+   ============================================================================ */
+.wizard-nav {
+    display: flex;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid #E5E5EA;
+}
+
+.wizard-nav button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #007AFF;
+    color: #FFF;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #0051D5;
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #F2F2F7;
+    color: #007AFF;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #E5E5EA;
+}
+
+.btn-secondary:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 640px) {
+    .wizard-container {
+        padding: 16px;
+    }
+
+    .wizard-header h1 {
+        font-size: 24px;
+    }
+
+    .step-content h2 {
+        font-size: 20px;
+    }
+
+    .type-card {
+        padding: 24px 16px;
+    }
+
+    .type-icon {
+        font-size: 36px;
+    }
+
+    .wizard-nav {
+        flex-direction: column-reverse;
+    }
+
+    .wizard-nav button {
+        width: 100%;
+    }
+}
+
+/* ============================================================================
+   DARK MODE (OPCIONAL)
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+    .wizard-container {
+        background: #000;
+        color: #FFF;
+    }
+
+    .wizard-header h1,
+    .step-content h2,
+    .field label,
+    .type-card h3,
+    .confirm-section h3 {
+        color: #FFF;
+    }
+
+    .wizard-header p,
+    .step-subtitle,
+    .type-card p {
+        color: #8E8E93;
+    }
+
+    .wizard-progress {
+        background: #2C2C2E;
+    }
+
+    .type-card {
+        background: #1C1C1E;
+        border-color: #38383A;
+    }
+
+    .type-card.selected {
+        background: #1A2A3A;
+        border-color: #007AFF;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+        background: #1C1C1E;
+        border-color: #38383A;
+        color: #FFF;
+    }
+
+    .confirm-section {
+        background: #1C1C1E;
+    }
+
+    .confirm-grid div {
+        color: #EBEBF5;
+    }
+
+    .confirm-grid strong {
+        color: #FFF;
+    }
+
+    .wizard-nav {
+        border-top-color: #38383A;
+    }
+
+    .btn-secondary {
+        background: #2C2C2E;
+        color: #007AFF;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #38383A;
+    }
+}

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Eliminar efectos visuales */
+    * {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .form-section {
+        margin-bottom: var(--ios-space-xl);
+    }
+
+    .form-section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ios-label-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--ios-space-sm);
+        padding-left: var(--ios-space-sm);
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group:not(:last-child) {
+        border-bottom: 0.5px solid var(--ios-separator);
+    }
+
+    .ios-form-label {
+        font-size: 17px;
+        color: var(--ios-label-primary);
+        font-weight: 400;
+        margin-bottom: 0;
+        padding: var(--ios-space-md);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ios-form-label .required-indicator {
+        color: var(--ios-red);
+        font-weight: 600;
+    }
+
+    .ios-form-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: var(--ios-space-md);
+        font-size: 17px;
+        color: var(--ios-label-primary);
+        outline: none;
+    }
+
+    .ios-form-input::placeholder {
+        color: var(--ios-label-tertiary);
+    }
+
+    .ios-form-input:focus {
+        background: var(--ios-bg-tertiary);
+    }
+
+    .field-error {
+        background: rgba(255, 59, 48, 0.1);
+        color: var(--ios-red);
+        padding: 8px 16px;
+        font-size: 13px;
+        border-left: 3px solid var(--ios-red);
+    }
+
+    .icon-wrapper {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--ios-blue);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-xl-5">
+
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('proveedores.listar_proveedores') }}"
+                   class="ios-btn ios-btn-secondary me-3"
+                   title="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h1 class="ios-navbar-large-title mb-0">
+                    {{ titulo }}
+                </h1>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <div class="form-section-title">Información Básica</div>
+                    <div class="ios-card" style="overflow: hidden;">
+                        <!-- Razón Social -->
+                        <div class="form-group">
+                            <div class="ios-form-label">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <span>
+                                    Razón Social
+                                    <span class="required-indicator">*</span>
+                                </span>
+                            </div>
+                            {{ form.razon_social(
+                                class="ios-form-input",
+                                placeholder="Ejemplo: Distribuidora Médica S.A.S.",
+                                required=True
+                            ) }}
+                            {% if form.razon_social.errors %}
+                                <div class="field-error">
+                                    {{ form.razon_social.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- NIT -->
+                        <div class="form-group">
+                            <div class="ios-form-label">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-card-text"></i>
+                                </div>
+                                <span>
+                                    NIT
+                                    <span class="required-indicator">*</span>
+                                </span>
+                            </div>
+                            {{ form.nit(
+                                class="ios-form-input",
+                                placeholder="900123456-7",
+                                required=True
+                            ) }}
+                            {% if form.nit.errors %}
+                                <div class="field-error">
+                                    {{ form.nit.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="form-group">
+                            <div class="ios-form-label">
+                                <div class="icon-wrapper">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                                <span>
+                                    Dirección
+                                    <span class="required-indicator">*</span>
+                                </span>
+                            </div>
+                            {{ form.direccion(
+                                class="ios-form-input",
+                                placeholder="Calle 123 #45-67",
+                                required=True
+                            ) }}
+                            {% if form.direccion.errors %}
+                                <div class="field-error">
+                                    {{ form.direccion.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div class="form-section">
+                    <div class="form-section-title">Información de Contacto (Opcional)</div>
+                    <div class="ios-card" style="overflow: hidden;">
+                        <!-- Persona de Contacto -->
+                        <div class="form-group">
+                            <div class="ios-form-label">
+                                <div class="icon-wrapper" style="background: var(--ios-green);">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <span>Persona de Contacto</span>
+                            </div>
+                            {{ form.persona_contacto(
+                                class="ios-form-input",
+                                placeholder="Juan Pérez"
+                            ) }}
+                            {% if form.persona_contacto.errors %}
+                                <div class="field-error">
+                                    {{ form.persona_contacto.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="form-group">
+                            <div class="ios-form-label">
+                                <div class="icon-wrapper" style="background: var(--ios-green);">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <span>Teléfono</span>
+                            </div>
+                            {{ form.numero_contacto(
+                                class="ios-form-input",
+                                placeholder="3001234567",
+                                type="tel"
+                            ) }}
+                            {% if form.numero_contacto.errors %}
+                                <div class="field-error">
+                                    {{ form.numero_contacto.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('proveedores.listar_proveedores') }}"
+                       class="ios-btn ios-btn-secondary">
+                        <i class="bi bi-x-circle"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit" class="ios-btn ios-btn-primary">
+                        <i class="bi bi-check-circle-fill"></i>
+                        {% if modo == 'crear' %}
+                            Crear Proveedor
+                        {% else %}
+                            Guardar Cambios
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

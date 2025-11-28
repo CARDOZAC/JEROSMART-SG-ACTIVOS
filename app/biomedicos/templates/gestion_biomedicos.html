@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión Biomédicos{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Estilos inspirados en iOS para una interfaz limpia y moderna */
+    body {
+        background-color: #f2f2f7; /* Un gris muy claro, típico de fondos de iOS */
+    }
+
+    .ios-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .ios-nav .nav-link {
+        border-radius: 8px;
+        font-weight: 600;
+        color: #007aff;
+        padding: 0.75rem 1.25rem;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .ios-nav .nav-link.active {
+        background-color: #007aff;
+        color: white;
+        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    }
+
+    .ios-button {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .ios-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .ios-button-primary {
+        background-color: #007aff;
+        color: white;
+    }
+
+    .ios-button-secondary {
+        background-color: #e9ecef;
+        color: #007aff;
+    }
+
+    .table-wrapper {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e5ea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="ios-card">
+        <h1 class="mb-4">Gestión de Equipos Biomédicos</h1>
+
+        <!-- Navegación por Pestañas -->
+        <ul class="nav nav-pills mb-4 ios-nav" id="biomedicosTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="hojas-vida-tab" data-bs-toggle="tab" data-bs-target="#hojas-vida" type="button" role="tab" aria-controls="hojas-vida" aria-selected="true">
+                    <i class="bi bi-file-earmark-text-fill me-2"></i>Hojas de Vida
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos" type="button" role="tab" aria-controls="mantenimientos" aria-selected="false">
+                    <i class="bi bi-wrench-adjustable-circle-fill me-2"></i>Mantenimientos
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de las Pestañas -->
+        <div class="tab-content" id="biomedicosTabContent">
+            <!-- Sección Hojas de Vida -->
+            <div class="tab-pane fade show active" id="hojas-vida" role="tabpanel" aria-labelledby="hojas-vida-tab">
+                <div class="section-header">
+                    <h2>Hojas de Vida Registradas</h2>
+                    <button id="btn-crear-hdv" class="btn ios-button ios-button-primary">
+                        <i class="bi bi-plus-circle-fill me-2"></i>Crear Hoja de Vida
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <p class="text-muted">La tabla de Hojas de Vida se cargará aquí dinámicamente...</p>
+                    <!-- El componente React/JS renderizará la tabla aquí -->
+                    <div id="tabla-hojas-vida-container"></div>
+                </div>
+            </div>
+
+            <!-- Sección Mantenimientos -->
+            <div class="tab-pane fade" id="mantenimientos" role="tabpanel" aria-labelledby="mantenimientos-tab">
+                <div class="section-header">
+                    <h2>Historial de Mantenimientos</h2>
+                    <div>
+                        <button id="btn-crear-mantenimiento" class="btn ios-button ios-button-primary me-2">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Registrar Mantenimiento
+                        </button>
+                        <button id="btn-generar-reporte" class="btn ios-button ios-button-secondary">
+                            <i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Generar Reporte
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <p class="text-muted">La tabla de Mantenimientos se cargará aquí dinámicamente...</p>
+                    <!-- El componente React/JS renderizará la tabla aquí -->
+                    <div id="tabla-mantenimientos-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Lógica simple para simular la interacción con los botones
+        document.getElementById('btn-crear-hdv').addEventListener('click', function() {
+            alert('Iniciando wizard para crear Hoja de Vida...');
+            // Aquí se llamaría a la función de React para abrir el modal/wizard
+        });
+
+        document.getElementById('btn-crear-mantenimiento').addEventListener('click', function() {
+            alert('Abriendo formulario para registrar un nuevo mantenimiento...');
+        });
+
+        document.getElementById('btn-generar-reporte').addEventListener('click', function() {
+            alert('Abriendo modal para generar reporte de mantenimientos...');
+        });
+    });
+</script>
+{% endblock %}

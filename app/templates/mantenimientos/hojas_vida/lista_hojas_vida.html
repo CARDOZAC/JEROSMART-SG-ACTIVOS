@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Hojas de Vida - Equipos{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    .ios-card {
+        background: var(--ios-secondary-background);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .hoja-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+    .hoja-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-clase {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-electro { background: rgba(88, 86, 214, 0.1); color: #5856D6; }
+    .badge-tic { background: rgba(52, 199, 89, 0.1); color: #34C759; }
+    .badge-mueble { background: rgba(255, 149, 0, 0.1); color: #FF9500; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-2">
+                <i class="bi bi-file-earmark-text-fill" style="color: var(--ios-blue);"></i>
+                Hojas de Vida
+            </h1>
+            <p class="text-secondary mb-0">Gestión de hojas de vida de equipos no biomédicos</p>
+        </div>
+        <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Hoja de Vida
+        </a>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="ios-card text-center">
+                <div style="font-size: 2rem; color: var(--ios-blue);">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h3 class="mb-0">{{ hojas|length }}</h3>
+                <p class="text-secondary mb-0">Total Hojas de Vida</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ios-card text-center">
+                <div style="font-size: 2rem; color: var(--ios-green);">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h3 class="mb-0">{{ hojas|selectattr('activo.estado', 'equalto', 'Operativo')|list|length }}</h3>
+                <p class="text-secondary mb-0">Equipos Operativos</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ios-card text-center">
+                <div style="font-size: 2rem; color: var(--ios-orange);">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <h3 class="mb-0">{{ hojas|selectattr('activo.estado', 'equalto', 'En Mantenimiento')|list|length }}</h3>
+                <p class="text-secondary mb-0">En Mantenimiento</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="ios-card mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="filtro-buscar" placeholder="Buscar por placa, nombre...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filtro-clase">
+                    <option value="">Todas las clases</option>
+                    <option value="2">Equipo Electro-Industrial</option>
+                    <option value="3">TICs</option>
+                    <option value="4">Muebles y Enseres</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filtro-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="Operativo">Operativo</option>
+                    <option value="En Mantenimiento">En Mantenimiento</option>
+                    <option value="Fuera de Servicio">Fuera de Servicio</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Hojas de Vida -->
+    <div class="ios-card">
+        <h5 class="mb-3">
+            <i class="bi bi-list-ul"></i> Hojas de Vida Registradas
+        </h5>
+
+        {% if hojas|length == 0 %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: var(--ios-label-tertiary);"></i>
+            <p class="text-secondary mt-3">No hay hojas de vida registradas.</p>
+            <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primera Hoja de Vida
+            </a>
+        </div>
+        {% else %}
+        <div id="lista-hojas">
+            {% for hoja in hojas %}
+            <div class="hoja-card" data-clase="{{ hoja.activo.clase_id }}" data-estado="{{ hoja.activo.estado }}"
+                 onclick="window.location.href='{{ url_for('mantenimientos.ver_hoja_vida', id=hoja.id) }}'">
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        {% if hoja.foto_url %}
+                        <img src="{{ url_for('static', filename=hoja.foto_url) }}"
+                             alt="Foto equipo"
+                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                        <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-image" style="font-size: 2rem; color: #999;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <div>
+                            <strong>{{ hoja.activo.placa_codigo_interno }}</strong>
+                            {% if hoja.activo.clase_id == 2 %}
+                            <span class="badge badge-electro ms-2">Electro-Industrial</span>
+                            {% elif hoja.activo.clase_id == 3 %}
+                            <span class="badge badge-tic ms-2">TICs</span>
+                            {% elif hoja.activo.clase_id == 4 %}
+                            <span class="badge badge-mueble ms-2">Muebles</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.9rem;">
+                            {{ hoja.activo.nombre_activo }}
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-secondary">Marca</small><br>
+                        <strong>{{ hoja.activo.marca or 'N/A' }}</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-secondary">Ubicación</small><br>
+                        <strong>{{ hoja.activo.ubicacion or 'N/A' }}</strong>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-secondary">Estado</small><br>
+                        <span class="badge bg-{{ 'success' if hoja.activo.estado == 'Operativo' else 'warning' }}">
+                            {{ hoja.activo.estado }}
+                        </span>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+// Filtros
+document.getElementById('filtro-buscar').addEventListener('input', aplicarFiltros);
+document.getElementById('filtro-clase').addEventListener('change', aplicarFiltros);
+document.getElementById('filtro-estado').addEventListener('change', aplicarFiltros);
+
+function aplicarFiltros() {
+    const buscar = document.getElementById('filtro-buscar').value.toLowerCase();
+    const clase = document.getElementById('filtro-clase').value;
+    const estado = document.getElementById('filtro-estado').value;
+
+    const hojas = document.querySelectorAll('.hoja-card');
+
+    hojas.forEach(hoja => {
+        const texto = hoja.textContent.toLowerCase();
+        const claseActivo = hoja.getAttribute('data-clase');
+        const estadoActivo = hoja.getAttribute('data-estado');
+
+        const cumpleBuscar = texto.includes(buscar);
+        const cumpleClase = !clase || claseActivo === clase;
+        const cumpleEstado = !estado || estadoActivo === estado;
+
+        if (cumpleBuscar && cumpleClase && cumpleEstado) {
+            hoja.style.display = 'block';
+        } else {
+            hoja.style.display = 'none';
+        }
+    });
+}
+
+function limpiarFiltros() {
+    document.getElementById('filtro-buscar').value = '';
+    document.getElementById('filtro-clase').value = '';
+    document.getElementById('filtro-estado').value = '';
+    aplicarFiltros();
+}
+</script>
+{% endblock %}

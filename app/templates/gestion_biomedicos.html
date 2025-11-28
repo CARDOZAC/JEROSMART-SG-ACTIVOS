@@ -1,127 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}Gestión de Activos Biomédicos{% endblock %}
+{% block title %}Gestión Biomédica{% endblock %}
 
 {% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
 <style>
-    /* Estilos del Hero Section (Banner superior) */
-    .hero-section {
-        padding: 2rem 1.5rem;
-        background-color: #ffffff;
-        border-radius: .75rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,.05);
-        border: 1px solid #e9ecef;
+    .ios-hero-section {
+        padding: 3rem 1.5rem;
         text-align: center;
-        margin-bottom: 2.5rem;
-        animation: fadeIn 1s ease-in-out;
-    }
-    .hero-title { 
-        font-weight: 700; 
-        color: #4B0082; /* Un morado oscuro más elegante */
-    }
-    .hero-subtitle { 
-        color: #495057; 
-        min-height: 1.5rem;
-        font-style: italic;
-    }
-    .section-title { 
-        font-weight: 600; 
-        color: #4B0082; 
-        padding-bottom: 0.5rem; 
-        border-bottom: 2px solid #E6E6FA; /* Lavanda claro */
-    }
-    
-    /* --- Estilos para Widgets de Estadísticas --- */
-    .stat-card {
-        background-color: #ffffff;
-        padding: 1.5rem;
-        border-radius: .75rem;
-        display: flex;
-        align-items: center;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 4px 12px rgba(0,0,0,.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 16px rgba(75, 0, 130, 0.1);
-    }
-    .stat-card .stat-icon {
-        font-size: 2.5rem;
-        padding: 1rem;
-        border-radius: 50%;
-        color: #4B0082;
-        background-color: #E6E6FA;
-        margin-right: 1rem;
-    }
-    .stat-card .stat-info .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #4B0082;
-        line-height: 1;
-    }
-    .stat-card .stat-info .stat-label {
-        font-size: 0.9rem;
-        color: #6c757d;
+        background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(88, 86, 214, 0.05) 100%);
+        border-radius: 1.5rem;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-    /* --- Estilos para Tarjetas de Menú --- */
-    .menu-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+    .ios-hero-icon {
+        font-size: 4rem;
+        color: var(--ios-purple);
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .feature-card {
+        background-color: var(--ios-secondary-background);
+        border-radius: 1rem;
+        padding: 2rem;
         text-align: center;
-        padding: 1.5rem;
-        height: 100%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         text-decoration: none;
-        background-color: #ffffff;
-        border-radius: .75rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,.05);
-        border: 1px solid #e9ecef;
-        color: #212529;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        opacity: 0;
-        transform: translateY(20px);
-        animation: slideInUp 0.5s ease-out forwards;
+        color: var(--ios-primary-text);
+        display: block;
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    .menu-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 8px 25px rgba(75, 0, 130, 0.15);
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        color: var(--ios-primary-text);
     }
-    
-    .menu-card .card-icon {
+
+    .feature-card .icon {
         font-size: 3rem;
         margin-bottom: 1rem;
-        color: #4B0082;
-        line-height: 1;
-        transition: transform 0.3s ease;
-    }
-    .menu-card:hover .card-icon {
-        transform: scale(1.1);
+        color: var(--ios-blue);
     }
 
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .feature-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
     }
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+
+    .feature-card p {
+        color: var(--ios-secondary-text);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div id="biomedical-root"></div>
-{% endblock %}
+<div class="container-fluid py-4">
 
-{% block scripts %}
-    <script type="text/babel" src="{{ url_for('static', filename='js/gestion_biomedicos.jsx') }}"></script>
+    <!-- Hero Section -->
+    <div class="ios-hero-section ios-fade-in">
+        <i class="bi bi-heart-pulse-fill ios-hero-icon"></i>
+        <h1 class="ios-navbar-large-title">Módulo de Gestión Biomédica</h1>
+        <p class="ios-text-body text-secondary">Administre hojas de vida, mantenimientos y el ciclo de vida de los equipos médicos.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <a href="{{ url_for('biomedicos.ver_hojas_vida') }}" class="feature-card">
+                <div class="icon">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <h3>Hojas de Vida</h3>
+                <p>Gestione las hojas de vida de los equipos biomédicos.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('biomedicos.mantenimientos') }}" class="feature-card">
+                <div class="icon">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <h3>Mantenimientos</h3>
+                <p>Registre y consulte los mantenimientos de los equipos.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('biomedicos.reportes') }}" class="feature-card">
+                <div class="icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h3>Reportes</h3>
+                <p>Genere reportes de mantenimientos por rango de fecha.</p>
+            </a>
+        </div>
+    </div>
+
+</div>
 {% endblock %}

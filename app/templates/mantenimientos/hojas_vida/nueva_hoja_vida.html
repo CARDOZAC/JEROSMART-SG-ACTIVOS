@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Hoja de Vida{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    .seccion-form {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .seccion-titulo {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--ios-blue);
+        color: var(--ios-blue);
+    }
+
+    .caracteristicas-especificas {
+        display: none;
+    }
+
+    .foto-preview {
+        width: 150px;
+        height: 150px;
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .foto-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .foto-preview:hover {
+        border-color: var(--ios-blue);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h1 class="h2 mb-2">
+            <i class="bi bi-file-earmark-plus" style="color: var(--ios-blue);"></i>
+            Nueva Hoja de Vida
+        </h1>
+        <p class="text-secondary mb-0">Registrar hoja de vida para equipo no biomédico</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="form-hoja-vida">
+
+        <!-- Selección de Activo -->
+        <div class="seccion-form">
+            <div class="seccion-titulo">
+                <i class="bi bi-box-seam"></i> Selección de Equipo
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Activo *</label>
+                    <select name="activo_id" id="activo_id" class="form-select" required>
+                        <option value="">Seleccione un activo...</option>
+                        {% for activo in activos %}
+                        <option value="{{ activo.id }}"
+                                data-clase="{{ activo.clase_id }}"
+                                data-nombre="{{ activo.nombre_activo }}"
+                                data-marca="{{ activo.marca }}"
+                                data-modelo="{{ activo.modelo }}">
+                            {{ activo.placa_codigo_interno }} - {{ activo.nombre_activo }}
+                            ({{ activo.clase.nombre_clase }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-secondary">Solo se muestran activos sin hoja de vida</small>
+                </div>
+                <div class="col-md-6">
+                    <div id="info-activo" style="display: none; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <strong id="info-nombre"></strong><br>
+                        <span id="info-marca" class="text-secondary"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Comerciales -->
+        <div class="seccion-form">
+            <div class="seccion-titulo">
+                <i class="bi bi-shop"></i> Características Comerciales
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Proveedor</label>
+                    <input type="text" name="proveedor_nombre" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha de Adquisición</label>
+                    <input type="date" name="fecha_adquisicion" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Costo de Adquisición ($)</label>
+                    <input type="number" name="costo_adquisicion" class="form-control" step="0.01">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nº Factura</label>
+                    <input type="text" name="numero_factura" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Nº Orden de Compra</label>
+                    <input type="text" name="numero_orden_compra" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Garantía (meses)</label>
+                    <input type="number" name="garantia_meses" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Vida Útil (años)</label>
+                    <input type="number" name="vida_util_anios" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Técnicas -->
+        <div class="seccion-form">
+            <div class="seccion-titulo">
+                <i class="bi bi-gear"></i> Características Técnicas
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Voltaje</label>
+                    <input type="text" name="voltaje" class="form-control" placeholder="Ej: 110V">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Potencia</label>
+                    <input type="text" name="potencia" class="form-control" placeholder="Ej: 500W">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Dimensiones</label>
+                    <input type="text" name="dimensiones" class="form-control" placeholder="Ej: 50x40x30 cm">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Peso</label>
+                    <input type="text" name="peso" class="form-control" placeholder="Ej: 5 kg">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label">Manuales Disponibles</label><br>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="manual_usuario" id="manual_usuario">
+                        <label class="form-check-label" for="manual_usuario">Usuario</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="manual_servicio" id="manual_servicio">
+                        <label class="form-check-label" for="manual_servicio">Servicio</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="manual_instalacion" id="manual_instalacion">
+                        <label class="form-check-label" for="manual_instalacion">Instalación</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Específicas TICs -->
+        <div class="seccion-form caracteristicas-especificas" id="caract-tics" data-clase="3">
+            <div class="seccion-titulo">
+                <i class="bi bi-pc-display"></i> Características Específicas - TICs
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Sistema Operativo</label>
+                    <input type="text" name="sistema_operativo" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Procesador</label>
+                    <input type="text" name="procesador" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">RAM</label>
+                    <input type="text" name="ram" class="form-control" placeholder="Ej: 16GB">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Disco</label>
+                    <input type="text" name="disco" class="form-control" placeholder="Ej: 512GB SSD">
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Específicas Electro-Industrial -->
+        <div class="seccion-form caracteristicas-especificas" id="caract-electro" data-clase="2">
+            <div class="seccion-titulo">
+                <i class="bi bi-cpu"></i> Características Específicas - Electro-Industrial
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Capacidad</label>
+                    <input type="text" name="capacidad" class="form-control" placeholder="Ej: 10 KVA">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de Combustible</label>
+                    <input type="text" name="tipo_combustible" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo de Motor</label>
+                    <input type="text" name="tipo_motor" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Características Específicas Muebles -->
+        <div class="seccion-form caracteristicas-especificas" id="caract-muebles" data-clase="4">
+            <div class="seccion-titulo">
+                <i class="bi bi-building"></i> Características Específicas - Muebles y Enseres
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Tipo de Mueble</label>
+                    <input type="text" name="tipo_mueble" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Material</label>
+                    <input type="text" name="material" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Color</label>
+                    <input type="text" name="color" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Acabado</label>
+                    <input type="text" name="acabado" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Fotos -->
+        <div class="seccion-form">
+            <div class="seccion-titulo">
+                <i class="bi bi-camera"></i> Fotografías del Equipo
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Foto Principal</label>
+                    <input type="file" name="foto_1" id="foto_1" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Foto 2 (Opcional)</label>
+                    <input type="file" name="foto_2" id="foto_2" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Foto 3 (Opcional)</label>
+                    <input type="file" name="foto_3" id="foto_3" class="form-control" accept="image/*">
+                </div>
+            </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="seccion-form">
+            <div class="seccion-titulo">
+                <i class="bi bi-journal-text"></i> Observaciones
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label">Observaciones Técnicas</label>
+                    <textarea name="observaciones_tecnicas" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('mantenimientos.hojas_vida') }}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar Hoja de Vida
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+// Mostrar características específicas según clase de activo
+document.getElementById('activo_id').addEventListener('change', function() {
+    const option = this.options[this.selectedIndex];
+    const claseId = option.getAttribute('data-clase');
+
+    // Ocultar todas las secciones específicas
+    document.querySelectorAll('.caracteristicas-especificas').forEach(el => {
+        el.style.display = 'none';
+    });
+
+    // Mostrar la sección correspondiente
+    if (claseId) {
+        const seccion = document.querySelector(`.caracteristicas-especificas[data-clase="${claseId}"]`);
+        if (seccion) {
+            seccion.style.display = 'block';
+        }
+
+        // Mostrar info del activo
+        document.getElementById('info-activo').style.display = 'block';
+        document.getElementById('info-nombre').textContent = option.getAttribute('data-nombre');
+        document.getElementById('info-marca').textContent =
+            `Marca: ${option.getAttribute('data-marca') || 'N/A'} | Modelo: ${option.getAttribute('data-modelo') || 'N/A'}`;
+    } else {
+        document.getElementById('info-activo').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

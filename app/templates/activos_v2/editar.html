@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Activo - {{ activo.nombre_activo }}{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/activos-v2.css') }}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <style>
+        .search-results {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .search-results div {
+            padding: 10px 12px;
+            cursor: pointer;
+        }
+        .search-results div:hover {
+            background-color: #f0f0f0;
+        }
+        .document-link {
+            font-size: 14px;
+            margin-top: 8px;
+            display: block;
+            color: var(--primary-color);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="activos-v2-container" x-data="editarActivoApp()">
+
+    <!-- BREADCRUMB -->
+    <div style="margin-bottom: 24px;">
+        <a href="{{ url_for('activos_v2.ver_detalle', id=activo.id) }}" style="color: var(--primary-color); text-decoration: none;">
+            ← Volver al detalle
+        </a>
+    </div>
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Editar Activo</h1>
+            <p style="color: var(--text-secondary); margin: 8px 0 0 0;">
+                {{ activo.placa_codigo_interno or 'S/N' }} - {{ activo.nombre_activo }}
+            </p>
+        </div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <form method="POST" action="{{ url_for('activos_v2.editar', id=activo.id) }}" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+
+        <!-- Datos Básicos -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Datos Básicos</h3>
+            </div>
+            <div class="card-body grid-form">
+                <!-- Nombre -->
+                <div class="filter-group">
+                    {{ form.nombre_activo.label(class="form-label") }}
+                    {{ form.nombre_activo(class="form-control") }}
+                    {% if form.nombre_activo.errors %}<span class="form-error">{{ form.nombre_activo.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Placa -->
+                <div class="filter-group">
+                    {{ form.placa_codigo_interno.label(class="form-label") }}
+                    {{ form.placa_codigo_interno(class="form-control") }}
+                    {% if form.placa_codigo_interno.errors %}<span class="form-error">{{ form.placa_codigo_interno.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Clase -->
+                <div class="filter-group">
+                    {{ form.clase_id.label(class="form-label") }}
+                    {{ form.clase_id(class="form-control", **{"x-model": "claseId"}) }}
+                    {% if form.clase_id.errors %}<span class="form-error">{{ form.clase_id.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Estado -->
+                <div class="filter-group">
+                    {{ form.estado.label(class="form-label") }}
+                    {{ form.estado(class="form-control") }}
+                    {% if form.estado.errors %}<span class="form-error">{{ form.estado.errors[0] }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Adquisición y Documentos -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Adquisición y Documentos</h3>
+            </div>
+            <div class="card-body grid-form">
+                <!-- Proveedor -->
+                <div class="filter-group">
+                    {{ form.proveedor_id.label(class="form-label") }}
+                    {{ form.proveedor_id(class="form-control") }}
+                    {% if form.proveedor_id.errors %}<span class="form-error">{{ form.proveedor_id.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Fecha Compra -->
+                <div class="filter-group">
+                    {{ form.fecha_compra.label(class="form-label") }}
+                    {{ form.fecha_compra(class="form-control") }}
+                    {% if form.fecha_compra.errors %}<span class="form-error">{{ form.fecha_compra.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Valor Compra -->
+                <div class="filter-group">
+                    {{ form.valor_compra.label(class="form-label") }}
+                    {{ form.valor_compra(class="form-control") }}
+                    {% if form.valor_compra.errors %}<span class="form-error">{{ form.valor_compra.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Orden de Compra -->
+                <div class="filter-group">
+                    {{ form.orden_compra.label(class="form-label") }}
+                    {{ form.orden_compra(class="form-control") }}
+                    {% if activo.ruta_orden_compra %}
+                        <a href="{{ url_for('static', filename=activo.ruta_orden_compra) }}" target="_blank" class="document-link">Ver orden actual</a>
+                    {% endif %}
+                    {% if form.orden_compra.errors %}<span class="form-error">{{ form.orden_compra.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Factura -->
+                <div class="filter-group">
+                    {{ form.factura.label(class="form-label") }}
+                    {{ form.factura(class="form-control") }}
+                     {% if activo.ruta_factura %}
+                        <a href="{{ url_for('static', filename=activo.ruta_factura) }}" target="_blank" class="document-link">Ver factura actual</a>
+                    {% endif %}
+                    {% if form.factura.errors %}<span class="form-error">{{ form.factura.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Documento Soporte -->
+                <div class="filter-group">
+                    {{ form.documento_soporte.label(class="form-label") }}
+                    {{ form.documento_soporte(class="form-control") }}
+                     {% if activo.ruta_contrato_arriendo %}
+                        <a href="{{ url_for('static', filename=activo.ruta_contrato_arriendo) }}" target="_blank" class="document-link">Ver documento actual</a>
+                    {% endif %}
+                    {% if form.documento_soporte.errors %}<span class="form-error">{{ form.documento_soporte.errors[0] }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubicación y Responsable -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Ubicación y Responsable</h3>
+            </div>
+            <div class="card-body grid-form">
+                <!-- Ubicación -->
+                <div class="filter-group">
+                    {{ form.ubicacion.label(class="form-label") }}
+                    {{ form.ubicacion(class="form-control", placeholder="Ej: Piso 2, Oficina 201") }}
+                    {% if form.ubicacion.errors %}<span class="form-error">{{ form.ubicacion.errors[0] }}</span>{% endif %}
+                </div>
+                <!-- Responsable -->
+                <div class="filter-group" x-data="funcionarioSearch()">
+                    <label class="form-label" for="funcionario_search">Responsable (Funcionario)</label>
+                    <div style="position: relative;">
+                        <input type="text" id="funcionario_search" x-model="searchQuery" @input.debounce.300ms="search" placeholder="Buscar por nombre o cédula..." class="form-control">
+                        <div x-show="results.length > 0" class="search-results">
+                            <template x-for="func in results" :key="func.id">
+                                <div @click="selectFuncionario(func)" x-text="`${func.nombres} ${func.apellidos} (${func.cedula})`"></div>
+                            </template>
+                        </div>
+                    </div>
+                    <input type="hidden" name="funcionario_id" x-model="selectedFuncionarioId">
+                    {% if form.funcionario_id.errors %}<span class="form-error">{{ form.funcionario_id.errors[0] }}</span>{% endif %}
+                </div>
+            </div>
+             <!-- Observaciones -->
+            <div class="card-body">
+                <div class="filter-group" style="grid-column: 1 / -1;">
+                    {{ form.observaciones.label(class="form-label") }}
+                    {{ form.observaciones(class="form-control", style="resize: vertical;") }}
+                    {% if form.observaciones.errors %}<span class="form-error">{{ form.observaciones.errors[0] }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Atributos Específicos -->
+        <div class="card" x-show="claseId > 0">
+            <div class="card-header">
+                <h3>Atributos Específicos de la Clase</h3>
+            </div>
+            <div class="card-body">
+                <div x-show="loading" class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Cargando atributos...</p>
+                </div>
+                <div x-show="!loading && atributos.length === 0" class="empty-state">
+                    <p>Esta clase no tiene atributos específicos.</p>
+                </div>
+                <div x-show="!loading && atributos.length > 0" class="grid-form">
+                    <template x-for="attr in atributos" :key="attr.name">
+                        <div class="filter-group">
+                            <label :for="'attr_' + attr.name" class="form-label">
+                                <span x-text="attr.label"></span>
+                                <span x-show="attr.required" style="color: var(--danger-color);">*</span>
+                            </label>
+                            <!-- Inputs dinámicos -->
+                            <input x-if="attr.type === 'text' || attr.type === 'number' || attr.type === 'date'"
+                                :type="attr.type" :id="'attr_' + attr.name" :name="'attr_' + attr.name"
+                                :placeholder="attr.placeholder || ''" :required="attr.required"
+                                :value="atributosActuales[attr.name] || ''" class="form-control">
+                            <select x-if="attr.type === 'select'" :id="'attr_' + attr.name" :name="'attr_' + attr.name" :required="attr.required" class="form-control">
+                                <option value="">-- Seleccione --</option>
+                                <template x-for="option in attr.options" :key="option">
+                                    <option :value="option" :selected="atributosActuales[attr.name] === option" x-text="option"></option>
+                                </template>
+                            </select>
+                            <textarea x-if="attr.type === 'textarea'"
+                                :id="'attr_' + attr.name" :name="'attr_' + attr.name"
+                                :placeholder="attr.placeholder || ''" :required="attr.required"
+                                :rows="attr.rows || 3" class="form-control"
+                                x-text="atributosActuales[attr.name] || ''"></textarea>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+            <a href="{{ url_for('activos_v2.ver_detalle', id=activo.id) }}" class="btn btn-secondary btn-lg">Cancelar</a>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function editarActivoApp() {
+        // 1. Jinja2: Valor numérico o 0, no necesita comillas de JS.
+        let initialClaseId = {{ activo.clase_id or 0 }};
+
+        // 2. Jinja2: CORRECCIÓN CRÍTICA: El JSON debe ser tratado como una cadena de JS.
+        // Usamos |tojson y lo encerramos en comillas simples de JS.
+        // Usamos 'or "{}"' en la plantilla para garantizar que, si el valor es nulo,
+        // se renderice la cadena '{}' en lugar de una cadena vacía.
+        let initialAtributosActualesString = '{{ activo.atributos_dinamicos_json | default({}) | tojson }}';
+
+        // CORRECCIÓN DE ROBUSTEZ: Inicialización con manejo de errores
+        let initialAtributosActuales = {};
+        try {
+            // Parseamos la cadena, asegurándonos de que no esté vacía antes de intentar el parseo.
+            // El filtro |tojson de Jinja ya debería haber escapado las comillas internas.
+            initialAtributosActuales = JSON.parse(initialAtributosActualesString);
+        } catch (e) {
+            console.error('ERROR CRÍTICO: Fallo al parsear JSON de atributos_dinamicos.', e);
+            // Si hay un error, el valor por defecto sigue siendo {}.
+        }
+
+        return {
+            claseId: initialClaseId,
+            atributos: [],
+            // Usamos el objeto parseado/seguro.
+            atributosActuales: initialAtributosActuales,
+            loading: false,
+            init() {
+                if (this.claseId > 0) {
+                    this.cargarAtributos();
+                }
+                this.$watch('claseId', (newVal) => {
+                    this.atributos = [];
+                    if (newVal > 0) {
+                        this.cargarAtributos();
+                    }
+                });
+            },
+            cargarAtributos() {
+                this.loading = true;
+                fetch(`/activos_v2/api/clase/${this.claseId}/atributos`)
+                    .then(res => res.json())
+                    .then(data => {
+                        this.atributos = Array.isArray(data) ? data : [];
+                        this.loading = false;
+                    })
+                    .catch(err => {
+                        console.error('Error cargando atributos:', err);
+                        this.loading = false;
+                    });
+            }
+        }
+    }
+
+    function funcionarioSearch() {
+        // CORRECCIÓN CRÍTICA 3: Cadena de texto. |tojson en Jinja2 debería envolverla en comillas.
+        // Lo mantenemos simple asumiendo que el error se resuelve en editarActivoApp.
+        // Si persiste, se puede ajustar la inicialización de la búsqueda.
+        let initialSearchQuery = {% if activo.funcionario %}{{ ((activo.funcionario.nombres or '') + ' ' + (activo.funcionario.apellidos or '')) | tojson }}{% else %}''{% endif %};
+
+        // 4. Jinja2: ID numérico o 0. Si el ID no existe, usamos 0.
+        let initialSelectedFuncionarioId = {{ activo.funcionario_id or 0 }};
+
+        return {
+            searchQuery: initialSearchQuery,
+            results: [],
+            selectedFuncionarioId: initialSelectedFuncionarioId,
+            search() {
+                if (this.searchQuery.length < 2) {
+                    this.results = [];
+                    return;
+                }
+                fetch(`/api/funcionarios/search?q=${this.searchQuery}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        this.results = data;
+                    });
+            },
+            selectFuncionario(func) {
+                this.searchQuery = `${func.nombres} ${func.apellidos}`;
+                this.selectedFuncionarioId = func.id;
+                this.results = [];
+            }
+        }
+    }
+</script>
+{% endblock %}

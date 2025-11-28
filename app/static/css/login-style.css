@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Auth Module Styles - iOS Aurora & Glassmorphism Theme
+   Author: Gemini Code Assist (Emulating James Gosling's principles)
+   Description: A robust, visually stunning, and maintainable stylesheet
+                for the application's authentication pages.
+   ========================================================================== */
+
+/* --- Font Import --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --- Design System Variables --- */
+:root {
+    --auth-bg-color: #0d1117;
+    --auth-card-bg: rgba(30, 35, 45, 0.6);
+    --auth-border-color: rgba(255, 255, 255, 0.1);
+    --auth-glow-color: rgba(0, 122, 255, 0.5);
+    --auth-text-primary: #f0f6fc;
+    --auth-text-secondary: #8b949e;
+    --ios-blue: #007AFF;
+    --ios-blue-hover: #0056b3;
+    --ios-red: #FF3B30;
+    --ios-radius: 16px;
+    --ios-blur: 20px;
+    --font-family-ios: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- Animated Aurora Background --- */
+body.auth-page-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--auth-bg-color);
+    color: var(--auth-text-primary);
+    font-family: var(--font-family-ios);
+    overflow: hidden; /* Prevents scrollbars from the glow effect */
+    position: relative;
+}
+
+body.auth-page-body::before,
+body.auth-page-body::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.4;
+    z-index: -1;
+    animation: move-glow 20s infinite alternate;
+}
+
+body.auth-page-body::before {
+    background: radial-gradient(circle, var(--ios-blue), #34C759);
+    top: -20%;
+    left: -20%;
+}
+
+body.auth-page-body::after {
+    background: radial-gradient(circle, #AF52DE, var(--ios-red));
+    bottom: -20%;
+    right: -20%;
+    animation-delay: -10s;
+}
+
+@keyframes move-glow {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(100px, 150px) rotate(180deg); }
+}
+
+/* --- Glassmorphism Login Card --- */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+    background: var(--auth-card-bg);
+    border: 1px solid var(--auth-border-color);
+    border-radius: var(--ios-radius);
+    backdrop-filter: blur(var(--ios-blur));
+    -webkit-backdrop-filter: blur(var(--ios-blur));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: fade-in-up 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Card Header --- */
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header img {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.login-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--auth-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.login-header p {
+    color: var(--auth-text-secondary);
+    font-size: 0.95rem;
+}
+
+/* --- iOS Style Form Fields --- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--auth-border-color);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    color: var(--auth-text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control::placeholder {
+    color: var(--auth-text-secondary);
+}
+
+.form-control:focus {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 3px var(--auth-glow-color);
+    outline: none;
+}
+
+/* --- iOS Style Login Button --- */
+.btn-login {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background-color: var(--ios-blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.btn-login:hover {
+    background-color: var(--ios-blue-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+}
+
+.btn-login:active {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
+}
+
+/* --- Flash Alerts --- */
+.flash-alert {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    text-align: center;
+    background-color: rgba(255, 59, 48, 0.2); /* iOS Red */
+    border: 1px solid rgba(255, 59, 48, 0.4);
+    color: #ffcdd2;
+}
+
+/* --- Auth Links --- */
+.form-link {
+    color: var(--auth-text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.form-link:hover {
+    color: var(--ios-blue);
+}
+
+/* --- Password Toggle --- */
+.password-wrapper {
+    position: relative;
+}
+.btn-toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--auth-text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+}

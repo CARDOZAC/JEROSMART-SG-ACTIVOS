@@ -2,121 +2,766 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Acta de Entrada/Salida #{{ movimiento.id }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acta de Entrada y Salida de Activos Fijos</title>
     <style>
-        @page { size: letter portrait; margin: 1.5cm; }
-        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 9pt; line-height: 1.3; color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        td, th { border: 1px solid #000; padding: 4px 6px; text-align: left; vertical-align: top; }
-        .header-table td { text-align: center; vertical-align: middle; font-weight: bold; }
-        .logo { width: 100px; height: auto; }
-        .bg-gray { background-color: #E7E6E6; }
-        .bold { font-weight: bold; }
-        .text-center { text-align: center; }
-        .w-50 { width: 50%; }
-        .signature-section { margin-top: 30px; page-break-inside: avoid; }
-        .signature-box { width: 48%; text-align: center; display: inline-block; margin-top: 40px; }
-        .signature-line { border-top: 1px solid #000; padding-top: 5px; font-size: 8pt; }
-        .signature-img { max-height: 40px; max-width: 100%; margin-bottom: 5px; }
-        h1 { font-size: 14pt; text-align: center; margin-bottom: 10px; }
-        .section-title { background-color: #E7E6E6; font-weight: bold; text-align: center; padding: 5px; }
+        /* === CONFIGURACIÓN DE PÁGINA === */
+        @page {
+            size: Letter;
+            margin: 12mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
+            line-height: 1.1;
+            color: #000;
+        }
+        
+        /* === HEADER COMPLETO === */
+        .document-header {
+            border: 2.5px solid #000;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+        .header-main-row {
+            display: table-row;
+        }
+        
+        .header-logo {
+            display: table-cell;
+            width: 90px;
+            padding: 10px 8px;
+            vertical-align: middle;
+            border-right: 2px solid #000;
+        }
+        
+        .header-logo img {
+            width: 78px;
+            height: auto;
+        }
+        
+        .header-info {
+            display: table-cell;
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
+        
+        .header-info h1 {
+            font-size: 10.5pt;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            letter-spacing: 0.2px;
+        }
+        
+        .header-info p {
+            font-size: 9pt;
+            margin: 0;
+        }
+        
+        .header-metadata {
+            display: table-cell;
+            width: 180px;
+            border-left: 2px solid #000;
+            padding: 6px 10px;
+            vertical-align: top;
+            font-size: 7.5pt;
+            line-height: 1.4;
+        }
+        
+        .metadata-row {
+            margin-bottom: 2px;
+        }
+        
+        .metadata-label {
+            font-weight: bold;
+        }
+        
+        /* === TÍTULO DOCUMENTO === */
+        .doc-title {
+            border: 2.5px solid #000;
+            border-top: none;
+            background: #d9d9d9;
+            text-align: center;
+            font-size: 10.5pt;
+            font-weight: bold;
+            padding: 6px;
+        }
+        
+        .version-bar {
+            border: 2.5px solid #000;
+            border-top: 1px solid #000;
+            display: flex;
+            font-size: 7.5pt;
+        }
+        
+        .version-item {
+            flex: 1;
+            padding: 4px 10px;
+            text-align: right;
+        }
+        
+        .version-item:not(:last-child) {
+            border-right: 1px solid #000;
+        }
+        
+        .version-item b {
+            font-weight: bold;
+        }
+        
+        /* === CONTENEDOR PRINCIPAL === */
+        .content-wrapper {
+            border: 2.5px solid #000;
+            border-top: none;
+            padding: 12px 14px;
+        }
+        
+        /* === INTRO === */
+        .intro-para {
+            font-size: 8pt;
+            text-align: justify;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+        
+        /* === SECCIONES === */
+        .data-section {
+            margin-bottom: 10px;
+        }
+        
+        .section-header {
+            background: #d9d9d9;
+            border: 1.5px solid #000;
+            font-size: 8.5pt;
+            font-weight: bold;
+            padding: 4px 8px;
+            margin-bottom: 6px;
+        }
+        
+        /* === CAMPOS DE FORMULARIO === */
+        .field-row {
+            display: flex;
+            margin-bottom: 5px;
+            gap: 8px;
+        }
+        
+        .field-group {
+            display: flex;
+            align-items: baseline;
+            font-size: 8.5pt;
+        }
+        
+        .field-group.w100 { flex: 1 1 100%; }
+        .field-group.w50 { flex: 1 1 48%; }
+        .field-group.w33 { flex: 1 1 31%; }
+        
+        .field-label {
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        
+        .field-input {
+            flex: 1;
+            border-bottom: 1px solid #000;
+            min-height: 15px;
+            padding: 2px 5px;
+            font-size: 8.5pt;
+        }
+        
+        /* === NOTAS === */
+        .note-text {
+            font-size: 7.5pt;
+            font-style: italic;
+            line-height: 1.35;
+            margin: 8px 0;
+            text-align: justify;
+        }
+        
+        .note-text b {
+            font-style: normal;
+            font-weight: bold;
+        }
+        
+        /* === MOTIVO GRID === */
+        .motivo-container {
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px 12px;
+            font-size: 8pt;
+        }
+        
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+        }
+        
+        .check-box {
+            width: 12px;
+            height: 12px;
+            border: 1.5px solid #000;
+            margin-right: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .otro-field {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .otro-field .field-input {
+            flex: 1;
+        }
+        
+        .cual-field {
+            grid-column: span 2;
+        }
+        
+        /* === TABLA === */
+        .asset-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 7.5pt;
+        }
+        
+        .asset-table th {
+            background: #d9d9d9;
+            border: 1.5px solid #000;
+            padding: 5px 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 8pt;
+            line-height: 1.25;
+        }
+        
+        .asset-table td {
+            border: 1.5px solid #000;
+            padding: 4px 5px;
+            vertical-align: top;
+            font-size: 7.5pt;
+            min-height: 32px;
+        }
+        
+        /* Anchos específicos de columnas */
+        .asset-table th:nth-child(1),
+        .asset-table td:nth-child(1) { width: 20%; }
+        
+        .asset-table th:nth-child(2),
+        .asset-table td:nth-child(2) { width: 15%; }
+        
+        .asset-table th:nth-child(3),
+        .asset-table td:nth-child(3) { width: 16%; }
+        
+        .asset-table th:nth-child(4),
+        .asset-table td:nth-child(4) { width: 13%; }
+        
+        .asset-table th:nth-child(5),
+        .asset-table td:nth-child(5) { width: 36%; }
+        
+        /* === ACCESORIOS === */
+        .accessories-block {
+            margin: 8px 0;
+        }
+        
+        .accessories-label {
+            font-size: 8.5pt;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .accessories-area {
+            width: 100%;
+            border: 1.5px solid #000;
+            min-height: 50px;
+            padding: 5px 6px;
+            font-size: 8pt;
+        }
+        
+        /* === FIRMAS === */
+        .signatures-block {
+            margin: 12px 0 10px;
+        }
+        
+        .sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 8px;
+        }
+        
+        .sig-box {
+            text-align: center;
+        }
+        
+        .sig-space {
+            height: 58px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+        
+        .sig-space img {
+            max-height: 54px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .sig-line {
+            border-top: 1.5px solid #000;
+            padding-top: 4px;
+        }
+        
+        .sig-role {
+            font-size: 7.5pt;
+            font-weight: bold;
+            line-height: 1.25;
+            margin-bottom: 2px;
+        }
+        
+        .sig-name {
+            font-size: 7.5pt;
+            margin-top: 2px;
+        }
+        
+        .sig-name b {
+            font-weight: bold;
+        }
+
+        /* === METADATA DE AUDITORÍA === */
+        .audit-meta {
+            font-size: 6pt;
+            color: #666;
+            margin-top: 2px;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .audit-meta small {
+            display: block;
+        }
+
+        /* === OBSERVACIONES === */
+        .obs-block {
+            margin: 8px 0;
+        }
+        
+        .obs-label {
+            font-size: 8.5pt;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .obs-area {
+            width: 100%;
+            border: 1.5px solid #000;
+            min-height: 50px;
+            padding: 5px 6px;
+            font-size: 8pt;
+        }
+        
+        /* === CLÁUSULA === */
+        .clause-block {
+            margin: 10px 0;
+        }
+        
+        .clause-heading {
+            font-size: 8.5pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        
+        .clause-body {
+            font-size: 7.5pt;
+            text-align: justify;
+            line-height: 1.35;
+        }
+        
+        /* === NOTA FINAL === */
+        .final-note {
+            font-size: 7pt;
+            font-style: italic;
+            line-height: 1.35;
+            margin-top: 10px;
+            text-align: justify;
+        }
+        
+        .final-note b {
+            font-style: normal;
+            font-weight: bold;
+        }
+        
     </style>
 </head>
 <body>
-    <table class="header-table">
-        <tr>
-            <td rowspan="3" style="width: 20%;"><img class="logo" src="{{ url_for('static', filename='img/logo_primavera_simple.png', _external=True) }}"></td>
-            <td rowspan="2" style="width: 50%;">CORPORACION CLINICA PRIMAVERA <br> NIT: 900213617-3</td>
-            <td style="width: 30%;">Código: 268.4-11.018</td>
-        </tr>
-        <tr><td>Versión: 2</td></tr>
-        <tr><td>ACTA DE ENTRADA/SALIDA DE ACTIVOS</td><td>Pagina 1 de 1</td></tr>
-    </table>
-
-    <h1>ACTA DE {{ detalles.tipo_operacion | upper }} #{{ movimiento.id }}</h1>
-
-    <table>
-        <tr>
-            <td><span class="bold">Fecha:</span> {{ movimiento.fecha.split(' ')[0] if movimiento.fecha }}</td>
-            <td><span class="bold">Ciudad:</span> {{ detalles.ciudad or 'N/A' }}</td>
-            <td><span class="bold">Sede:</span> {{ detalles.sede or 'N/A' }}</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="section-title" colspan="2">DATOS DEL SOLICITANTE (CLÍNICA)</td></tr>
-        <tr>
-            <td class="w-50"><span class="bold">Nombre:</span> {{ detalles.solicitante_responsable_nombre or 'N/A' }}</td>
-            <td><span class="bold">Cédula:</span> {{ detalles.solicitante_responsable_cc or 'N/A' }}</td>
-        </tr>
-        <tr>
-            <td colspan="2"><span class="bold">Cargo/Área:</span> {{ detalles.solicitante_responsable_cargo_area or 'N/A' }}</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="section-title" colspan="2">DATOS DEL TERCERO</td></tr>
-        <tr>
-            <td class="w-50"><span class="bold">Entidad/Persona:</span> {{ detalles.tercero_entidad_persona or 'N/A' }}</td>
-            <td><span class="bold">NIT/C.C:</span> {{ detalles.tercero_nit_cc or 'N/A' }}</td>
-        </tr>
-        <tr>
-            <td><span class="bold">Dirección:</span> {{ detalles.tercero_direccion or 'N/A' }}</td>
-            <td><span class="bold">Móvil:</span> {{ detalles.tercero_movil or 'N/A' }}</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="section-title">DETALLES DE LA OPERACIÓN</td></tr>
-        <tr><td><span class="bold">Motivo:</span> {{ detalles.motivo or 'N/A' }}</td></tr>
-        {% if detalles.tipo_operacion == 'Salida' %}
-        <tr><td><span class="bold">Fecha Estimada de Retorno:</span> {{ detalles.fecha_retorno_estimada or 'No especificada' }}</td></tr>
-        {% endif %}
-    </table>
-
-    <table>
-        <tr><td class="section-title" colspan="6">ACTIVOS INVOLUCRADOS</td></tr>
-        <thead>
-            <tr><th>N°</th><th>Descripción</th><th>Placa</th><th>Marca</th><th>Modelo</th><th>Serie</th></tr>
-        </thead>
-        <tbody>
-            {% for activo in activos %}
-            <tr>
-                <td class="text-center">{{ loop.index }}</td>
-                <td>{{ activo.nombre_activo }}</td>
-                <td>{{ activo.placa_codigo_interno }}</td>
-                <td>{{ activo.marca or '' }}</td>
-                <td>{{ activo.modelo or '' }}</td>
-                <td>{{ activo.serie or '' }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="6" class="text-center" style="height: 50px;">No se asociaron activos.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <table>
-        <tr><td class="section-title">OBSERVACIONES</td></tr>
-        <tr><td style="height: 50px;">{{ movimiento.observaciones_generales or 'Sin observaciones.' }}</td></tr>
-    </table>
-
-    <div class="signature-section">
-        <div style="width: 100%; text-align: center;">
-            <div class="signature-box">
-                {% if firmas.get('Responsable_Clinica') %}<img src="{{ firmas['Responsable_Clinica'] }}" class="signature-img">{% endif %}
-                <div class="signature-line">
-                    {{ detalles.solicitante_responsable_nombre or '____________________________' }}<br>
-                    <span class="bold">Responsable Clínica</span>
-                </div>
+    
+    <!-- HEADER -->
+    <div class="document-header">
+        <div class="header-main-row">
+            <div class="header-logo">
+                <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo">
             </div>
-            <div class="signature-box">
-                {% if firmas.get('Responsable_Tercero') %}<img src="{{ firmas['Responsable_Tercero'] }}" class="signature-img">{% endif %}
-                <div class="signature-line">
-                    {{ detalles.tercero_entidad_persona or '____________________________' }}<br>
-                    <span class="bold">Responsable Tercero</span>
+            <div class="header-info">
+                <h1>CORPORACION CLINICA PRIMAVERA</h1>
+                <p>NIT: 900213617-3</p>
+            </div>
+            <div class="header-metadata">
+                <div class="metadata-row">
+                    <span class="metadata-label">Fecha de aprobacion:</span> 00-00-0000
+                </div>
+                <div class="metadata-row">
+                    <span class="metadata-label">Código:</span> 000.0-00.000
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- TITLE -->
+    <div class="doc-title">
+        ACTA DE ENTRADA Y SALIDA DE ACTIVOS FIJOS
+    </div>
+    
+    <!-- VERSION BAR -->
+    <div class="version-bar">
+        <div class="version-item">
+            <b>Versión:</b> 1
+        </div>
+        <div class="version-item">
+            <b>Pagina</b> 1 de 1
+        </div>
+    </div>
+    
+    <!-- MAIN CONTENT -->
+    <div class="content-wrapper">
+        
+        <!-- INTRO -->
+        <p class="intro-para">
+            Para la Corporación Clínica Primavera, el control de los activos fijos es crucial. Por eso, el área o el funcionario encargado implementará la firma del acta para asegurar la integridad de todos los elementos bajo su cuidado y responsabilidad para facilitar el trabajo de la entidad.
+        </p>
+        
+        <!-- DATOS SOLICITANTE -->
+        <div class="data-section">
+            <div class="section-header">Datos Solicitante</div>
+            
+            <div class="field-row">
+                <div class="field-group w33">
+                    <span class="field-label">Ciudad:</span>
+                    <div class="field-input">{{ detalles.ciudad | default_empty }}</div>
+                </div>
+                <div class="field-group w33">
+                    <span class="field-label">Fecha:</span>
+                    <div class="field-input">{{ fecha_formateada.date | default_empty }}</div>
+                </div>
+                <div class="field-group w33">
+                    <span class="field-label">Hora:</span>
+                    <div class="field-input">{{ fecha_formateada.time | default_empty }}</div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">Sede:</span>
+                    <div class="field-input">{{ detalles.sede | default_empty('CORPORACION CLINICA PRIMAVERA') }}</div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">Nombre Responsable:</span>
+                    <div class="field-input">{{ detalles.solicitante_responsable_nombre | default_empty }}</div>
+                </div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">Cedula:</span>
+                    <div class="field-input">{{ detalles.solicitante_responsable_cc | default_empty }}</div>
+                </div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">Cargo/Área:</span>
+                    <div class="field-input">{{ detalles.solicitante_responsable_cargo_area | default_empty }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- NOTA 1 -->
+        <p class="note-text">
+            <b>Nota:</b> La siguiente sección se diligenciará únicamente en caso de que el activo corresponda a un bien ajeno entregado en comodato, pertenezca a un tercero o a un funcionario vinculado a la Corporación Clínica Primavera.
+        </p>
+        
+        <!-- DATOS TERCERO -->
+        <div class="data-section">
+            <div class="section-header">Datos Tercero</div>
+            
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">Entidad / Persona:</span>
+                    <div class="field-input">{{ detalles.tercero_entidad_persona | default_empty }}</div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group w100">
+                    <span class="field-label">NIT/CC:</span>
+                    <div class="field-input">{{ detalles.tercero_nit_cc | default_empty }}</div>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group w50">
+                    <span class="field-label">Dirección:</span>
+                    <div class="field-input">{{ detalles.tercero_direccion | default_empty }}</div>
+                </div>
+                <div class="field-group w50">
+                    <span class="field-label">Móvil:</span>
+                    <div class="field-input">{{ detalles.tercero_movil | default_empty }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MOTIVO -->
+        <div class="data-section motivo-container">
+            <div class="section-header">Motivo</div>
+            
+            <div class="checkbox-grid">
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Salida Por Mantenimiento' %}X{% endif %}</div>
+                    <span>Salida Por Mantenimiento</span>
+                </div>
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Entrada Por Mantenimiento Realizado' %}X{% endif %}</div>
+                    <span>Entrada Por Mantenimiento Realizado</span>
+                </div>
+                
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Salida Por Préstamo a la Clínica' %}X{% endif %}</div>
+                    <span>Salida Por Préstamo a la Clínica</span>
+                </div>
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Entrada Por Préstamo a la Clínica' %}X{% endif %}</div>
+                    <span>Entrada Por Préstamo a la Clínica</span>
+                </div>
+                
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Salida Por Préstamo de la Clínica' %}X{% endif %}</div>
+                    <span>Salida Por Préstamo de la Clínica</span>
+                </div>
+                <div class="checkbox-row">
+                    <div class="check-box">{% if detalles.motivo == 'Entrada Por Préstamo de la Clínica' %}X{% endif %}</div>
+                    <span>Entrada Por Préstamo de la Clínica</span>
+                </div>
+                
+                <div class="otro-field">
+                    <div class="check-box">{% if detalles.motivo == 'Otro' %}X{% endif %}</div>
+                    <span class="field-label">Otro:</span>
+                    <div class="field-input">{% if detalles.motivo == 'Otro' %}{{ detalles.motivo_otro | default_empty }}{% endif %}</div>
+                </div>
+                
+                <div class="cual-field">
+                    <div class="checkbox-row">
+                        <div class="check-box">{% if detalles.motivo == 'Cual' %}X{% endif %}</div>
+                        <span>Cual:</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TABLA ACTIVOS -->
+        <table class="asset-table">
+            <thead>
+                <tr>
+                    <th>Nombre Del Activo</th>
+                    <th>Placa / código<br>interno</th>
+                    <th>Marca-Referencia</th>
+                    <th>Serie o Lote</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ma in activos %}
+                <tr>
+                    <td>{{ ma.activo.nombre_activo | default_empty }}</td>
+                    <td>{{ ma.activo.placa_codigo_interno | default_empty }}</td>
+                    <td>{{ (ma.activo.marca | default_empty) ~ ' - ' ~ (ma.activo.modelo | default_empty) if ma.activo.marca or ma.activo.modelo else '' }}</td>
+                    <td>{{ ma.activo.serie | default_empty }}</td>
+                    <td>{{ ma.observaciones_contables | default_empty }}</td>
+                </tr>
+                {% endfor %}
+                {% for i in range(7 - activos|length) %}
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- ACCESORIOS -->
+        <div class="accessories-block">
+            <div class="accessories-label">Accesorios:</div>
+            <div class="accessories-area">{{ detalles.accesorios_generales | default_empty }}</div>
+        </div>
+        
+        <!-- FIRMAS -->
+        <div class="signatures-block">
+            <div class="section-header">Firmas</div>
+            
+            <div class="sig-grid">
+                <div class="sig-box">
+                    <div class="sig-space">
+                        {% set firma_obj = firmas_objetos.get('Firma_Solicitante_Responsable') %}
+                        {% if firma_obj and firma_obj.firma_svg %}
+                            {# Firma SVG vectorial con metadata de auditoría #}
+                            <img src="{{ firma_obj.firma_base64 }}" alt="Firma">
+                        {% elif firmas.get('Firma_Solicitante_Responsable') %}
+                            {# Fallback: firma legacy base64 #}
+                            <img src="{{ firmas['Firma_Solicitante_Responsable'] }}" alt="Firma">
+                        {% endif %}
+                    </div>
+                    <div class="sig-line">
+                        <div class="sig-role">Firma responsable del Activo (Macro o Microresponsable)</div>
+                        <div class="sig-name"><b>Nombre:</b> {{ detalles.solicitante_responsable_nombre | default_empty }}</div>
+                        {% if firma_obj and firma_obj.firma_svg %}
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}Firmado: {{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="sig-box">
+                    <div class="sig-space">
+                        {% set firma_obj = firmas_objetos.get('Soporte_Quien_Recibe_Entrega') %}
+                        {% if firma_obj and firma_obj.firma_svg %}
+                            {# Firma SVG vectorial con metadata de auditoría #}
+                            <img src="{{ firma_obj.firma_base64 }}" alt="Firma">
+                        {% elif firmas.get('Soporte_Quien_Recibe_Entrega') %}
+                            {# Fallback: firma legacy base64 #}
+                            <img src="{{ firmas['Soporte_Quien_Recibe_Entrega'] }}" alt="Firma">
+                        {% endif %}
+                    </div>
+                    <div class="sig-line">
+                        <div class="sig-role">Soporte Clinica Primavera / Tercero a cargo</div>
+                        <div class="sig-name"><b>Nombre:</b></div>
+                        {% if firma_obj and firma_obj.firma_svg %}
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}Firmado: {{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sig-grid" style="margin-top: 12px;">
+                <div class="sig-box">
+                    <div class="sig-space">
+                        {% set firma_obj = firmas_objetos.get('Jefe_Inmediato') %}
+                        {% if firma_obj and firma_obj.firma_svg %}
+                            {# Firma SVG vectorial con metadata de auditoría #}
+                            <img src="{{ firma_obj.firma_base64 }}" alt="Firma">
+                        {% elif firmas.get('Jefe_Inmediato') %}
+                            {# Fallback: firma legacy base64 #}
+                            <img src="{{ firmas['Jefe_Inmediato'] }}" alt="Firma">
+                        {% endif %}
+                    </div>
+                    <div class="sig-line">
+                        <div class="sig-role">Jefe (Inmediato)</div>
+                        <div class="sig-name"><b>Nombre:</b></div>
+                        {% if firma_obj and firma_obj.firma_svg %}
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}Firmado: {{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="sig-box">
+                    <div class="sig-space">
+                        {% set firma_obj = firmas_objetos.get('VoBo_Activos_Fijos') %}
+                        {% if firma_obj and firma_obj.firma_svg %}
+                            {# Firma SVG vectorial con metadata de auditoría #}
+                            <img src="{{ firma_obj.firma_base64 }}" alt="Firma">
+                        {% elif firmas.get('VoBo_Activos_Fijos') %}
+                            {# Fallback: firma legacy base64 #}
+                            <img src="{{ firmas['VoBo_Activos_Fijos'] }}" alt="Firma">
+                        {% endif %}
+                    </div>
+                    <div class="sig-line">
+                        <div class="sig-role">Vo.Bo. Responsable Activos Fijos</div>
+                        <div class="sig-name"><b>Nombre:</b></div>
+                        {% if firma_obj and firma_obj.firma_svg %}
+                        <div class="audit-meta">
+                            <small>
+                                {% if firma_obj.timestamp_firma %}Firmado: {{ firma_obj.timestamp_firma.strftime('%Y-%m-%d %H:%M') }} | {% endif %}
+                                {% if firma_obj.ip_address %}IP: {{ firma_obj.ip_address }} | {% endif %}
+                                {% if firma_obj.hash_documento %}Hash: {{ firma_obj.hash_documento[:12] }}...{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- OBSERVACIONES -->
+        <div class="obs-block">
+            <div class="obs-label">Observaciones:</div>
+            <div class="obs-area">{{ movimiento.observaciones_generales | default_empty }}</div>
+        </div>
+        
+        <!-- CLÁUSULA -->
+        <div class="clause-block">
+            <div class="clause-heading">Clausula de Compromiso Funcionario Responsable</div>
+            <div class="clause-body">
+                Declaro haber recibido los activos detallados en este documento, los cuales son propiedad de la Corporación Clínica Primavera y quedan bajo mi directa responsabilidad para el cumplimiento de mis funciones laborales. Me comprometo a seguir los procedimientos establecidos para la administración de activos y, en caso de pérdida o robo, presentaré la denuncia correspondiente. Asumo la responsabilidad por la correcta administración y conservación de estos activos, entendiendo que el incumplimiento de las normas de conservación se considerará una falta a mis obligaciones.
+            </div>
+        </div>
+        
+        <!-- NOTA FINAL -->
+        <p class="final-note">
+            <b>Nota:</b> En el traslado por obsolescencia para equipos de computo y comunicación, debe ir soportado por el Reporte Técnico emitido por el área de sistemas; para los demás equipos debe ir soportado por el reporte técnico del contratista.<br>
+            Se requiere escanear documento y enviarlo via correo electrónico a los interesados del proceso una vez diligenciado.
+        </p>
+        
+    </div>
+    
 </body>
 </html>

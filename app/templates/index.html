@@ -1,168 +1,410 @@
 {% extends "base.html" %}
 
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+    <style>
+        /* Enhanced Dashboard Animations */
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg,
+                rgba(0, 122, 255, 0.05) 0%,
+                rgba(52, 199, 89, 0.05) 50%,
+                rgba(175, 82, 222, 0.05) 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
+        }
+
+        .icon-float {
+            animation: float-gentle 3s ease-in-out infinite;
+        }
+
+        .shimmer-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.514),
+                transparent
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -150%; }
+            100% { left: 150%; }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
-    
-    <!-- Sección de Bienvenida -->
-    <div class="hero-section fade-in-item mb-4">
-        <h1 class="hero-title">Bienvenido, {{ session.cargo | title }}</h1>
-        <div class="hero-subtitle fs-5" id="dynamicWelcomePhrase">Cargando...</div>
-    </div>
 
-    <!-- Widgets de Estadísticas -->
-    <div class="row g-4 mb-5">
-        <div class="col-xl-4 col-md-6 fade-in-item" style="animation-delay: 0.1s;">
-            <a href="{{ url_for('activos.ver_activos') }}" class="text-decoration-none">
-                <div class="stat-card card h-100 card-body">
-                    <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ total_activos }}</div>
-                        <div class="stat-label">Activos Totales</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <div class="col-xl-4 col-md-6 fade-in-item" style="animation-delay: 0.2s;">
-            <a href="{{ url_for('funcionarios.ver_funcionarios') }}" class="text-decoration-none">
-                <div class="stat-card card h-100 card-body">
-                    <div class="stat-icon"><i class="bi bi-people"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ total_funcionarios }}</div>
-                        <div class="stat-label">Funcionarios Registrados</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <div class="col-xl-4 col-md-12 fade-in-item" style="animation-delay: 0.3s;">
-            <a href="{{ url_for('movimientos.ver_movimientos') }}" class="text-decoration-none">
-                <div class="stat-card card h-100 card-body">
-                    <div class="stat-icon"><i class="bi bi-arrows-move"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ total_movimientos }}</div>
-                        <div class="stat-label">Movimientos Registrados</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div>
-    
-    <!-- Acciones Principales -->
-    <h3 class="mb-4 section-title fade-in-item" style="animation-delay: 0.4s;">Panel de Acciones Rápidas</h3>
-    <div class="row g-4 align-items-stretch mb-5">
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.5s;">
-            <a href="{{ url_for('activos.ver_activos') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-card-checklist card-icon"></i> 
-                <h4>Inventario General</h4>
-                <p class="mb-0">Consulta, busca y gestiona todos los activos de la entidad.</p>
-            </a>
-        </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.6s;">
-            <a href="{{ url_for('movimientos.add_movimiento') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-send-plus-fill card-icon"></i>
-                <h4>Registrar Movimiento</h4>
-                <p class="mb-0">Crea actas de entrega, traslado, entrada o salida de activos.</p>
-            </a>
-        </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.7s;">
-            <a href="{{ url_for('biomedicos.index') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-heart-pulse-fill card-icon"></i>
-                <h4>Módulo Biomédico</h4>
-                <p class="mb-0">Gestiona mantenimientos y hojas de vida de equipos médicos.</p>
-            </a>
-        </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 0.8s;">
-            <a href="{{ url_for('main.inventario_ajenos') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-briefcase-fill card-icon"></i>
-                <h4>Activos Ajenos</h4>
-                <p class="mb-0">Administra equipos de terceros que están bajo custodia.</p>
-            </a>
-        </div>
-    </div>
+    <!-- Enhanced iOS Large Title Header with Gradient Background -->
+    <div class="ios-fade-in mb-5" style="padding: var(--ios-space-2xl); border-radius: var(--ios-radius-xl); background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%); position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <!-- Efectos de fondo -->
+        <div style="position: absolute; top: -50%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.1), transparent); border-radius: 50%; animation: float-gentle 6s ease-in-out infinite;"></div>
+        <div style="position: absolute; bottom: -30%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.08), transparent); border-radius: 50%; animation: float-gentle 8s ease-in-out infinite reverse;"></div>
 
-    <!-- Visualización de Datos -->
-    <div class="row g-4 mb-5">
-        <div class="col-lg-7 fade-in-item" style="animation-delay: 0.9s;">
-            <h3 class="mb-4 section-title">Últimos Activos Registrados</h3>
-            <div class="dashboard-table-container card card-body">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col">Placa</th>
-                            <th scope="col">Nombre del Activo</th>
-                            <th scope="col">Clase</th>
-                            <th scope="col" class="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for activo in ultimos_activos %}
-                        <tr>
-                            <td><span class="badge text-bg-secondary fw-normal">{{ activo.placa_codigo_interno }}</span></td>
-                            <td><strong>{{ activo.nombre_activo }}</strong></td>
-                            <td class="text-muted">{{ activo.nombre_clase }}</td>
-                            <td class="text-end">
-                                <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-pencil me-1"></i>Ver
-                                </a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted p-4">No hay activos registrados recientemente.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="d-flex align-items-center gap-3 mb-4" style="position: relative; z-index: 2;">
+            <div class="icon-float" style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: var(--ios-radius-md); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+                <i class="bi bi-person-circle" style="font-size: 32px; color: white;"></i>
+            </div>
+            <div>
+                <h1 class="mb-0" style="font-size: 2rem; font-weight: 600; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                    Bienvenido, {{ session.cargo | title }}
+                </h1>
             </div>
         </div>
-        <div class="col-lg-5 fade-in-item" style="animation-delay: 1.0s;">
-            <h3 class="mb-4 section-title">Activos por Clase</h3>
-            <div class="chart-container card card-body d-flex align-items-center justify-content-center">
+
+        <!-- Mensaje inspiracional con efectos -->
+        <div id="dynamicWelcomePhrase" style="position: relative; z-index: 2; text-align: center; padding: 2rem 1rem;">
+            <p style="font-size: 1.8rem; font-weight: 300; color: white; margin-bottom: 2rem; text-shadow: 0 2px 15px rgba(0,0,0,0.3); animation: fadeIn 1s ease-in;">
+                Cargando...
+            </p>
+        </div>
+    </div>
+
+    <!-- Enhanced iOS Stats Cards with Modern Effects -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-4 col-md-6 ios-fade-in" style="animation-delay: 0.1s;">
+            <a href="{{ url_for('activos_v2.listado') }}" class="text-decoration-none">
+                <div class="ios-stat-card shimmer-effect" style="background: linear-gradient(135deg, rgba(0, 122, 255, 0.03), rgba(0, 122, 255, 0.08)); border: 1px solid rgba(0, 122, 255, 0.15);">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="ios-stat-icon icon-float" style="width: 72px; height: 72px; background: linear-gradient(135deg, var(--ios-blue), #0051D5); box-shadow: 0 8px 16px rgba(0, 122, 255, 0.3);">
+                            <i class="bi bi-box-seam" style="font-size: 32px; color: white;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="ios-stat-value" style="background: linear-gradient(135deg, var(--ios-blue), #5AC8FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                {{ total_activos }}
+                            </div>
+                            <div class="ios-stat-label">Activos Totales</div>
+                            <div class="ios-badge ios-badge-blue mt-2">
+                                <i class="bi bi-arrow-up-right"></i> Ver Inventario
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-4 col-md-6 ios-fade-in" style="animation-delay: 0.2s;">
+            <a href="{{ url_for('funcionarios.ver_funcionarios') }}" class="text-decoration-none">
+                <div class="ios-stat-card shimmer-effect" style="background: linear-gradient(135deg, rgba(52, 199, 89, 0.03), rgba(52, 199, 89, 0.08)); border: 1px solid rgba(52, 199, 89, 0.15);">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="ios-stat-icon icon-float" style="width: 72px; height: 72px; background: linear-gradient(135deg, var(--ios-green), #30D158); box-shadow: 0 8px 16px rgba(52, 199, 89, 0.3); animation-delay: 0.5s;">
+                            <i class="bi bi-people" style="font-size: 32px; color: white;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="ios-stat-value" style="background: linear-gradient(135deg, var(--ios-green), #32D74B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                {{ total_funcionarios }}
+                            </div>
+                            <div class="ios-stat-label">Funcionarios Registrados</div>
+                            <div class="ios-badge ios-badge-green mt-2">
+                                <i class="bi bi-arrow-up-right"></i> Gestionar Personal
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-4 col-md-12 ios-fade-in" style="animation-delay: 0.3s;">
+            <a href="{{ url_for('movimientos.ver_movimientos') }}" class="text-decoration-none">
+                <div class="ios-stat-card shimmer-effect" style="background: linear-gradient(135deg, rgba(175, 82, 222, 0.03), rgba(175, 82, 222, 0.08)); border: 1px solid rgba(175, 82, 222, 0.15);">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="ios-stat-icon icon-float" style="width: 72px; height: 72px; background: linear-gradient(135deg, var(--ios-purple), #BF5AF2); box-shadow: 0 8px 16px rgba(175, 82, 222, 0.3); animation-delay: 1s;">
+                            <i class="bi bi-arrows-move" style="font-size: 32px; color: white;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="ios-stat-value" style="background: linear-gradient(135deg, var(--ios-purple), #BF5AF2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                {{ total_movimientos }}
+                            </div>
+                            <div class="ios-stat-label">Movimientos Registrados</div>
+                            <div class="ios-badge ios-badge-purple mt-2">
+                                <i class="bi bi-arrow-up-right"></i> Ver Movimientos
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Enhanced iOS Action Cards -->
+    <h2 class="ios-text-headline mb-4 ios-fade-in" style="animation-delay: 0.4s; display: flex; align-items: center; gap: var(--ios-space-md);">
+        <i class="bi bi-lightning-charge-fill" style="color: var(--ios-yellow);"></i>
+        Acciones Rápidas
+    </h2>
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 0.5s;">
+            <a href="{{ url_for('activos_v2.listado') }}" class="text-decoration-none">
+                <div class="ios-card shimmer-effect" style="padding: var(--ios-space-xl); text-align: center; min-height: 240px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(0, 122, 255, 0.02), rgba(0, 122, 255, 0.05)); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(0, 122, 255, 0.1), transparent); border-radius: 50%;"></div>
+                    <div class="icon-float" style="font-size: 52px; margin-bottom: var(--ios-space-md); position: relative;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--ios-blue), #5AC8FA); border-radius: var(--ios-radius-lg); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 122, 255, 0.25);">
+                            <i class="bi bi-card-checklist" style="color: white; font-size: 36px;"></i>
+                        </div>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2" style="color: var(--ios-label-primary);">Inventario General</h4>
+                    <p class="ios-text-caption mb-0">Consulta, busca y gestiona todos los activos de la entidad.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 0.6s;">
+            <a href="{{ url_for('movimientos.add_movimiento') }}" class="text-decoration-none">
+                <div class="ios-card shimmer-effect" style="padding: var(--ios-space-xl); text-align: center; min-height: 240px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(52, 199, 89, 0.02), rgba(52, 199, 89, 0.05)); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(52, 199, 89, 0.1), transparent); border-radius: 50%;"></div>
+                    <div class="icon-float" style="font-size: 52px; margin-bottom: var(--ios-space-md); position: relative; animation-delay: 0.5s;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--ios-green), #32D74B); border-radius: var(--ios-radius-lg); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(52, 199, 89, 0.25);">
+                            <i class="bi bi-send-plus-fill" style="color: white; font-size: 36px;"></i>
+                        </div>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2" style="color: var(--ios-label-primary);">Registrar Movimiento</h4>
+                    <p class="ios-text-caption mb-0">Crea actas de entrega, traslado, entrada o salida de activos.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 0.7s;">
+            <a href="{{ url_for('biomedicos.index') }}" class="text-decoration-none">
+                <div class="ios-card shimmer-effect" style="padding: var(--ios-space-xl); text-align: center; min-height: 240px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(255, 59, 48, 0.02), rgba(255, 59, 48, 0.05)); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255, 59, 48, 0.1), transparent); border-radius: 50%;"></div>
+                    <div class="icon-float" style="font-size: 52px; margin-bottom: var(--ios-space-md); position: relative; animation-delay: 1s;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--ios-red), #FF453A); border-radius: var(--ios-radius-lg); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255, 59, 48, 0.25);">
+                            <i class="bi bi-heart-pulse-fill" style="color: white; font-size: 36px;"></i>
+                        </div>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2" style="color: var(--ios-label-primary);">Módulo Biomédico</h4>
+                    <p class="ios-text-caption mb-0">Gestiona mantenimientos y hojas de vida de equipos médicos.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 0.8s;">
+            <a href="{{ url_for('main.inventario_ajenos') }}" class="text-decoration-none">
+                <div class="ios-card shimmer-effect" style="padding: var(--ios-space-xl); text-align: center; min-height: 240px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(255, 149, 0, 0.02), rgba(255, 149, 0, 0.05)); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255, 149, 0, 0.1), transparent); border-radius: 50%;"></div>
+                    <div class="icon-float" style="font-size: 52px; margin-bottom: var(--ios-space-md); position: relative; animation-delay: 1.5s;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--ios-orange), #FF9F0A); border-radius: var(--ios-radius-lg); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(255, 149, 0, 0.25);">
+                            <i class="bi bi-briefcase-fill" style="color: white; font-size: 36px;"></i>
+                        </div>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2" style="color: var(--ios-label-primary);">Activos Ajenos</h4>
+                    <p class="ios-text-caption mb-0">Administra equipos de terceros que están bajo custodia.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- iOS Alertas de Activos Ajenos -->
+    {% if alertas_activos_ajenos %}
+    <div class="row g-4 mb-5 ios-fade-in" style="animation-delay: 0.85s;">
+        <div class="col-12">
+            <div class="ios-card" style="background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 59, 48, 0.1) 100%); padding: var(--ios-space-xl);">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 40px; height: 40px; border-radius: var(--ios-radius-sm); background: var(--ios-orange); color: white; display: flex; align-items: center; justify-content: center; margin-right: var(--ios-space-md);">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="ios-text-headline mb-0">Alertas de Contratos</h3>
+                        <p class="ios-text-caption mb-0">Activos ajenos próximos a vencer</p>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    {% for alerta in alertas_activos_ajenos %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="ios-glass" style="padding: var(--ios-space-md); border-radius: var(--ios-radius-md);">
+                            <h6 class="ios-text-body fw-semibold mb-2">{{ alerta.nombre_activo }}</h6>
+                            <p class="ios-text-caption mb-2">
+                                <i class="bi bi-building me-1"></i>{{ alerta.propietario_ajeno or 'Propietario no especificado' }}
+                            </p>
+                            <span class="ios-badge {{ 'ios-badge-red' if alerta.dias_restantes < 15 else 'ios-badge-orange' }}">
+                                <i class="bi bi-clock"></i> {{ alerta.dias_restantes }} días
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('main.inventario_ajenos') }}" class="ios-btn ios-btn-primary">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        Ver todos los activos ajenos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Enhanced iOS Data Visualization -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7 ios-fade-in" style="animation-delay: 0.9s;">
+            <h2 class="ios-text-headline mb-4" style="display: flex; align-items: center; gap: var(--ios-space-sm);">
+                <i class="bi bi-clock-history" style="color: var(--ios-blue);"></i>
+                Últimos Activos Registrados
+            </h2>
+            <div class="ios-card" style="overflow: hidden; box-shadow: var(--ios-shadow-lg);">
+                <div style="overflow-x: auto;">
+                    <table class="ios-table">
+                        <thead style="background: linear-gradient(135deg, rgba(0, 122, 255, 0.05), rgba(0, 122, 255, 0.02));">
+                            <tr>
+                                <th><i class="bi bi-tag me-2"></i>Placa</th>
+                                <th><i class="bi bi-box me-2"></i>Nombre del Activo</th>
+                                <th><i class="bi bi-folder me-2"></i>Clase</th>
+                                <th style="text-align: right;"><i class="bi bi-gear me-2"></i>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activo in ultimos_activos %}
+                            <tr style="transition: all var(--ios-transition-base);">
+                                <td>
+                                    <span class="ios-badge ios-badge-blue" style="font-family: 'SF Mono', 'Consolas', monospace;">
+                                        {{ activo.placa_codigo_interno }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: var(--ios-space-sm);">
+                                        <div style="width: 36px; height: 36px; border-radius: var(--ios-radius-xs); background: linear-gradient(135deg, var(--ios-blue), var(--ios-teal)); display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-box-seam" style="color: white; font-size: 16px;"></i>
+                                        </div>
+                                        <strong class="ios-text-body">{{ activo.nombre_activo }}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="ios-badge ios-badge-gray">
+                                        {{ activo.nombre_clase }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="ios-btn ios-btn-sm ios-btn-primary" style="padding: 6px 12px;">
+                                        <i class="bi bi-pencil-square"></i> Ver Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: var(--ios-space-2xl);">
+                                    <div style="opacity: 0.5;">
+                                        <i class="bi bi-inbox" style="font-size: 48px; color: var(--ios-label-tertiary);"></i>
+                                        <p class="ios-text-caption mt-3">No hay activos registrados recientemente.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 ios-fade-in" style="animation-delay: 1.0s;">
+            <h2 class="ios-text-headline mb-4" style="display: flex; align-items: center; gap: var(--ios-space-sm);">
+                <i class="bi bi-pie-chart-fill" style="color: var(--ios-green);"></i>
+                Activos por Clase
+            </h2>
+            <div class="ios-card" style="padding: var(--ios-space-xl); min-height: 400px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(52, 199, 89, 0.02), rgba(52, 199, 89, 0.05)); box-shadow: var(--ios-shadow-lg);">
                 <canvas id="assetsByClassChart" data-chart-data='{{ activos_por_clase | tojson }}'></canvas>
             </div>
         </div>
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-lg-12 fade-in-item" style="animation-delay: 1.1s;">
-            <h3 class="mb-4 section-title">Movimientos por Tipo</h3>
-            <div class="chart-container card card-body d-flex align-items-center justify-content-center" style="height: 400px;">
+        <div class="col-lg-12 ios-fade-in" style="animation-delay: 1.1s;">
+            <h2 class="ios-text-headline mb-4" style="display: flex; align-items: center; gap: var(--ios-space-sm);">
+                <i class="bi bi-graph-up-arrow" style="color: var(--ios-purple);"></i>
+                Movimientos por Tipo
+            </h2>
+            <div class="ios-card" style="padding: var(--ios-space-xl); min-height: 400px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(175, 82, 222, 0.02), rgba(175, 82, 222, 0.05)); box-shadow: var(--ios-shadow-lg);">
                 <canvas id="movimientosByTypeChart" data-chart-data='{{ movimientos_por_tipo | tojson }}'></canvas>
             </div>
         </div>
     </div>
 
-    {% if session.get('rol') == 'admin' %}
-    <hr class="my-5 fade-in-item" style="animation-delay: 1.2s;">
-    <h3 class="mb-4 section-title fade-in-item" style="animation-delay: 1.3s;">Herramientas de Administración</h3>
-    <div class="row g-4 align-items-stretch">
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.4s;">
-            <a href="{{ url_for('activos.add_activo') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-box-seam-fill card-icon"></i>
-                <h4>Registrar Activo</h4>
-                <p class="mb-0">Agrega un activo propio o ajeno al inventario.</p>
+    <!-- New Maintenance Module Section -->
+    <hr style="border-color: var(--ios-separator); margin: var(--ios-space-2xl) 0;">
+    <h2 class="ios-text-headline mb-4 ios-fade-in" style="animation-delay: 1.2s;">Módulos Adicionales</h2>
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 1.25s;">
+            <a href="{{ url_for('mantenimientos.index') }}" class="text-decoration-none">
+                <div class="ios-card shimmer-effect" style="padding: var(--ios-space-xl); text-align: center; min-height: 240px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, rgba(88, 86, 214, 0.02), rgba(88, 86, 214, 0.05)); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(88, 86, 214, 0.1), transparent); border-radius: 50%;"></div>
+                    <div class="icon-float" style="font-size: 52px; margin-bottom: var(--ios-space-md); position: relative; animation-delay: 1.7s;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--ios-indigo), #5E5CE6); border-radius: var(--ios-radius-lg); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(88, 86, 214, 0.25);">
+                            <i class="bi bi-tools" style="color: white; font-size: 36px;"></i>
+                        </div>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2" style="color: var(--ios-label-primary);">Módulo de Mantenimientos</h4>
+                    <p class="ios-text-caption mb-0">Gestiona mantenimientos para TICs, mobiliario y equipos industriales.</p>
+                </div>
             </a>
         </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.5s;">
-            <a href="{{ url_for('admin.ver_funcionarios') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-people-fill card-icon"></i>
-                <h4>Gestionar Funcionarios</h4>
-                <p class="mb-0">Administra la información del personal.</p>
+    </div>
+
+    {% if session.get('rol') == 'Admin' %}
+    <hr style="border-color: var(--ios-separator); margin: var(--ios-space-2xl) 0;">
+    <h2 class="ios-text-headline mb-4 ios-fade-in" style="animation-delay: 1.3s;">Herramientas de Administración</h2>
+    <div class="row g-4">
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 1.4s;">
+            <a href="{{ url_for('activos.add_activo') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 44px; color: var(--ios-purple); margin-bottom: var(--ios-space-md);">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Registrar Activo</h4>
+                    <p class="ios-text-caption mb-0">Agrega un activo propio o ajeno al inventario.</p>
+                </div>
             </a>
         </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.6s;">
-            <a href="{{ url_for('admin.ver_proveedores') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-truck card-icon"></i>
-                <h4>Gestionar Proveedores</h4>
-                <p class="mb-0">Administra los datos de empresas y terceros.</p>
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 1.5s;">
+            <a href="{{ url_for('funcionarios.ver_funcionarios') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 44px; color: var(--ios-teal); margin-bottom: var(--ios-space-md);">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Gestionar Funcionarios</h4>
+                    <p class="ios-text-caption mb-0">Administra la información del personal.</p>
+                </div>
             </a>
         </div>
-        <div class="col-xl-3 col-lg-6 fade-in-item" style="animation-delay: 1.7s;">
-            <a href="{{ url_for('auth.register') }}" class="action-card text-decoration-none h-100">
-                <i class="bi bi-person-plus-fill card-icon"></i>
-                <h4>Registrar Usuario</h4>
-                <p class="mb-0">Crea nuevas cuentas de acceso al sistema.</p>
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 1.6s;">
+            <a href="{{ url_for('proveedores.listar_proveedores') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 44px; color: var(--ios-pink); margin-bottom: var(--ios-space-md);">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Gestionar Proveedores</h4>
+                    <p class="ios-text-caption mb-0">Administra los datos de empresas y terceros.</p>
+                </div>
             </a>
         </div>
+        {# TODO: Implementar ruta de registro de usuarios
+        <div class="col-xl-3 col-lg-6 ios-fade-in" style="animation-delay: 1.7s;">
+            <a href="{{ url_for('auth.register') }}" class="text-decoration-none">
+                <div class="ios-card" style="padding: var(--ios-space-xl); text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 44px; color: var(--ios-yellow); margin-bottom: var(--ios-space-md);">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h4 class="ios-text-body fw-semibold mb-2">Registrar Usuario</h4>
+                    <p class="ios-text-caption mb-0">Crea nuevas cuentas de acceso al sistema.</p>
+                </div>
+            </a>
+        </div>
+        #}
     </div>
     {% endif %}
 
@@ -190,10 +432,11 @@ document.addEventListener('DOMContentLoaded', function () {
         ];
         const randomVerse = verses[Math.floor(Math.random() * verses.length)];
         
-          dynamicPhraseElement.innerHTML = `${greeting}<br>
-           <blockquote class="fs-6 fw-light text-body-secondary mt-3 mb-0">
-           "${randomVerse.text}"
-            <footer class="blockquote-footer text-body-secondary mt-1">${randomVerse.ref}</footer>
+          dynamicPhraseElement.innerHTML = `
+            <p style="font-size: 1.8rem; font-weight: 300; color: white; margin-bottom: 1rem; text-shadow: 0 2px 15px rgba(0,0,0,0.3);">${greeting}</p>
+            <blockquote class="mt-3 mb-0" style="border-left: none;">
+                <p style="font-size: 1.1rem; font-weight: 300; color: rgba(255,255,255,0.95); font-style: italic; text-shadow: 0 1px 10px rgba(0,0,0,0.2);">"${randomVerse.text}"</p>
+                <footer style="font-size: 0.95rem; color: rgba(255,255,255,0.8); text-shadow: 0 1px 8px rgba(0,0,0,0.2);">— ${randomVerse.ref}</footer>
             </blockquote>`;
     }
 

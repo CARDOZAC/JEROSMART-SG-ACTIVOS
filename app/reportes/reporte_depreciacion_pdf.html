@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Depreciación</title>
+    <style>
+        @page { size: A4 landscape; margin: 1.5cm; }
+        body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; }
+        h1 { font-size: 18pt; color: #003366; border-bottom: 2px solid #003366; padding-bottom: 5px; margin-bottom: 10px; }
+        .header-info { font-size: 8pt; color: #666; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ccc; }
+        tbody td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .text-right { text-align: right; }
+        .text-danger { color: #dc3545; }
+        .text-success { color: #198754; }
+        .summary-table { margin-bottom: 20px; width: 60%; border: 1px solid #ccc; }
+        .summary-table td { padding: 8px; }
+        .summary-table .label { font-weight: bold; }
+        .summary-table .value { text-align: right; }
+        footer { position: fixed; bottom: -30px; left: 0; right: 0; text-align: center; font-size: 8pt; color: #999; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Reporte de Depreciación de Activos</h1>
+        <div class="header-info">
+            Generado el: {{ generado }} | Por: {{ usuario }}
+        </div>
+    </header>
+
+    <main>
+        <h2>Resumen de Totales</h2>
+        <table class="summary-table">
+            <tbody>
+                <tr>
+                    <td class="label">Valor Comercial Total:</td>
+                    <td class="value">{{ "COP {:,.2f}".format(totales.valor_comercial) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Depreciación Acumulada Total:</td>
+                    <td class="value text-danger">({{ "COP {:,.2f}".format(totales.depreciacion) }})</td>
+                </tr>
+                <tr>
+                    <td class="label">Valor Total en Libros:</td>
+                    <td class="value text-success">{{ "COP {:,.2f}".format(totales.valor_libros) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Detalle de Activos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Nombre del Activo</th>
+                    <th>Fecha Adquisición</th>
+                    <th class="text-right">Valor Comercial</th>
+                    <th class="text-right">Depreciación Acumulada</th>
+                    <th class="text-right">Valor en Libros</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activo in activos %}
+                <tr>
+                    <td>{{ activo.placa_codigo_interno }}</td>
+                    <td>{{ activo.nombre_activo }}</td>
+                    <td>{{ activo.created_at.split(' ')[0] if activo.created_at else 'N/A' }}</td>
+                    <td class="text-right">{{ "COP {:,.2f}".format(activo.valor_comercial) }}</td>
+                    <td class="text-right text-danger">({{ "COP {:,.2f}".format(activo.depreciacion_acumulada) }})</td>
+                    <td class="text-right text-success">{{ "COP {:,.2f}".format(activo.valor_en_libros) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">
+                        No hay activos con valor comercial para calcular la depreciación.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        SIG Movimientos Activos Fijos - Corporación Clínica Primavera
+    </footer>
+</body>
+</html>

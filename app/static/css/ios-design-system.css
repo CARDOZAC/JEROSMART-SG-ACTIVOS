@@ -1,0 +1,1006 @@
+/* ==========================================================================
+   iOS DESIGN SYSTEM - Clínica Primavera
+   Inspirado en iOS 17+ con San Francisco Font, Glassmorphism y Neumorphism
+   ========================================================================== */
+
+/* ==========================================================================
+   1. IMPORTACIÓN DE TIPOGRAFÍA SAN FRANCISCO (System UI)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ==========================================================================
+   2. VARIABLES DE DISEÑO iOS
+   ========================================================================== */
+:root {
+  /* --- Tipografía iOS (San Francisco Simulation) --- */
+  --font-family-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                        'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto',
+                        'Helvetica Neue', Arial, sans-serif;
+
+  /* --- Colores iOS (Light Mode) --- */
+  --ios-bg-primary: #F2F2F7;           /* iOS Gray 6 */
+  --ios-bg-secondary: #FFFFFF;         /* Pure White */
+  --ios-bg-tertiary: #FAFAFA;          /* Off White */
+  --ios-bg-grouped: #F2F2F7;           /* Grouped Background */
+
+  /* --- Colores de Texto iOS --- */
+  --ios-label-primary: #000000;        /* Primary Text */
+  --ios-label-secondary: #3C3C43;      /* Secondary Text (60% opacity) */
+  --ios-label-tertiary: #3C3C4399;     /* Tertiary Text */
+  --ios-label-quaternary: #3C3C434D;   /* Quaternary Text */
+
+  /* --- Colores de Acento iOS --- */
+  --ios-blue: #007AFF;                 /* iOS Blue */
+  --ios-blue-dark: #0051D5;            /* Hover/Active */
+  --ios-green: #34C759;                /* iOS Green */
+  --ios-orange: #FF9500;               /* iOS Orange */
+  --ios-red: #FF3B30;                  /* iOS Red */
+  --ios-purple: #AF52DE;               /* iOS Purple */
+  --ios-pink: #FF2D55;                 /* iOS Pink */
+  --ios-teal: #5AC8FA;                 /* iOS Teal */
+  --ios-yellow: #FFCC00;               /* iOS Yellow */
+
+  /* --- Separadores iOS --- */
+  --ios-separator: #3C3C4349;          /* Separator */
+  --ios-separator-opaque: #C6C6C8;     /* Opaque Separator */
+
+  /* --- Sombras iOS (Reducidas 90%) --- */
+  --ios-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.004),
+                   0 1px 2px rgba(0, 0, 0, 0.003);
+  --ios-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.005),
+                   0 2px 4px rgba(0, 0, 0, 0.003);
+  --ios-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.006),
+                   0 4px 6px rgba(0, 0, 0, 0.004);
+  --ios-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.008),
+                   0 10px 10px rgba(0, 0, 0, 0.004);
+
+  /* --- Border Radius iOS --- */
+  --ios-radius-xs: 6px;
+  --ios-radius-sm: 10px;
+  --ios-radius-md: 14px;
+  --ios-radius-lg: 18px;
+  --ios-radius-xl: 24px;
+  --ios-radius-pill: 999px;
+
+  /* --- Spacing iOS --- */
+  --ios-space-xs: 4px;
+  --ios-space-sm: 8px;
+  --ios-space-md: 16px;
+  --ios-space-lg: 24px;
+  --ios-space-xl: 32px;
+  --ios-space-2xl: 48px;
+
+  /* Espaciado numérico adicional */
+  --ios-space-1: 4px;
+  --ios-space-2: 8px;
+  --ios-space-3: 12px;
+  --ios-space-4: 16px;
+  --ios-space-5: 20px;
+  --ios-space-6: 24px;
+  --ios-space-7: 28px;
+  --ios-space-8: 32px;
+
+  /* --- Grises iOS --- */
+  --ios-gray-1: #8E8E93;          /* Gray */
+  --ios-gray-2: #AEAEB2;          /* Gray 2 */
+  --ios-gray-3: #C7C7CC;          /* Gray 3 */
+  --ios-gray-4: #D1D1D6;          /* Gray 4 */
+  --ios-gray-5: #E5E5EA;          /* Gray 5 */
+  --ios-gray-6: #F2F2F7;          /* Gray 6 */
+
+  /* --- Tamaños de fuente iOS --- */
+  --ios-font-size-large-title: 34px;
+  --ios-font-size-title1: 28px;
+  --ios-font-size-title2: 22px;
+  --ios-font-size-title3: 20px;
+  --ios-font-size-headline: 17px;
+  --ios-font-size-body: 17px;
+  --ios-font-size-callout: 16px;
+  --ios-font-size-subhead: 15px;
+  --ios-font-size-footnote: 13px;
+  --ios-font-size-caption1: 12px;
+  --ios-font-size-caption2: 11px;
+
+  /* --- Familia de fuentes iOS --- */
+  --ios-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                     'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto',
+                     'Helvetica Neue', Arial, sans-serif;
+
+  /* --- Transiciones iOS (Reducidas 90%) --- */
+  --ios-transition-fast: 0.015s ease;
+  --ios-transition-base: 0.025s ease;
+  --ios-transition-slow: 0.035s ease;
+  --ios-spring: ease;
+
+  /* Duraciones adicionales */
+  --ios-duration-fast: 0.15s;
+  --ios-duration-normal: 0.25s;
+  --ios-duration-slow: 0.35s;
+
+  /* Easing */
+  --ios-easing: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+  /* --- Blur iOS (Reducido 90%) --- */
+  --ios-blur-light: blur(2px) saturate(100%);
+  --ios-blur-strong: blur(3px) saturate(105%);
+  --ios-blur: 10px;
+  --ios-saturation: 180%;
+
+  /* --- Glassmorphism iOS --- */
+  --ios-glass-bg: rgba(255, 255, 255, 0.7);
+  --ios-glass-bg-light: rgba(255, 255, 255, 0.5);
+  --ios-glass-border: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================================================
+   3. MODO OSCURO iOS (Dark Mode)
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ios-bg-primary: #000000;
+    --ios-bg-secondary: #1C1C1E;
+    --ios-bg-tertiary: #2C2C2E;
+    --ios-bg-grouped: #000000;
+
+    --ios-label-primary: #FFFFFF;
+    --ios-label-secondary: #EBEBF5;
+    --ios-label-tertiary: #EBEBF599;
+    --ios-label-quaternary: #EBEBF54D;
+
+    --ios-separator: #54545899;
+    --ios-separator-opaque: #38383A;
+  }
+}
+
+[data-theme="dark"] {
+  --ios-bg-primary: #000000;
+  --ios-bg-secondary: #1C1C1E;
+  --ios-bg-tertiary: #2C2C2E;
+  --ios-bg-grouped: #000000;
+
+  --ios-label-primary: #FFFFFF;
+  --ios-label-secondary: #EBEBF5;
+  --ios-label-tertiary: #EBEBF599;
+  --ios-label-quaternary: #EBEBF54D;
+
+  --ios-separator: #54545899;
+  --ios-separator-opaque: #38383A;
+}
+
+/* ==========================================================================
+   4. ESTILOS BASE iOS
+   ========================================================================== */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-system);
+  background-color: var(--ios-bg-primary);
+  color: var(--ios-label-primary);
+  font-size: 16px;
+  line-height: 1.47059;
+  font-weight: 400;
+  letter-spacing: -0.022em;
+}
+
+/* ==========================================================================
+   5. COMPONENTES iOS - CARDS
+   ========================================================================== */
+
+/* iOS Card Base (Efectos reducidos 90%) */
+.ios-card {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  box-shadow: var(--ios-shadow-sm);
+  border: 0.5px solid var(--ios-separator);
+  overflow: hidden;
+  transition: none;
+}
+
+.ios-card:hover {
+  /* Efectos hover removidos */
+}
+
+/* iOS Card con efecto presionado */
+.ios-card:active {
+  /* Efectos active removidos */
+}
+
+/* iOS Card Header */
+.ios-card-header {
+  padding: var(--ios-space-lg);
+  border-bottom: 0.5px solid var(--ios-separator);
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0) 100%);
+}
+
+.ios-card-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ios-label-primary);
+  letter-spacing: -0.026em;
+  margin: 0;
+}
+
+.ios-card-subtitle {
+  font-size: 15px;
+  color: var(--ios-label-secondary);
+  margin-top: var(--ios-space-xs);
+}
+
+/* iOS Card Body */
+.ios-card-body {
+  padding: var(--ios-space-lg);
+}
+
+/* iOS Card Footer */
+.ios-card-footer {
+  padding: var(--ios-space-md);
+  border-top: 0.5px solid var(--ios-separator);
+  background: var(--ios-bg-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ==========================================================================
+   6. COMPONENTES iOS - BOTONES
+   ========================================================================== */
+
+/* iOS Button Base (Efectos reducidos 90%) */
+.ios-btn {
+  font-family: var(--font-family-system);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.022em;
+  padding: 11px 20px;
+  border-radius: var(--ios-radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ios-space-sm);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ios-btn:active {
+  /* Efecto active removido */
+}
+
+/* iOS Button Primary (Blue) - Sombras reducidas 90% */
+.ios-btn-primary {
+  background: var(--ios-blue);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.025);
+}
+
+.ios-btn-primary:hover {
+  background: var(--ios-blue-dark);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.035);
+}
+
+/* iOS Button Success (Green) - Sombras reducidas 90% */
+.ios-btn-success {
+  background: var(--ios-green);
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.025);
+}
+
+.ios-btn-success:hover {
+  background: #30B350;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.035);
+}
+
+/* iOS Button Danger (Red) - Sombras reducidas 90% */
+.ios-btn-danger {
+  background: var(--ios-red);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.025);
+}
+
+.ios-btn-danger:hover {
+  background: #E5332A;
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.035);
+}
+
+/* iOS Button Secondary (Gray) */
+.ios-btn-secondary {
+  background: var(--ios-bg-tertiary);
+  color: var(--ios-label-primary);
+  border: 0.5px solid var(--ios-separator);
+}
+
+.ios-btn-secondary:hover {
+  background: #E8E8ED;
+}
+
+/* iOS Button Link Style */
+.ios-btn-link {
+  background: transparent;
+  color: var(--ios-blue);
+  padding: 8px 12px;
+}
+
+.ios-btn-link:hover {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+/* iOS Button Large */
+.ios-btn-lg {
+  font-size: 19px;
+  padding: 14px 28px;
+  border-radius: var(--ios-radius-md);
+}
+
+/* iOS Button Small */
+.ios-btn-sm {
+  font-size: 15px;
+  padding: 8px 16px;
+  border-radius: var(--ios-radius-xs);
+}
+
+/* iOS Button Pill */
+.ios-btn-pill {
+  border-radius: var(--ios-radius-pill);
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* ==========================================================================
+   7. COMPONENTES iOS - BADGES
+   ========================================================================== */
+
+.ios-badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--ios-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: -0.016em;
+}
+
+.ios-badge-blue {
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--ios-blue);
+}
+
+.ios-badge-green {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--ios-green);
+}
+
+.ios-badge-orange {
+  background: rgba(255, 149, 0, 0.12);
+  color: var(--ios-orange);
+}
+
+.ios-badge-red {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--ios-red);
+}
+
+.ios-badge-purple {
+  background: rgba(175, 82, 222, 0.12);
+  color: var(--ios-purple);
+}
+
+.ios-badge-gray {
+  background: var(--ios-bg-tertiary);
+  color: var(--ios-label-secondary);
+  border: 0.5px solid var(--ios-separator);
+}
+
+/* ==========================================================================
+   8. COMPONENTES iOS - INPUTS Y FORMULARIOS
+   ========================================================================== */
+
+.ios-input {
+  font-family: var(--font-family-system);
+  font-size: 17px;
+  font-weight: 400;
+  padding: 12px 16px;
+  border-radius: var(--ios-radius-sm);
+  border: 0.5px solid var(--ios-separator);
+  background: var(--ios-bg-secondary);
+  color: var(--ios-label-primary);
+  transition: all var(--ios-transition-base);
+  width: 100%;
+}
+
+.ios-input:focus {
+  outline: none;
+  border-color: var(--ios-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.ios-input::placeholder {
+  color: var(--ios-label-tertiary);
+}
+
+/* iOS Select */
+.ios-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%233C3C43' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+/* iOS Textarea */
+.ios-textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: var(--font-family-system);
+}
+
+/* iOS Label */
+.ios-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ios-label-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--ios-space-sm);
+  display: block;
+}
+
+/* iOS Form Group */
+.ios-form-group {
+  margin-bottom: var(--ios-space-lg);
+}
+
+/* ==========================================================================
+   9. COMPONENTES iOS - LISTAS
+   ========================================================================== */
+
+.ios-list {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  overflow: hidden;
+  border: 0.5px solid var(--ios-separator);
+}
+
+.ios-list-item {
+  padding: var(--ios-space-md);
+  border-bottom: 0.5px solid var(--ios-separator);
+  display: flex;
+  align-items: center;
+  gap: var(--ios-space-md);
+  transition: background var(--ios-transition-fast);
+  cursor: pointer;
+}
+
+.ios-list-item:last-child {
+  border-bottom: none;
+}
+
+.ios-list-item:hover {
+  background: var(--ios-bg-tertiary);
+}
+
+.ios-list-item:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ios-list-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ios-radius-xs);
+  background: var(--ios-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ios-list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ios-list-item-title {
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--ios-label-primary);
+  margin: 0;
+}
+
+.ios-list-item-subtitle {
+  font-size: 15px;
+  color: var(--ios-label-secondary);
+  margin-top: 2px;
+}
+
+.ios-list-item-accessory {
+  color: var(--ios-label-tertiary);
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   10. COMPONENTES iOS - NAVIGATION BAR
+   ========================================================================== */
+
+.ios-navbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: var(--ios-blur-light);
+  border-bottom: 0.5px solid var(--ios-separator);
+  padding: var(--ios-space-md) var(--ios-space-lg);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+}
+
+.ios-navbar-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ios-label-primary);
+  letter-spacing: -0.022em;
+  text-align: center;
+  flex: 1;
+}
+
+.ios-navbar-button {
+  font-size: 17px;
+  color: var(--ios-blue);
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: opacity var(--ios-transition-fast);
+}
+
+.ios-navbar-button:hover {
+  opacity: 0.7;
+}
+
+/* Large Title Style (iOS) */
+.ios-navbar-large {
+  min-height: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-bottom: var(--ios-space-lg);
+}
+
+.ios-navbar-large-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ios-label-primary);
+  margin-top: var(--ios-space-sm);
+}
+
+/* ==========================================================================
+   11. COMPONENTES iOS - ALERTS Y NOTIFICACIONES
+   ========================================================================== */
+
+.ios-alert {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-md);
+  box-shadow: var(--ios-shadow-xl);
+  padding: var(--ios-space-lg);
+  max-width: 400px;
+  margin: 0 auto;
+  border: 0.5px solid var(--ios-separator);
+}
+
+.ios-alert-title {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ios-label-primary);
+  text-align: center;
+  margin-bottom: var(--ios-space-sm);
+}
+
+.ios-alert-message {
+  font-size: 15px;
+  color: var(--ios-label-secondary);
+  text-align: center;
+  margin-bottom: var(--ios-space-lg);
+  line-height: 1.4;
+}
+
+.ios-alert-actions {
+  display: flex;
+  gap: var(--ios-space-sm);
+  flex-direction: column;
+}
+
+/* Notification Banner (Toast Style) */
+.ios-notification {
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-md);
+  box-shadow: var(--ios-shadow-lg);
+  padding: var(--ios-space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--ios-space-md);
+  max-width: 400px;
+  border: 0.5px solid var(--ios-separator);
+  animation: slideInDown 0.3s var(--ios-spring);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ios-notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ios-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.ios-notification-success .ios-notification-icon {
+  background: var(--ios-green);
+  color: white;
+}
+
+.ios-notification-error .ios-notification-icon {
+  background: var(--ios-red);
+  color: white;
+}
+
+.ios-notification-warning .ios-notification-icon {
+  background: var(--ios-orange);
+  color: white;
+}
+
+.ios-notification-info .ios-notification-icon {
+  background: var(--ios-blue);
+  color: white;
+}
+
+/* ==========================================================================
+   12. COMPONENTES iOS - TABLAS
+   ========================================================================== */
+
+.ios-table {
+  width: 100%;
+  background: var(--ios-bg-secondary);
+  border-radius: var(--ios-radius-lg);
+  overflow: hidden;
+  border: 0.5px solid var(--ios-separator);
+}
+
+.ios-table thead {
+  background: var(--ios-bg-tertiary);
+  border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.ios-table th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ios-label-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--ios-space-md);
+  text-align: left;
+}
+
+.ios-table td {
+  font-size: 15px;
+  color: var(--ios-label-primary);
+  padding: var(--ios-space-md);
+  border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.ios-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ios-table tbody tr:hover {
+  background: var(--ios-bg-tertiary);
+}
+
+/* ==========================================================================
+   13. COMPONENTES iOS - STATS CARDS
+   ========================================================================== */
+
+.ios-stat-card {
+  background: linear-gradient(135deg,
+    var(--ios-bg-secondary) 0%,
+    var(--ios-bg-tertiary) 100%);
+  border-radius: var(--ios-radius-xl);
+  padding: var(--ios-space-xl);
+  box-shadow: var(--ios-shadow-md);
+  border: 0.5px solid var(--ios-separator);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--ios-transition-base);
+}
+
+.ios-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle,
+    rgba(0, 122, 255, 0.08) 0%,
+    transparent 70%);
+  border-radius: 50%;
+  transform: translate(40%, -40%);
+}
+
+.ios-stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--ios-shadow-xl);
+}
+
+.ios-stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--ios-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: var(--ios-space-md);
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--ios-blue);
+}
+
+.ios-stat-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ios-label-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--ios-space-xs);
+}
+
+.ios-stat-label {
+  font-size: 15px;
+  color: var(--ios-label-secondary);
+  font-weight: 500;
+}
+
+.ios-stat-change {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: var(--ios-space-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--ios-radius-xs);
+}
+
+.ios-stat-change.positive {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--ios-green);
+}
+
+.ios-stat-change.negative {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--ios-red);
+}
+
+/* ==========================================================================
+   14. EFECTOS ESPECIALES iOS
+   ========================================================================== */
+
+/* Glassmorphism Effect */
+.ios-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: var(--ios-blur-light);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--ios-shadow-md),
+              inset 0 0 0 0.5px rgba(255, 255, 255, 0.5);
+}
+
+/* Neumorphism Effect */
+.ios-neuro {
+  background: var(--ios-bg-primary);
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.08),
+              -8px -8px 16px rgba(255, 255, 255, 0.9);
+}
+
+.ios-neuro-inset {
+  background: var(--ios-bg-primary);
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.06),
+              inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+}
+
+/* Skeleton Loading */
+.ios-skeleton {
+  background: linear-gradient(90deg,
+    var(--ios-bg-tertiary) 25%,
+    var(--ios-bg-secondary) 50%,
+    var(--ios-bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: var(--ios-radius-sm);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Enhanced Hover Effects for Cards */
+.ios-card {
+  position: relative;
+  transition: all var(--ios-transition-base);
+}
+
+.ios-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--ios-radius-lg);
+  opacity: 0;
+  transition: opacity var(--ios-transition-base);
+  pointer-events: none;
+  background: linear-gradient(135deg,
+    rgba(0, 122, 255, 0.05),
+    rgba(175, 82, 222, 0.05));
+}
+
+.ios-card:hover::after {
+  opacity: 1;
+}
+
+/* Ripple Effect */
+.ios-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ios-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 122, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ios-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced Text Gradient */
+.text-gradient-blue {
+  background: linear-gradient(135deg, var(--ios-blue), var(--ios-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, var(--ios-green), #32D74B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, var(--ios-purple), #BF5AF2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ==========================================================================
+   15. ANIMACIONES iOS
+   ========================================================================== */
+
+/* Animaciones removidas - efectos reducidos 90% */
+/* @keyframes ios-fade-in - removida */
+.ios-fade-in {
+  animation: none;
+}
+
+/* @keyframes ios-scale-pop - removida */
+.ios-scale-pop {
+  animation: none;
+}
+
+/* @keyframes ios-shake - removida */
+.ios-shake {
+  animation: none;
+}
+
+/* @keyframes ios-pulse - removida */
+.ios-pulse {
+  animation: none;
+}
+
+/* ==========================================================================
+   16. UTILIDADES iOS
+   ========================================================================== */
+
+/* Spacing */
+.ios-p-xs { padding: var(--ios-space-xs); }
+.ios-p-sm { padding: var(--ios-space-sm); }
+.ios-p-md { padding: var(--ios-space-md); }
+.ios-p-lg { padding: var(--ios-space-lg); }
+.ios-p-xl { padding: var(--ios-space-xl); }
+
+.ios-m-xs { margin: var(--ios-space-xs); }
+.ios-m-sm { margin: var(--ios-space-sm); }
+.ios-m-md { margin: var(--ios-space-md); }
+.ios-m-lg { margin: var(--ios-space-lg); }
+.ios-m-xl { margin: var(--ios-space-xl); }
+
+/* Text Styles */
+.ios-text-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ios-label-primary);
+}
+
+.ios-text-headline {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.026em;
+  color: var(--ios-label-primary);
+}
+
+.ios-text-body {
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--ios-label-primary);
+}
+
+.ios-text-caption {
+  font-size: 13px;
+  color: var(--ios-label-secondary);
+}
+
+/* ==========================================================================
+   17. RESPONSIVE iOS
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .ios-navbar-large-title {
+    font-size: 28px;
+  }
+
+  .ios-stat-value {
+    font-size: 28px;
+  }
+
+  .ios-card {
+    border-radius: var(--ios-radius-md);
+  }
+}

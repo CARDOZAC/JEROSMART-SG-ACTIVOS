@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .wizard-container {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .wizard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .wizard-progress {
+            display: flex;
+            justify-content: space-between;
+            padding: 0;
+            margin: 2rem 0;
+            list-style: none;
+        }
+
+        .wizard-progress li {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .wizard-progress li::before {
+            content: attr(data-step);
+            display: block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            margin: 0 auto 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-weight: 600;
+        }
+
+        .wizard-progress li.active {
+            color: white;
+        }
+
+        .wizard-progress li.active::before {
+            background: white;
+            color: #667eea;
+        }
+
+        .wizard-progress li.completed::before {
+            background: #34c759;
+            color: white;
+            content: "✓";
+        }
+
+        .wizard-step {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-title i {
+            color: #667eea;
+        }
+
+        .btn-wizard {
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-wizard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos para el pad de firma */
+        .signature-pad-container {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        canvas {
+            width: 100%;
+            height: 250px;
+            display: block;
+        }
+        .signature-buttons {
+            text-align: right;
+            padding-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-container">
+            <!-- Header -->
+            <div class="wizard-header">
+                <h1 class="h2 mb-1">
+                    <i class="bi bi-tools"></i>
+                    Reporte de Mantenimiento Biomédico
+                </h1>
+                <p class="mb-0 opacity-75">Con Firmas Digitales</p>
+
+                <!-- Progress Bar -->
+                <ul class="wizard-progress">
+                    <li class="active" data-step="1">Equipo</li>
+                    <li data-step="2">Detalles</li>
+                    <li data-step="3">Resultados</li>
+                    <li data-step="4">Firmas</li>
+                </ul>
+            </div>
+
+            <!-- Form -->
+            <form id="maintenance-form">
+                <!-- Paso 1: Selección del Equipo -->
+                <div class="wizard-step active" data-step="1">
+                    <h3 class="step-title">
+                        <i class="bi bi-box-seam"></i>
+                        Seleccione el Equipo Biomédico
+                    </h3>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Buscar Equipo (Placa/Serie/Nombre)</label>
+                        <input type="text" class="form-control form-control-lg" placeholder="Escriba para buscar...">
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Ejemplo de demostración:</strong> Este wizard muestra cómo integrar firmas digitales en mantenimientos biomédicos.
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-primary btn-wizard btn-next">
+                            Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Detalles del Mantenimiento -->
+                <div class="wizard-step" data-step="2">
+                    <h3 class="step-title">
+                        <i class="bi bi-clipboard-check"></i>
+                        Detalles del Mantenimiento
+                    </h3>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fecha y Hora</label>
+                            <input type="datetime-local" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Técnico Responsable</label>
+                            <input type="text" class="form-control" placeholder="Nombre del técnico" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tipo de Mantenimiento</label>
+                            <select class="form-select" required>
+                                <option value="">-- Seleccione --</option>
+                                <option value="preventivo">Mantenimiento Preventivo</option>
+                                <option value="correctivo">Mantenimiento Correctivo</option>
+                                <option value="calibracion">Calibración</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Observaciones</label>
+                            <textarea class="form-control" rows="4" placeholder="Describa las actividades realizadas..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-wizard btn-prev">
+                            <i class="bi bi-arrow-left me-1"></i> Anterior
+                        </button>
+                        <button type="button" class="btn btn-primary btn-wizard btn-next">
+                            Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Resultados -->
+                <div class="wizard-step" data-step="3">
+                    <h3 class="step-title">
+                        <i class="bi bi-check2-circle"></i>
+                        Resultados del Mantenimiento
+                    </h3>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Estado del Equipo</label>
+                            <select class="form-select" required>
+                                <option value="operativo">Operativo</option>
+                                <option value="requiere_reparacion">Requiere Reparación</option>
+                                <option value="fuera_servicio">Fuera de Servicio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Próximo Mantenimiento</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Repuestos Utilizados</label>
+                            <textarea class="form-control" rows="3" placeholder="Liste los repuestos utilizados (opcional)"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-wizard btn-prev">
+                            <i class="bi bi-arrow-left me-1"></i> Anterior
+                        </button>
+                        <button type="button" class="btn btn-primary btn-wizard btn-next">
+                            Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 4: Firmas Digitales -->
+                <div class="wizard-step" data-step="4">
+                    <h3 class="step-title">
+                        <i class="bi bi-pen"></i>
+                        Firmas Digitales
+                    </h3>
+
+                    <div class="alert alert-success mb-4">
+                        <i class="bi bi-shield-check me-2"></i>
+                        <strong>Autenticación requerida:</strong> Las siguientes firmas son necesarias para validar este reporte de mantenimiento.
+                    </div>
+
+                    <!-- Firma del Técnico -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">1. Firma del Técnico que Realizó el Mantenimiento</h5>
+                        <div class="signature-pad-container">
+                            <canvas id="canvas-tecnico"></canvas>
+                        </div>
+                        <div class="signature-buttons">
+                            <button type="button" class="btn btn-sm btn-outline-secondary clear-button" data-canvas-id="canvas-tecnico">Limpiar</button>
+                        </div>
+                        <input type="hidden" name="firma_tecnico" id="data-tecnico">
+                    </div>
+
+                    <!-- Firma del Supervisor -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">2. Firma del Supervisor que Aprobó el Mantenimiento</h5>
+                         <div class="signature-pad-container">
+                            <canvas id="canvas-supervisor"></canvas>
+                        </div>
+                        <div class="signature-buttons">
+                            <button type="button" class="btn btn-sm btn-outline-secondary clear-button" data-canvas-id="canvas-supervisor">Limpiar</button>
+                        </div>
+                        <input type="hidden" name="firma_supervisor" id="data-supervisor">
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-wizard btn-prev">
+                            <i class="bi bi-arrow-left me-1"></i> Anterior
+                        </button>
+                        <button type="submit" class="btn btn-success btn-wizard">
+                            <i class="bi bi-check-circle-fill me-1"></i> Guardar Reporte
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/signature_handler.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('maintenance-form');
+            const steps = document.querySelectorAll('.wizard-step');
+            const progressItems = document.querySelectorAll('.wizard-progress li');
+            let currentStep = 0;
+
+            // Instancias de firmas
+            let pads = {};
+
+            // Navegación
+            function showStep(index) {
+                steps.forEach((step, i) => {
+                    step.classList.toggle('active', i === index);
+                });
+
+                progressItems.forEach((item, i) => {
+                    item.classList.remove('active', 'completed');
+                    if (i < index) {
+                        item.classList.add('completed');
+                    } else if (i === index) {
+                        item.classList.add('active');
+                    }
+                });
+
+                currentStep = index;
+
+                // Inicializar firmas en el último paso
+                if (index === 3 && !pads.tecnico) {
+                    initializeSignatures();
+                }
+            }
+
+            // Inicializar componentes de firma
+            function initializeSignatures() {
+                pads.tecnico = initializeSignaturePad('canvas-tecnico');
+                pads.supervisor = initializeSignaturePad('canvas-supervisor');
+
+                 // Manejo de botones de limpiar
+                document.querySelectorAll('.clear-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const canvasId = button.getAttribute('data-canvas-id');
+                        const padKey = canvasId.split('-')[1];
+                        if (pads[padKey]) {
+                            pads[padKey].clear();
+                        }
+                    });
+                });
+            }
+
+            // Botones de navegación
+            document.querySelectorAll('.btn-next').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep < steps.length - 1) {
+                        showStep(currentStep + 1);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.btn-prev').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (currentStep > 0) {
+                        showStep(currentStep - 1);
+                    }
+                });
+            });
+
+            // Envío del formulario
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                // Validar firmas
+                if (pads.tecnico.isEmpty()) {
+                    alert('Por favor, proporcione la firma del técnico');
+                    return;
+                }
+
+                if (pads.supervisor.isEmpty()) {
+                    alert('Por favor, proporcione la firma del supervisor');
+                    return;
+                }
+
+                // Asignar datos a los campos ocultos
+                document.getElementById('data-tecnico').value = pads.tecnico.isEmpty() ? '' : pads.tecnico.toDataURL('image/svg+xml');
+                document.getElementById('data-supervisor').value = pads.supervisor.isEmpty() ? '' : pads.supervisor.toDataURL('image/svg+xml');
+
+                // Aquí enviarías los datos al servidor
+                console.log('Firma Técnico:', document.getElementById('data-tecnico').value);
+                console.log('Firma Supervisor:', document.getElementById('data-supervisor').value);
+
+                alert('¡Reporte guardado exitosamente! (Simulación)');
+
+                // Simular redirección después de 1.5 segundos
+                setTimeout(() => {
+                    alert('En producción, aquí se enviaría el formulario al servidor.');
+                }, 1500);
+            });
+
+            // Iniciar el wizard
+            showStep(0);
+        });
+    </script>
+</body>
+</html>
+

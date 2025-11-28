@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}{{ activo.nombre_activo }} - Detalle{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/activos-v2.css') }}">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="activos-v2-container" x-data="detalleActivoApp()">
+
+    <!-- ======================================================================
+         BREADCRUMB
+         ====================================================================== -->
+    <div style="margin-bottom: 24px;">
+        <a href="{{ url_for('activos_v2.listado') }}" style="color: var(--primary-color); text-decoration: none;">
+            ← Volver al listado
+        </a>
+    </div>
+
+    <!-- ======================================================================
+         HEADER DEL ACTIVO
+         ====================================================================== -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 24px; flex-wrap: wrap;">
+            <div style="flex: 1;">
+                <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 12px 0;">
+                    {{ activo.nombre_activo }}
+                </h1>
+
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <div>
+                        <span style="color: var(--text-tertiary); font-size: 14px;">Placa:</span>
+                        <strong style="color: var(--text-primary); font-size: 16px;">
+                            {{ activo.placa_codigo_interno or 'S/N' }}
+                        </strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-tertiary); font-size: 14px;">Clase:</span>
+                        <strong style="color: var(--text-primary); font-size: 16px;">
+                            {{ activo.clase.nombre_clase if activo.clase else 'N/A' }}
+                        </strong>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-tertiary); font-size: 14px;">Estado:</span>
+                        <span class="badge badge-{{ get_estado_badge_class(activo.estado).replace('badge-', '') }}">
+                            {{ activo.estado or 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if activo.ubicacion %}
+                <div style="color: var(--text-secondary); margin-bottom: 8px;">
+                    <strong>Ubicación:</strong> {{ activo.ubicacion }}
+                </div>
+                {% endif %}
+
+                {% if activo.funcionario %}
+                <div style="color: var(--text-secondary);">
+                    <strong>Responsable:</strong> {{ activo.funcionario.nombres }} {{ activo.funcionario.apellidos }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <a href="{{ url_for('activos_v2.editar', id=activo.id) }}" class="btn btn-warning">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg>
+                    Editar
+                </a>
+                {% if session.get('role') == 'Admin' %}
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                    Eliminar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         TABS
+         ====================================================================== -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button
+                class="tab-button"
+                :class="{ 'active': activeTab === 'info' }"
+                @click="activeTab = 'info'"
+            >
+                Información General
+            </button>
+            <button
+                class="tab-button"
+                :class="{ 'active': activeTab === 'mantenimientos' }"
+                @click="activeTab = 'mantenimientos'"
+                id="tab-mantenimientos"
+            >
+                Mantenimientos ({{ mantenimientos | length }})
+            </button>
+            <button
+                class="tab-button"
+                :class="{ 'active': activeTab === 'movimientos' }"
+                @click="activeTab = 'movimientos'"
+            >
+                Historial de Movimientos
+            </button>
+        </div>
+
+        <!-- ================================================================
+             TAB 1: INFORMACIÓN GENERAL
+             ================================================================ -->
+        <div class="tab-content" :class="{ 'active': activeTab === 'info' }">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Datos del Activo</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">ID:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.id }}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">Nombre:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.nombre_activo }}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">Placa:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.placa_codigo_interno or 'No asignada' }}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">Clase:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.clase.nombre_clase if activo.clase else 'N/A' }}</p>
+                        </div>
+                        {% if activo.marca %}
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">Marca:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.marca }}</p>
+                        </div>
+                        {% endif %}
+                        {% if activo.modelo %}
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">Modelo:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ activo.modelo }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if activo.observaciones %}
+                    <div style="margin-top: 24px;">
+                        <strong style="color: var(--text-tertiary); font-size: 14px;">Observaciones:</strong>
+                        <p style="margin: 8px 0 0 0; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+                            {{ activo.observaciones }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Atributos Dinámicos -->
+            {% if activo.atributos_dinamicos_json %}
+            <div class="card">
+                <div class="card-header">
+                    <h3>Atributos Específicos</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                        {% for key, value in activo.atributos_dinamicos_json.items() %}
+                        <div>
+                            <strong style="color: var(--text-tertiary); font-size: 14px;">{{ key | replace('_', ' ') | title }}:</strong>
+                            <p style="margin: 4px 0 0 0;">{{ value }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ================================================================
+             TAB 2: MANTENIMIENTOS
+             ================================================================ -->
+        <div class="tab-content" :class="{ 'active': activeTab === 'mantenimientos' }">
+            <div style="margin-bottom: 24px;">
+                <button @click="showModalMantenimiento = true" class="btn btn-success btn-lg">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                    Registrar Mantenimiento
+                </button>
+            </div>
+
+            {% if mantenimientos %}
+            <div class="timeline">
+                {% for mant in mantenimientos %}
+                <div class="timeline-item">
+                    <div class="timeline-date">
+                        {{ mant.fecha_mantenimiento.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="timeline-content">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div class="timeline-title">
+                                Mantenimiento {{ mant.tipo.nombre if mant.tipo else 'Sin tipo' }}
+                            </div>
+                            <span class="badge badge-{{ get_tipo_mantenimiento_badge_class(mant.tipo.nombre if mant.tipo else '').replace('badge-', '') }}">
+                                {{ mant.tipo.nombre if mant.tipo else 'Sin tipo' }}
+                            </span>
+                        </div>
+
+                        <div class="timeline-description">
+                            {{ mant.observaciones or 'Sin observaciones' }}
+                        </div>
+
+                        {% if mant.fotos %}
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                            {% for foto in mant.fotos %}
+                            <img src="{{ url_for('static', filename=foto.ruta_foto) }}"
+                                 alt="Foto mantenimiento"
+                                 style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-sm); cursor: pointer;"
+                                 @click="viewImage('{{ url_for('static', filename=foto.ruta_foto) }}')">
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="timeline-meta">
+                            {% if mant.usuario %}
+                            <span>👤 Registrado por: {{ mant.usuario.nombre }}</span>
+                            {% endif %}
+                            {% if mant.proximo_mantenimiento %}
+                            <span>📅 Próximo: {{ mant.proximo_mantenimiento.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: 48px;">
+                    <p style="color: var(--text-tertiary); font-size: 16px;">
+                        No hay mantenimientos registrados para este activo.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ================================================================
+             TAB 3: HISTORIAL DE MOVIMIENTOS
+             ================================================================ -->
+        <div class="tab-content" :class="{ 'active': activeTab === 'movimientos' }">
+            {% if movimientos %}
+            <div class="card">
+                <div class="table-responsive">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary);">
+                                <th style="padding: 12px; text-align: left;">Fecha</th>
+                                <th style="padding: 12px; text-align: left;">Tipo</th>
+                                <th style="padding: 12px; text-align: left;">Origen → Destino</th>
+                                <th style="padding: 12px; text-align: left;">Estado</th>
+                                <th style="padding: 12px; text-align: left;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mov in movimientos %}
+                            <tr style="border-bottom: 1px solid var(--bg-tertiary);">
+                                <td style="padding: 12px;">{{ mov.fecha.strftime('%d/%m/%Y') if mov.fecha else 'N/A' }}</td>
+                                <td style="padding: 12px;">{{ mov.tipo_movimiento }}</td>
+                                <td style="padding: 12px;">
+                                    {% if mov.detalle_traslado %}
+                                        {{ mov.detalle_traslado.ubicacion_inicial or 'N/A' }}
+                                        →
+                                        {{ mov.detalle_traslado.ubicacion_final or 'N/A' }}
+                                    {% elif mov.detalle_entrada_salida %}
+                                        {{ mov.detalle_entrada_salida.tipo_operacion or 'N/A' }}
+                                    {% else %}
+                                        Ver detalle
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px;">
+                                    <span class="badge badge-{{ 'success' if mov.estado_aprobacion == 'Aprobado' else 'warning' }}">
+                                        {{ mov.estado_aprobacion or mov.estado_completitud }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <a href="{{ url_for('movimientos.ver_movimiento', id=mov.id) }}"
+                                       class="btn btn-info btn-sm">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: 48px;">
+                    <p style="color: var(--text-tertiary); font-size: 16px;">
+                        No hay movimientos registrados para este activo.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL: AGREGAR MANTENIMIENTO
+         ====================================================================== -->
+    {% include 'activos_v2/componentes/modal_mantenimiento.html' %}
+
+    <!-- Modal de confirmación para eliminar -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">¿Está seguro que desea eliminar el siguiente activo?</p>
+                    <div class="alert alert-warning">
+                        <strong>Activo:</strong> {{ activo.nombre_activo }}<br>
+                        <strong>Placa:</strong> {{ activo.placa_codigo_interno or 'S/N' }}
+                    </div>
+                    <p class="text-danger mb-0"><small><strong>Advertencia:</strong> Esta acción no se puede deshacer.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" action="{{ url_for('activos.delete_activo', activo_id=activo.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Sí, Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function detalleActivoApp() {
+        return {
+            activeTab: 'info',
+            showModalMantenimiento: false,
+
+            init() {
+                // Si hay hash #tab-mantenimientos, abrir ese tab
+                if (window.location.hash === '#tab-mantenimientos') {
+                    this.activeTab = 'mantenimientos';
+                }
+            },
+
+            viewImage(url) {
+                window.open(url, '_blank');
+            }
+        }
+    }
+</script>
+{% endblock %}

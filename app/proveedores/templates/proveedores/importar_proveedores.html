@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Importar Proveedores - {{ super() }}{% endblock %}
+
+{% block page_content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">Importar Proveedores desde CSV</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Sube un archivo <code>.csv</code> para importar proveedores de forma masiva.
+                        El archivo debe contener las siguientes columnas:
+                    </p>
+                    <ul>
+                        <li><code>nombre del proveedor</code> (obligatorio)</li>
+                        <li><code>nit</code> (obligatorio)</li>
+                        <li><code>direccion</code> (obligatorio)</li>
+                        <li><code>persona de contacto</code> (opcional)</li>
+                        <li><code>telefono</code> (opcional)</li>
+                    </ul>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('proveedores.importar_proveedores') }}">
+                        <div class="mb-3">
+                            <label for="archivo_csv" class="form-label">Seleccionar archivo CSV</label>
+                            <input class="form-control" type="file" id="archivo_csv" name="archivo_csv" accept=".csv" required>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('proveedores.listar_proveedores') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-import"></i> Importar Archivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

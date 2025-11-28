@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - Gestión Biomédica{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    .reporte-section {
+        background-color: var(--ios-secondary-background);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card {
+        background-color: var(--ios-bg-primary, #fff);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--ios-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--ios-secondary-text);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-ios {
+        background-color: var(--ios-bg-primary, #fff);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .table-ios th {
+        background-color: var(--ios-secondary-background);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--ios-secondary-text);
+        padding: 1rem;
+        border: none;
+    }
+
+    .table-ios td {
+        padding: 1rem;
+        border-top: 1px solid var(--ios-separator, #e5e5ea);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="ios-navbar-large-title">Reportes de Mantenimientos</h1>
+            <p class="ios-text-body text-secondary">Genere y visualice reportes de mantenimientos por rango de fechas</p>
+        </div>
+        <a href="{{ url_for('biomedicos.index') }}" class="ios-button-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Filtros de Reporte -->
+    <div class="reporte-section">
+        <h3 class="mb-3">Generar Reporte</h3>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="ios-label">Fecha Inicio *</label>
+                <input type="date" id="fechaInicio" class="ios-input" required>
+            </div>
+            <div class="col-md-4">
+                <label class="ios-label">Fecha Fin *</label>
+                <input type="date" id="fechaFin" class="ios-input" required>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="ios-button-primary w-100" onclick="generarReporte()">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div id="estadisticas" style="display: none;">
+        <h3 class="mb-3">Estadísticas del Período</h3>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMantenimientos">0</div>
+                    <div class="stat-label">Total Mantenimientos</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="completados">0</div>
+                    <div class="stat-label">Completados</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="pendientes">0</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number" id="enProceso">0</div>
+                    <div class="stat-label">En Proceso</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div id="tablaReporte" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Detalle de Mantenimientos</h3>
+            <div>
+                <button class="ios-button-secondary" onclick="exportarCSV()">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+                </button>
+                <button class="ios-button-secondary" onclick="exportarPDF()">
+                    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-ios">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Equipo</th>
+                        <th>Placa</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Responsable</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaBody">
+                    <!-- Se llenará dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mensaje cuando no hay datos -->
+    <div id="mensajeVacio" class="text-center py-5">
+        <i class="bi bi-graph-up-arrow" style="font-size: 4rem; color: var(--ios-gray-4);"></i>
+        <p class="mt-3 text-secondary">Seleccione un rango de fechas para generar el reporte</p>
+    </div>
+
+</div>
+
+<script>
+let datosReporte = [];
+
+// Establecer fecha de hoy y hace 30 días como valores por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    const hoy = new Date();
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+    document.getElementById('fechaInicio').value = hace30Dias.toISOString().split('T')[0];
+    document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
+});
+
+async function generarReporte() {
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor seleccione ambas fechas');
+        return;
+    }
+
+    if (fechaInicio > fechaFin) {
+        alert('La fecha de inicio no puede ser posterior a la fecha de fin');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/biomedicos/api/reportes/mantenimientos?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`);
+        if (!response.ok) throw new Error('Error al generar reporte');
+
+        datosReporte = await response.json();
+
+        // Calcular estadísticas
+        const stats = {
+            total: datosReporte.length,
+            completados: datosReporte.filter(m => m.estado === 'Completado').length,
+            pendientes: datosReporte.filter(m => m.estado === 'Pendiente').length,
+            enProceso: datosReporte.filter(m => m.estado === 'En Proceso').length
+        };
+
+        // Mostrar estadísticas
+        document.getElementById('totalMantenimientos').textContent = stats.total;
+        document.getElementById('completados').textContent = stats.completados;
+        document.getElementById('pendientes').textContent = stats.pendientes;
+        document.getElementById('enProceso').textContent = stats.enProceso;
+
+        // Mostrar tabla
+        mostrarTabla(datosReporte);
+
+        // Mostrar secciones
+        document.getElementById('estadisticas').style.display = 'block';
+        document.getElementById('tablaReporte').style.display = 'block';
+        document.getElementById('mensajeVacio').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al generar el reporte. Por favor, intente de nuevo.');
+    }
+}
+
+function mostrarTabla(datos) {
+    const tbody = document.getElementById('tablaBody');
+
+    if (datos.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-secondary">
+                    No hay mantenimientos en el período seleccionado
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const html = datos.map(m => `
+        <tr>
+            <td>${formatearFecha(m.fecha_mantenimiento)}</td>
+            <td>${m.nombre_activo}</td>
+            <td>${m.placa_codigo_interno}</td>
+            <td>${m.tipo_reporte}</td>
+            <td>
+                <span class="badge bg-${getEstadoColor(m.estado)}">${m.estado}</span>
+            </td>
+            <td>${m.responsable || 'N/A'}</td>
+        </tr>
+    `).join('');
+
+    tbody.innerHTML = html;
+}
+
+function formatearFecha(fecha) {
+    if (!fecha) return 'N/A';
+    const d = new Date(fecha);
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function getEstadoColor(estado) {
+    const colores = {
+        'Completado': 'success',
+        'Pendiente': 'warning',
+        'En Proceso': 'primary',
+        'Cancelado': 'danger'
+    };
+    return colores[estado] || 'secondary';
+}
+
+function exportarCSV() {
+    if (datosReporte.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+    }
+
+    const headers = ['Fecha', 'Equipo', 'Placa', 'Tipo', 'Estado', 'Responsable'];
+    const rows = datosReporte.map(m => [
+        m.fecha_mantenimiento,
+        m.nombre_activo,
+        m.placa_codigo_interno,
+        m.tipo_reporte,
+        m.estado,
+        m.responsable || 'N/A'
+    ]);
+
+    let csv = headers.join(',') + '\n';
+    csv += rows.map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `reporte_mantenimientos_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+}
+
+function exportarPDF() {
+    alert('Exportación a PDF en desarrollo. Use la funcionalidad CSV por ahora.');
+}
+</script>
+
+{% endblock %}

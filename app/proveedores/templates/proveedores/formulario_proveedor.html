@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_form_helpers.html" import render_field %}
+
+{% block title %}{{ titulo }} - Proveedores{% endblock %}
+
+{% block page_content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">{{ titulo }}</h1>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ render_field(form.razon_social, class="form-control") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.nit, class="form-control") }}
+                            </div>
+                            <div class="col-12">
+                                {{ render_field(form.direccion, class="form-control") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.persona_contacto, class="form-control") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.numero_contacto, class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('proveedores.listar_proveedores') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

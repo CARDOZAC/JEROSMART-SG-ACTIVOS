@@ -1,0 +1,402 @@
+/**
+ * ========================================================================
+ * iOS SIGNATURE PAD STYLES
+ * Estilos para el componente de firma digital con diseño iOS
+ * ========================================================================
+ */
+
+/* ========================================================================
+   CONTENEDOR PRINCIPAL
+   ======================================================================== */
+.ios-signature-container {
+    background: var(--ios-glass-bg, rgba(255, 255, 255, 0.75));
+    backdrop-filter: blur(var(--ios-blur, 20px)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur, 20px)) saturate(180%);
+    border: 1px solid var(--ios-glass-border, rgba(255, 255, 255, 0.3));
+    border-radius: var(--ios-radius-lg, 16px);
+    padding: var(--ios-space-6, 24px);
+    margin-bottom: var(--ios-space-6, 24px);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ========================================================================
+   HEADER (Label y Help Text)
+   ======================================================================== */
+.signature-header {
+    margin-bottom: var(--ios-space-4, 16px);
+}
+
+.signature-label {
+    display: block;
+    font-size: var(--ios-font-size-headline, 17px);
+    font-weight: 600;
+    color: #000;
+    margin-bottom: var(--ios-space-1, 4px);
+}
+
+.signature-help-text {
+    display: block;
+    font-size: var(--ios-font-size-footnote, 13px);
+    color: var(--ios-gray-1, #8E8E93);
+    margin-top: var(--ios-space-1, 4px);
+}
+
+/* ========================================================================
+   CANVAS WRAPPER
+   ======================================================================== */
+.signature-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: white;
+    border: 2px solid var(--ios-gray-5, #E5E5EA);
+    border-radius: var(--ios-radius-md, 12px);
+    overflow: hidden;
+    margin-bottom: var(--ios-space-4, 16px);
+    transition: border-color var(--ios-duration-normal, 0.3s) var(--ios-easing, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.signature-canvas-wrapper:hover {
+    border-color: var(--ios-blue, #007AFF);
+}
+
+.signature-canvas-wrapper:focus-within {
+    border-color: var(--ios-blue, #007AFF);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+}
+
+/* ========================================================================
+   CANVAS
+   ======================================================================== */
+.signature-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+/* ========================================================================
+   PLACEHOLDER
+   ======================================================================== */
+.signature-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    color: var(--ios-gray-3, #C7C7CC);
+    transition: opacity var(--ios-duration-normal, 0.3s) var(--ios-easing, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.signature-placeholder i {
+    font-size: 3rem;
+    margin-bottom: var(--ios-space-2, 8px);
+}
+
+.signature-placeholder span {
+    font-size: var(--ios-font-size-body, 16px);
+    font-weight: 500;
+}
+
+/* ========================================================================
+   BOTONES DE ACCIÓN
+   ======================================================================== */
+.signature-actions {
+    display: flex;
+    gap: var(--ios-space-3, 12px);
+    justify-content: flex-end;
+}
+
+.btn-signature {
+    padding: 12px 24px;
+    border-radius: var(--ios-radius-md, 12px);
+    border: none;
+    font-size: var(--ios-font-size-body, 16px);
+    font-weight: 600;
+    font-family: var(--ios-font-family, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif);
+    cursor: pointer;
+    transition: all var(--ios-duration-normal, 0.3s) var(--ios-easing, cubic-bezier(0.4, 0, 0.2, 1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ios-space-2, 8px);
+}
+
+.btn-signature-clear {
+    background: var(--ios-gray-6, #F2F2F7);
+    color: var(--ios-red, #FF3B30);
+}
+
+.btn-signature-clear:hover {
+    background: var(--ios-gray-5, #E5E5EA);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-signature-save {
+    background: var(--ios-blue, #007AFF);
+    color: white;
+    box-shadow: 0 2px 8px 0 rgba(0, 122, 255, 0.3);
+}
+
+.btn-signature-save:hover {
+    background: var(--ios-blue-dark, #0051D5);
+    box-shadow: 0 4px 16px 0 rgba(0, 122, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-signature:active {
+    transform: scale(0.96);
+    transition: all var(--ios-duration-fast, 0.15s) var(--ios-easing, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.btn-signature:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-signature i {
+    font-size: 1.2rem;
+}
+
+/* ========================================================================
+   MENSAJE DE VALIDACIÓN
+   ======================================================================== */
+.signature-validation-message {
+    margin-top: var(--ios-space-3, 12px);
+    padding: var(--ios-space-3, 12px) var(--ios-space-4, 16px);
+    border-radius: var(--ios-radius-sm, 8px);
+    font-size: var(--ios-font-size-footnote, 13px);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--ios-space-2, 8px);
+}
+
+.signature-validation-message::before {
+    font-family: 'bootstrap-icons';
+    font-size: 1.2rem;
+}
+
+.signature-validation-error {
+    background: rgba(255, 59, 48, 0.1);
+    color: var(--ios-red, #FF3B30);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+.signature-validation-error::before {
+    content: '\f33a'; /* bi-exclamation-circle */
+}
+
+.signature-validation-success {
+    background: rgba(52, 199, 89, 0.1);
+    color: var(--ios-green, #34C759);
+    border: 1px solid rgba(52, 199, 89, 0.3);
+}
+
+.signature-validation-success::before {
+    content: '\f26b'; /* bi-check-circle */
+}
+
+.signature-validation-warning {
+    background: rgba(255, 204, 0, 0.1);
+    color: var(--ios-orange, #FF9500);
+    border: 1px solid rgba(255, 204, 0, 0.3);
+}
+
+.signature-validation-warning::before {
+    content: '\f33b'; /* bi-exclamation-triangle */
+}
+
+/* ========================================================================
+   HIDDEN INPUT
+   ======================================================================== */
+.signature-hidden-input {
+    display: none;
+}
+
+/* ========================================================================
+   TOAST NOTIFICATIONS (si no están definidas globalmente)
+   ======================================================================== */
+.ios-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    z-index: 10000;
+    background: var(--ios-glass-bg, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(var(--ios-blur, 20px)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur, 20px)) saturate(180%);
+    border: 1px solid var(--ios-glass-border, rgba(255, 255, 255, 0.3));
+    border-radius: var(--ios-radius-lg, 16px);
+    padding: var(--ios-space-4, 16px) var(--ios-space-6, 24px);
+    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: var(--ios-space-3, 12px);
+    font-size: var(--ios-font-size-body, 16px);
+    font-weight: 500;
+    opacity: 0;
+    transition: all var(--ios-duration-normal, 0.3s) cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.ios-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.ios-toast i {
+    font-size: 1.5rem;
+}
+
+.ios-toast-error {
+    color: var(--ios-red, #FF3B30);
+}
+
+.ios-toast-error i {
+    color: var(--ios-red, #FF3B30);
+}
+
+.ios-toast-success {
+    color: var(--ios-green, #34C759);
+}
+
+.ios-toast-success i {
+    color: var(--ios-green, #34C759);
+}
+
+.ios-toast-warning {
+    color: var(--ios-orange, #FF9500);
+}
+
+.ios-toast-warning i {
+    color: var(--ios-orange, #FF9500);
+}
+
+.ios-toast-info {
+    color: var(--ios-blue, #007AFF);
+}
+
+.ios-toast-info i {
+    color: var(--ios-blue, #007AFF);
+}
+
+/* ========================================================================
+   RESPONSIVE
+   ======================================================================== */
+@media (max-width: 768px) {
+    .ios-signature-container {
+        padding: var(--ios-space-4, 16px);
+    }
+
+    .signature-canvas-wrapper {
+        height: 250px;
+    }
+
+    .signature-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn-signature {
+        width: 100%;
+    }
+
+    .signature-label {
+        font-size: var(--ios-font-size-body, 16px);
+    }
+
+    .signature-placeholder i {
+        font-size: 2.5rem;
+    }
+
+    .signature-placeholder span {
+        font-size: var(--ios-font-size-subhead, 15px);
+    }
+}
+
+@media (max-width: 480px) {
+    .signature-canvas-wrapper {
+        height: 200px;
+    }
+
+    .btn-signature {
+        padding: 10px 16px;
+        font-size: var(--ios-font-size-subhead, 15px);
+    }
+}
+
+/* ========================================================================
+   ANIMACIONES
+   ======================================================================== */
+@keyframes signatureFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ios-signature-container {
+    animation: signatureFadeIn var(--ios-duration-normal, 0.3s) var(--ios-easing, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* ========================================================================
+   DARK MODE (opcional)
+   ======================================================================== */
+@media (prefers-color-scheme: dark) {
+    .ios-signature-container {
+        background: rgba(28, 28, 30, 0.75);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .signature-label {
+        color: #FFFFFF;
+    }
+
+    .signature-canvas-wrapper {
+        background: #1C1C1E;
+        border-color: #38383A;
+    }
+
+    .signature-placeholder {
+        color: #636366;
+    }
+
+    .ios-toast {
+        background: rgba(28, 28, 30, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* ========================================================================
+   PRINT STYLES (para imprimir firmas en PDFs)
+   ======================================================================== */
+@media print {
+    .signature-actions,
+    .signature-validation-message {
+        display: none !important;
+    }
+
+    .signature-canvas-wrapper {
+        border-color: #000;
+        box-shadow: none;
+    }
+
+    .ios-signature-container {
+        background: white;
+        border: 1px solid #000;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+}

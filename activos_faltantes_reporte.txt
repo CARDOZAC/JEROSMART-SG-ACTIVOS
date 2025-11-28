@@ -1,0 +1,65 @@
+================================================================================
+REPORTE DE ANÁLISIS DE ACTIVOS FALTANTES
+================================================================================
+Fecha: 2025-11-19 14:25:20
+Archivos procesados: 2
+
+  - activos_biomedicos_sin_placa_duplicada.csv
+  - activos_sotano_1_migracion.csv
+
+================================================================================
+RESUMEN GENERAL
+================================================================================
+
+Total de activos en CSVs:            1500
+[OK] Encontrados en BD:              1499
+[!!] Faltantes en BD:                   1
+[!]  Con problemas de formato:          1
+
+================================================================================
+ESTADÍSTICAS POR ARCHIVO
+================================================================================
+
+
+activos_biomedicos_sin_placa_duplicada.csv:
+  Total:          1324
+  Encontrados:    1323
+  Faltantes:         1
+
+activos_sotano_1_migracion.csv:
+  Total:           176
+  Encontrados:     176
+  Faltantes:         0
+
+================================================================================
+PROBLEMAS DE FORMATO DETECTADOS
+================================================================================
+
+Estos activos SÍ están en la BD pero con diferente formato de placa:
+
+  CSV: 'cli0278' vs BD: 'CLI0278'
+    Activo: Estimulador de nervio periferico
+    Archivo: activos_biomedicos_sin_placa_duplicada.csv, Línea: 696
+
+
+================================================================================
+ACTIVOS FALTANTES EN LA BASE DE DATOS
+================================================================================
+
+Total: 1 activos
+
+
+activos_biomedicos_sin_placa_duplicada.csv (1 faltantes):
+--------------------------------------------------------------------------------
+
+  Placa: NT
+  Nombre: Equipo de organos
+  Ubicación: Hospitalizacion 6A
+  Marca/Modelo: Lenz / GZ-10
+  Serie: Kit 23
+  Línea CSV: 7
+
+
+================================================================================
+FIN DEL REPORTE
+================================================================================

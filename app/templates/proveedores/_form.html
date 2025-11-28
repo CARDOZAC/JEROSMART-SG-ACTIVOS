@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('proveedores.listar_proveedores') }}" class="ios-btn-link me-3" title="Volver">
+                    <i class="bi bi-arrow-left-circle-fill" style="font-size: 1.8rem;"></i>
+                </a>
+                <h1 class="ios-text-headline mb-0">{{ titulo }}</h1>
+            </div>
+
+            <div class="ios-card">
+                <form method="POST" action="" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="ios-card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                {{ render_field(form.nit, placeholder='Ej: 900.123.456-7') }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.razon_social, placeholder='Nombre completo de la empresa') }}
+                            </div>
+                            <div class="col-12">
+                                {{ render_field(form.direccion, placeholder='Dirección completa') }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.persona_contacto, placeholder='Nombre del representante o contacto') }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ render_field(form.numero_contacto, placeholder='Número de teléfono o celular') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ios-card-footer">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('proveedores.listar_proveedores') }}" class="ios-btn ios-btn-secondary">Cancelar</a>
+                            <button type="submit" class="ios-btn ios-btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Guardar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

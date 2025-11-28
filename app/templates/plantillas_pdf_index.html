@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Plantillas de Actas en PDF{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <h2 class="h3">
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i>
+                        Plantillas de Actas en PDF para Aprobación
+                    </h2>
+                    <p class="text-muted">
+                        Haz clic en los siguientes enlaces para descargar las plantillas de ejemplo de cada tipo de acta.
+                    </p>
+                </div>
+
+                <div class="list-group">
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='entrega') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Acta de Entrega
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='traslado') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Acta de Traslado
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='entrada-salida') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Acta de Entrada/Salida
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='paz-y-salvo') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Acta de Paz y Salvo
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='comodato') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Acta de Comodato
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{{ url_for('movimientos.generar_plantilla_pdf_ejemplo', tipo='reporte-dano-perdida') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        Reporte de Daño o Pérdida
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

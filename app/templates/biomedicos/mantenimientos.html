@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Mantenimientos - Gestión Biomédica{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+<style>
+    .mantenimiento-card {
+        background-color: var(--ios-secondary-background);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .mantenimiento-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .estado-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .estado-pendiente {
+        background-color: rgba(255, 204, 0, 0.2);
+        color: #CC8800;
+    }
+
+    .estado-completado {
+        background-color: rgba(52, 199, 89, 0.2);
+        color: #2D8659;
+    }
+
+    .estado-en-proceso {
+        background-color: rgba(0, 122, 255, 0.2);
+        color: #0066CC;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="ios-navbar-large-title">Mantenimientos</h1>
+            <p class="ios-text-body text-secondary">Gestione los mantenimientos de equipos biomédicos</p>
+        </div>
+        <div>
+            <a href="{{ url_for('biomedicos.index') }}" class="ios-button-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <button class="ios-button-primary" onclick="crearMantenimiento()">
+                <i class="bi bi-plus-lg"></i> Nuevo Mantenimiento
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="ios-card mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="ios-label">Búsqueda</label>
+                <input type="text" id="searchInput" class="ios-input" placeholder="Buscar por activo, placa...">
+            </div>
+            <div class="col-md-3">
+                <label class="ios-label">Estado</label>
+                <select id="estadoFilter" class="ios-input">
+                    <option value="">Todos</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Completado">Completado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="ios-label">Fecha Inicio</label>
+                <input type="date" id="fechaInicio" class="ios-input">
+            </div>
+            <div class="col-md-3">
+                <label class="ios-label">Fecha Fin</label>
+                <input type="date" id="fechaFin" class="ios-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Mantenimientos -->
+    <div id="mantenimientosList">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-secondary">Cargando mantenimientos...</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let mantenimientos = [];
+
+// Cargar mantenimientos al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    cargarMantenimientos();
+
+    // Eventos de filtrado
+    document.getElementById('searchInput').addEventListener('input', filtrarMantenimientos);
+    document.getElementById('estadoFilter').addEventListener('change', filtrarMantenimientos);
+    document.getElementById('fechaInicio').addEventListener('change', filtrarMantenimientos);
+    document.getElementById('fechaFin').addEventListener('change', filtrarMantenimientos);
+});
+
+async function cargarMantenimientos() {
+    try {
+        const response = await fetch('/biomedicos/api/mantenimientos');
+        if (!response.ok) throw new Error('Error al cargar mantenimientos');
+
+        mantenimientos = await response.json();
+        mostrarMantenimientos(mantenimientos);
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('mantenimientosList').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Error al cargar los mantenimientos. Por favor, intente de nuevo.
+            </div>
+        `;
+    }
+}
+
+function mostrarMantenimientos(lista) {
+    const container = document.getElementById('mantenimientosList');
+
+    if (lista.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--ios-gray-4);"></i>
+                <p class="mt-2 text-secondary">No hay mantenimientos registrados</p>
+            </div>
+        `;
+        return;
+    }
+
+    const html = lista.map(m => `
+        <div class="mantenimiento-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5 class="mb-1">${m.nombre_activo}</h5>
+                    <p class="text-secondary mb-2">
+                        <i class="bi bi-tag"></i> ${m.placa_codigo_interno} |
+                        <i class="bi bi-tools"></i> ${m.tipo_reporte}
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-calendar3"></i> ${formatearFecha(m.fecha_mantenimiento)}
+                    </p>
+                    <span class="estado-badge estado-${m.estado.toLowerCase().replace(' ', '-')}">${m.estado}</span>
+                </div>
+                <div class="btn-group">
+                    <button class="ios-button-secondary" onclick="verMantenimiento(${m.id})">
+                        <i class="bi bi-eye"></i> Ver
+                    </button>
+                    <button class="ios-button-secondary" onclick="editarMantenimiento(${m.id})">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = html;
+}
+
+function filtrarMantenimientos() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const estadoFilter = document.getElementById('estadoFilter').value;
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+
+    let filtrados = mantenimientos.filter(m => {
+        const matchSearch = !searchTerm ||
+            m.nombre_activo.toLowerCase().includes(searchTerm) ||
+            m.placa_codigo_interno.toLowerCase().includes(searchTerm);
+
+        const matchEstado = !estadoFilter || m.estado === estadoFilter;
+
+        const matchFechaInicio = !fechaInicio || m.fecha_mantenimiento >= fechaInicio;
+        const matchFechaFin = !fechaFin || m.fecha_mantenimiento <= fechaFin;
+
+        return matchSearch && matchEstado && matchFechaInicio && matchFechaFin;
+    });
+
+    mostrarMantenimientos(filtrados);
+}
+
+function formatearFecha(fecha) {
+    if (!fecha) return 'N/A';
+    const d = new Date(fecha);
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function crearMantenimiento() {
+    window.location.href = '/biomedicos/mantenimiento/wizard';
+}
+
+function verMantenimiento(id) {
+    window.location.href = `/biomedicos/mantenimiento/detalle/${id}`;
+}
+
+function editarMantenimiento(id) {
+    window.location.href = `/biomedicos/mantenimiento/editar/${id}`;
+}
+</script>
+
+{% endblock %}

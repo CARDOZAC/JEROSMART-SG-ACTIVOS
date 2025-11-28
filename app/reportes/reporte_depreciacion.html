@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Depreciación{% endblock %}
+{% block page_title %}<i class="bi bi-graph-down-arrow me-2"></i>Reporte de Depreciación{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4">
+
+    {% if not activos %}
+        {# --- Manejo de caso vacío (Estilo Gosling: robustez y feedback claro) --- #}
+        <div class="card ios-glass text-center p-5 mt-4">
+            <div class="card-body">
+                <i class="bi bi-info-circle-fill display-4 text-warning mb-3"></i>
+                <h3 class="card-title">No hay datos para generar el reporte</h3>
+                <p class="card-text text-muted">
+                    No se encontraron activos de tipo 'Propio' con un 'Valor Comercial' válido y mayor a cero.
+                    <br>
+                    Por favor, verifique que los activos estén correctamente registrados para poder calcular la depreciación.
+                </p>
+                <a href="{{ url_for('activos.ver_activos') }}" class="btn btn-ios btn-primary mt-3">
+                    <i class="bi bi-box-seam me-2"></i>Ir a Gestión de Activos
+                </a>
+            </div>
+        </div>
+    {% else %}
+        {# --- Vista del reporte cuando hay datos --- #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0">Reporte generado el: {{ generado }}</p>
+            <form method="POST" action="{{ url_for('reportes.reporte_depreciacion') }}">
+                <input type="hidden" name="action" value="generate_pdf">
+                <button type="submit" class="btn btn-ios btn-danger">
+                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar a PDF
+                </button>
+            </form>
+        </div>
+
+        <!-- Resumen de Totales -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card ios-glass">
+                    <div class="stat-icon bg-success-light text-success"><i class="bi bi-currency-dollar"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Valor Comercial Total</p>
+                        <h3 class="stat-value">{{ totales.valor_comercial|format_currency }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card ios-glass">
+                    <div class="stat-icon bg-warning-light text-warning"><i class="bi bi-arrow-down-right-circle"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Depreciación Total</p>
+                        <h3 class="stat-value">{{ totales.depreciacion|format_currency }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card ios-glass">
+                    <div class="stat-icon bg-info-light text-info"><i class="bi bi-journal-check"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Valor en Libros Total</p>
+                        <h3 class="stat-value">{{ totales.valor_libros|format_currency }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Activos -->
+        <div class="card ios-glass">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-borderless ios-table">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Nombre del Activo</th>
+                                <th class="text-end">Valor Comercial</th>
+                                <th class="text-end">Depreciación Acumulada</th>
+                                <th class="text-end">Valor en Libros</th>
+                                <th>Fecha de Compra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activo in activos %}
+                            <tr>
+                                <td><span class="badge bg-primary-light text-primary">{{ activo.placa_codigo_interno }}</span></td>
+                                <td>{{ activo.nombre_activo }}</td>
+                                <td class="text-end">{{ activo.valor_comercial|format_currency }}</td>
+                                <td class="text-end text-danger">- {{ activo.depreciacion_acumulada|format_currency }}</td>
+                                <td class="text-end fw-bold">{{ activo.valor_en_libros|format_currency }}</td>
+                                <td>{{ activo.created_at|formatdatetime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Pequeño script para añadir animación a las tarjetas de estadísticas
+    document.addEventListener('DOMContentLoaded', function () {
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            card.style.animation = `fadeInUp 0.5s ease-out ${index * 0.1}s forwards`;
+        });
+    });
+</script>
+{% endblock %}

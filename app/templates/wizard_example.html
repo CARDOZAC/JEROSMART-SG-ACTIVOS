@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Ejemplo de Wizard Component{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Wizard Container -->
+    <div class="wizard-container">
+
+        <!-- Wizard Header -->
+        <div class="wizard-header">
+            <h2>Formulario Multi-Paso</h2>
+            <p>Complete los siguientes pasos para registrar un nuevo activo</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="wizard-progress">
+            <div class="progress">
+                <div id="wizard-progress-bar" class="progress-bar" role="progressbar"
+                     aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                    Paso 1 de 3 (33%)
+                </div>
+            </div>
+        </div>
+
+        <!-- Step Indicators -->
+        <div id="wizard-step-indicator" class="wizard-steps">
+            <!-- Los indicadores se generarán dinámicamente por JavaScript -->
+        </div>
+
+        <!-- Wizard Form -->
+        <form id="wizard-form">
+
+            <!-- Step 1: Información Básica -->
+            <div id="step-1" class="wizard-step">
+                <h3 class="mb-4">Información Básica del Activo</h3>
+
+                <div class="mb-3">
+                    <label for="nombre_activo" class="form-label">Nombre del Activo <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="nombre_activo" name="nombre_activo" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="placa" class="form-label">Placa / Código <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="placa" name="placa" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="serie" class="form-label">Número de Serie</label>
+                        <input type="text" class="form-control" id="serie" name="serie">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="marca" class="form-label">Marca</label>
+                        <input type="text" class="form-control" id="marca" name="marca">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="modelo" class="form-label">Modelo</label>
+                        <input type="text" class="form-control" id="modelo" name="modelo">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Detalles Financieros -->
+            <div id="step-2" class="wizard-step hidden">
+                <h3 class="mb-4">Detalles Financieros</h3>
+
+                <div class="mb-3">
+                    <label for="valor_comercial" class="form-label">Valor Comercial <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="valor_comercial" name="valor_comercial"
+                               step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tipo_propiedad" class="form-label">Tipo de Propiedad <span class="text-danger">*</span></label>
+                    <select class="form-select" id="tipo_propiedad" name="tipo_propiedad" required>
+                        <option value="">Seleccione...</option>
+                        <option value="Propio">Propio</option>
+                        <option value="Ajeno">Ajeno (Arrendado/Comodato)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="ubicacion" class="form-label">Ubicación</label>
+                    <input type="text" class="form-control" id="ubicacion" name="ubicacion"
+                           placeholder="Ej: Oficina 201, Piso 2">
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado del Activo</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="Operativo" selected>Operativo</option>
+                        <option value="En Mantenimiento">En Mantenimiento</option>
+                        <option value="Dañado">Dañado</option>
+                        <option value="Retirado">Retirado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirmación -->
+            <div id="step-3" class="wizard-step hidden">
+                <h3 class="mb-4">Confirmación</h3>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Por favor, revise la información antes de enviar el formulario.
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Resumen del Activo</h5>
+                        <div id="summary-content">
+                            <!-- El resumen se generará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-3">
+                    <label for="observaciones" class="form-label">Observaciones Adicionales</label>
+                    <textarea class="form-control" id="observaciones" name="observaciones" rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="wizard-navigation">
+                <button type="button" id="wizard-btn-prev" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Anterior
+                </button>
+
+                <button type="button" id="wizard-btn-next" class="btn btn-primary">
+                    Siguiente<i class="fas fa-arrow-right ms-2"></i>
+                </button>
+
+                <button type="button" id="wizard-btn-submit" class="btn btn-success hidden">
+                    <i class="fas fa-check me-2"></i>Finalizar
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Inicializar el wizard cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Configuración de los pasos del wizard
+    const wizardSteps = [
+        {
+            id: 'step-1',
+            title: 'Información Básica',
+            validate: function() {
+                const nombreActivo = document.getElementById('nombre_activo').value.trim();
+                const placa = document.getElementById('placa').value.trim();
+
+                if (!nombreActivo || !placa) {
+                    alert('Por favor, complete los campos obligatorios (Nombre y Placa)');
+                    return false;
+                }
+                return true;
+            },
+            onSave: function() {
+                return {
+                    nombre_activo: document.getElementById('nombre_activo').value,
+                    placa: document.getElementById('placa').value,
+                    serie: document.getElementById('serie').value,
+                    marca: document.getElementById('marca').value,
+                    modelo: document.getElementById('modelo').value
+                };
+            }
+        },
+        {
+            id: 'step-2',
+            title: 'Detalles Financieros',
+            validate: function() {
+                const valorComercial = document.getElementById('valor_comercial').value;
+                const tipoPropiedad = document.getElementById('tipo_propiedad').value;
+
+                if (!valorComercial || !tipoPropiedad) {
+                    alert('Por favor, complete los campos obligatorios (Valor Comercial y Tipo de Propiedad)');
+                    return false;
+                }
+
+                if (parseFloat(valorComercial) <= 0) {
+                    alert('El valor comercial debe ser mayor a 0');
+                    return false;
+                }
+
+                return true;
+            },
+            onSave: function() {
+                return {
+                    valor_comercial: document.getElementById('valor_comercial').value,
+                    tipo_propiedad: document.getElementById('tipo_propiedad').value,
+                    ubicacion: document.getElementById('ubicacion').value,
+                    estado: document.getElementById('estado').value
+                };
+            }
+        },
+        {
+            id: 'step-3',
+            title: 'Confirmación',
+            validate: function() {
+                return true;
+            },
+            onRender: function() {
+                // Generar el resumen cuando se muestra el paso 3
+                generateSummary();
+            },
+            onSave: function() {
+                return {
+                    observaciones: document.getElementById('observaciones').value
+                };
+            }
+        }
+    ];
+
+    // Crear instancia del wizard
+    const wizard = new WizardComponent({
+        steps: wizardSteps,
+        progressBarId: 'wizard-progress-bar',
+        stepLabelId: 'wizard-step-label',
+        stepCountId: 'wizard-step-count',
+        nextButtonId: 'wizard-btn-next',
+        prevButtonId: 'wizard-btn-prev',
+        submitButtonId: 'wizard-btn-submit',
+        stepIndicatorId: 'wizard-step-indicator',
+        onComplete: function(data) {
+            console.log('Formulario completado con datos:', data);
+
+            // Aquí podrías enviar los datos al servidor
+            alert('Formulario completado exitosamente!\nRevise la consola para ver los datos.');
+
+            // Ejemplo de envío al servidor:
+            // fetch('/api/activos', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(data)
+            // })
+            // .then(response => response.json())
+            // .then(result => {
+            //     window.location.href = '/activos';
+            // });
+        }
+    });
+
+    // Función para generar el resumen en el paso 3
+    function generateSummary() {
+        const summaryContent = document.getElementById('summary-content');
+
+        const data = {
+            nombre_activo: document.getElementById('nombre_activo').value,
+            placa: document.getElementById('placa').value,
+            serie: document.getElementById('serie').value || 'N/A',
+            marca: document.getElementById('marca').value || 'N/A',
+            modelo: document.getElementById('modelo').value || 'N/A',
+            valor_comercial: document.getElementById('valor_comercial').value,
+            tipo_propiedad: document.getElementById('tipo_propiedad').value,
+            ubicacion: document.getElementById('ubicacion').value || 'N/A',
+            estado: document.getElementById('estado').value
+        };
+
+        summaryContent.innerHTML = `
+            <dl class="row">
+                <dt class="col-sm-4">Nombre:</dt>
+                <dd class="col-sm-8">${data.nombre_activo}</dd>
+
+                <dt class="col-sm-4">Placa:</dt>
+                <dd class="col-sm-8"><strong class="text-primary">${data.placa}</strong></dd>
+
+                <dt class="col-sm-4">Serie:</dt>
+                <dd class="col-sm-8">${data.serie}</dd>
+
+                <dt class="col-sm-4">Marca:</dt>
+                <dd class="col-sm-8">${data.marca}</dd>
+
+                <dt class="col-sm-4">Modelo:</dt>
+                <dd class="col-sm-8">${data.modelo}</dd>
+
+                <dt class="col-sm-4">Valor Comercial:</dt>
+                <dd class="col-sm-8"><strong class="text-success">$${parseFloat(data.valor_comercial).toLocaleString('es-CO', {minimumFractionDigits: 2})}</strong></dd>
+
+                <dt class="col-sm-4">Tipo de Propiedad:</dt>
+                <dd class="col-sm-8"><span class="badge bg-info">${data.tipo_propiedad}</span></dd>
+
+                <dt class="col-sm-4">Ubicación:</dt>
+                <dd class="col-sm-8">${data.ubicacion}</dd>
+
+                <dt class="col-sm-4">Estado:</dt>
+                <dd class="col-sm-8"><span class="badge bg-success">${data.estado}</span></dd>
+            </dl>
+        `;
+    }
+});
+</script>
+{% endblock %}

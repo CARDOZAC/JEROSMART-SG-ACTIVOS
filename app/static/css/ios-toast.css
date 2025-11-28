@@ -1,0 +1,95 @@
+/**
+ * Sistema de Notificaciones Toast - Estilo iOS
+ * JeroSmart Activos Fijos
+ */
+
+.ios-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--ios-radius-md);
+    padding: 14px 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.ios-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.ios-toast-content {
+    display: flex;
+    align-items: center;
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-label-primary);
+    font-weight: 500;
+    gap: 12px;
+}
+
+.ios-toast-content i {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.ios-toast-success {
+    border-left: 4px solid var(--ios-green);
+}
+
+.ios-toast-error {
+    border-left: 4px solid var(--ios-red);
+}
+
+.ios-toast-warning {
+    border-left: 4px solid var(--ios-orange);
+}
+
+.ios-toast-info {
+    border-left: 4px solid var(--ios-blue);
+}
+
+.ios-toast-success i {
+    color: var(--ios-green);
+}
+
+.ios-toast-error i {
+    color: var(--ios-red);
+}
+
+.ios-toast-warning i {
+    color: var(--ios-orange);
+}
+
+.ios-toast-info i {
+    color: var(--ios-blue);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .ios-toast {
+    background: rgba(28, 28, 30, 0.95);
+    color: white;
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+    .ios-toast {
+        min-width: 280px;
+        max-width: calc(100vw - 32px);
+        left: 16px;
+        right: 16px;
+        transform: translateX(0) translateY(-20px);
+    }
+
+    .ios-toast.show {
+        transform: translateX(0) translateY(0);
+    }
+}

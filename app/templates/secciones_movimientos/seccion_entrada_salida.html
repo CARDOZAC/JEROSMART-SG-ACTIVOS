@@ -14,7 +14,48 @@
   </div>
 
   <div class="row g-3">
-    <div class="col-12"><h5 class="fs-6 fw-bold">Datos Solicitante</h5></div>
+    <!-- Mensaje informativo general -->
+    <div class="col-12">
+      <div class="alert alert-primary alert-dismissible fade show" role="alert">
+        <strong><i class="bi bi-info-circle-fill"></i> Actas de Entrada/Salida</strong>
+        <p class="mb-1 mt-2">Este formulario se utiliza para registrar:</p>
+        <ul class="mb-0">
+          <li><strong>Entradas:</strong> Activos ajenos de alto costo de pacientes hospitalizados, préstamos recibidos, equipos que retornan de mantenimiento</li>
+          <li><strong>Salidas:</strong> Equipos que salen para mantenimiento, préstamos a otras instituciones, traslados temporales</li>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+
+    <!-- NUEVA SECCIÓN: Información General -->
+    <div class="col-12"><h5 class="fs-6 fw-bold">Información General</h5></div>
+    <div class="col-md-4">
+      <label class="form-label">Ciudad <span class="text-danger">*</span></label>
+      <select name="ciudad" class="form-select" required>
+        <option value="">Seleccione...</option>
+        <option value="Tunja">Tunja</option>
+        <option value="Bogotá">Bogotá</option>
+        <option value="Duitama">Duitama</option>
+        <option value="Sogamoso">Sogamoso</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Sede <span class="text-danger">*</span></label>
+      <select name="sede" class="form-select" required>
+        <option value="">Seleccione...</option>
+        <option value="CORPORACION CLINICA PRIMAVERA" selected>CORPORACION CLINICA PRIMAVERA</option>
+        <option value="Sede Norte">Sede Norte</option>
+        <option value="Sede Sur">Sede Sur</option>
+      </select>
+    </div>
+    <div class="col-md-4" id="fecha_retorno_container" style="display: none;">
+      <label class="form-label">Fecha Retorno Estimada</label>
+      <input type="date" name="fecha_retorno_estimada" id="fecha_retorno_estimada" class="form-control">
+      <small class="text-muted">Solo para Salidas</small>
+    </div>
+
+    <!-- Datos Solicitante -->
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Datos Solicitante</h5></div>
     <div class="col-md-6">
       <label class="form-label">Nombre Responsable</label>
       <input type="text" name="solicitante_responsable_nombre" class="form-control">
@@ -28,25 +69,53 @@
       <input type="text" name="solicitante_responsable_cargo_area" class="form-control">
     </div>
 
-    <div class="col-12"><h5 class="mt-3 fs-6 fw-bold">Datos Tercero</h5></div>
+    <!-- Datos Tercero CON SELECTOR -->
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Datos Tercero (Entidad/Persona Externa)</h5></div>
+
+    <!-- NUEVO: Selector de tercero registrado -->
+    <div class="col-12">
+      <div class="alert alert-info py-2">
+        <i class="bi bi-info-circle"></i>
+        <strong>Tip:</strong> Para activos ajenos de pacientes hospitalizados, seleccione "PACIENTE HOSPITALIZADO" y presione "Cargar Datos".
+        También puede ingresar los datos manualmente si el tercero no está registrado.
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <label class="form-label">Buscar Tercero Registrado</label>
+      <select name="tercero_id" id="tercero_selector" class="form-select">
+        <option value="">-- Seleccionar tercero registrado o ingresar manual --</option>
+        <!-- Opción de ejemplo cargada desde la BD -->
+        <option value="1">PACIENTE HOSPITALIZADO (NIT: 123456789)</option>
+      </select>
+      <small class="text-muted">Si selecciona un tercero, se autocompletarán los campos</small>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">&nbsp;</label>
+      <button type="button" id="btn_cargar_tercero" class="btn btn-outline-primary w-100" disabled>
+        <i class="bi bi-arrow-down-circle"></i> Cargar Datos
+      </button>
+    </div>
+
     <div class="col-md-6">
       <label class="form-label">Entidad o Persona <span class="text-danger">*</span></label>
-      <input type="text" name="tercero_entidad_persona" class="form-control">
+      <input type="text" name="tercero_entidad_persona" id="tercero_entidad_persona" class="form-control" required>
     </div>
     <div class="col-md-6">
-      <label class="form-label">NIT / Cédula</label>
-      <input type="text" name="tercero_nit_cc" class="form-control">
+      <label class="form-label">NIT / Cédula <span class="text-danger">*</span></label>
+      <input type="text" name="tercero_nit_cc" id="tercero_nit_cc" class="form-control" required>
     </div>
     <div class="col-md-6">
       <label class="form-label">Dirección</label>
-      <input type="text" name="tercero_direccion" class="form-control">
+      <input type="text" name="tercero_direccion" id="tercero_direccion" class="form-control">
     </div>
     <div class="col-md-6">
       <label class="form-label">Móvil</label>
-      <input type="text" name="tercero_movil" class="form-control">
+      <input type="text" name="tercero_movil" id="tercero_movil" class="form-control">
     </div>
-    
-    <div class="col-12"><h5 class="mt-3 fs-6 fw-bold">Motivo</h5></div>
+
+    <!-- NUEVA SECCIÓN: Motivo y Accesorios -->
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Motivo y Detalles</h5></div>
     <div class="col-md-6">
       <label class="form-label">Selecciona un motivo</label>
       <select name="motivo_seleccionado" id="motivo_seleccionado" class="form-select">
@@ -64,9 +133,27 @@
       <input type="text" name="motivo_otro" class="form-control">
     </div>
 
-    <div class="col-12 mt-3">
+    <!-- NUEVO: Campo de accesorios -->
+    <div class="col-12">
+      <label class="form-label">Accesorios Generales</label>
+      <textarea name="accesorios_generales" class="form-control" rows="2" placeholder="Ejemplo: Cable de poder, maletín de transporte, manual de usuario..."></textarea>
+      <small class="text-muted">Describa los accesorios que acompañan al activo</small>
+    </div>
+
+    <div class="col-12">
       <label class="form-label">Observaciones</label>
       <textarea name="observaciones_especificas" class="form-control" rows="2"></textarea>
+    </div>
+
+    <!-- NUEVA SECCIÓN: Autorización -->
+    <div class="col-12 mt-3"><h5 class="fs-6 fw-bold">Autorización</h5></div>
+    <div class="col-md-6">
+      <label class="form-label">Autorizado Por (Nombre)</label>
+      <input type="text" name="autorizado_por_nombre" class="form-control" placeholder="Nombre de quien autoriza">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Cargo</label>
+      <input type="text" name="autorizado_por_cargo" class="form-control" placeholder="Cargo de quien autoriza">
     </div>
   </div>
 </div>

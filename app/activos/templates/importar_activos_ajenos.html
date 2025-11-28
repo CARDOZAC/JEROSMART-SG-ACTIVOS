@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Migración de Activos Ajenos{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- iOS Navigation Header -->
+    <div class="ios-navbar-large mb-4 ios-fade-in">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="ios-navbar-large-title mb-0">Migrar Activos Ajenos</h1>
+                <p class="ios-text-caption mt-1">Importación masiva desde un archivo CSV.</p>
+            </div>
+            <a href="{{ url_for('activos.ver_activos', filtro_tipo='Ajeno') }}" class="ios-btn ios-btn-secondary">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Inventario
+            </a>
+        </div>
+    </div>
+
+    <!-- iOS Card para el formulario de importación -->
+    <div class="ios-card p-4 p-md-5 ios-fade-in" style="animation-delay: 0.2s;">
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('activos.importar_activos_ajenos') }}">
+            
+            <div class="text-center mb-4">
+                <div style="font-size: 48px; color: var(--ios-blue); margin-bottom: var(--ios-space-md);">
+                    <i class="bi bi-cloud-upload-fill"></i>
+                </div>
+                <h3 class="ios-text-headline">Subir Archivo CSV</h3>
+                <p class="ios-text-caption">
+                    El archivo debe contener las columnas: <strong>nombre, placa_codigo_interno, serial, referencia</strong>.
+                </p>
+            </div>
+
+            <!-- Input para subir archivo -->
+            <div class="mb-4">
+                <label for="archivo_csv" class="form-label ios-label">Seleccionar archivo CSV</label>
+                <input class="form-control ios-input" type="file" id="archivo_csv" name="archivo_csv" accept=".csv" required>
+            </div>
+
+            <!-- Acciones -->
+            <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5">
+                <a href="{{ url_for('activos.descargar_plantilla_ajenos_csv') }}" class="ios-btn ios-btn-secondary">
+                    <i class="bi bi-download me-2"></i>Descargar Plantilla
+                </a>
+                <button type="submit" class="ios-btn ios-btn-primary">
+                    <i class="bi bi-play-circle-fill me-2"></i>Iniciar Migración
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="ios-text-footnote text-center mt-4">
+        <i class="bi bi-info-circle"></i>
+        El sistema verificará que las placas no estén duplicadas y creará los activos con estado "En Bodega".
+    </div>
+
+</div>
+{% endblock %}

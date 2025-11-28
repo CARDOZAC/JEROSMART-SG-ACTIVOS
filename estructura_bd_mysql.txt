@@ -1,0 +1,674 @@
+
+(process:22984): GLib-GIO-WARNING **: 04:04:05.407: Unexpectedly, UWP app `Microsoft.OutlookForWindows_1.2025.617.100_x64__8wekyb3d8bbwe' (AUMId `Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows') supports 4 extensions but has no verbs
+
+(process:22984): GLib-GIO-WARNING **: 04:04:05.648: Unexpectedly, UWP app `Clipchamp.Clipchamp_4.4.10420.0_x64__yxz26nhyzhsrt' (AUMId `Clipchamp.Clipchamp_yxz26nhyzhsrt!App') supports 41 extensions but has no verbs
+================================================================================
+ANALISIS DE ESTRUCTURA DE BASE DE DATOS - jerosmart_activos
+================================================================================
+
+Total de tablas: 22
+
+================================================================================
+TABLA: accesorios
+================================================================================
+
+Columnas (7):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    movimiento_activo_id           INTEGER              NO         -
+3    descripcion                    VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+4    referencia                     VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    serial                         VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    cantidad                       INTEGER              NO         -
+7    observacion                    TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - movimiento_activo_id -> movimiento_activos(id)
+
+Indices (1):
+  - ix_accesorios_movimiento_activo_id: movimiento_activo_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: activo_accesorios
+================================================================================
+
+Columnas (6):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    activo_id                      INTEGER              NO         -
+3    descripcion                    VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+4    marca                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    modelo                         VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    serie                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - activo_id -> activos(id)
+
+Indices (1):
+  - activo_id: activo_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: activos
+================================================================================
+
+Columnas (24):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    nombre_activo                  VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+3    placa_codigo_interno           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+4    marca                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    modelo                         VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    serie                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+7    ubicacion                      VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+8    observaciones                  TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+9    valor_comercial                FLOAT                SI         -
+10   estado                         VARCHAR(50) COLLATE "utf8mb4_unicode_ci" NO         -
+11   created_at                     DATETIME             SI         (now())
+12   tipo_propiedad                 VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+13   origen_adquisicion             VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+14   condicion_tenencia             VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+15   atributos_dinamicos_json       JSON                 SI         -
+16   propietario_ajeno              VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+17   contacto_propietario           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+18   fecha_ingreso_ajeno            DATETIME             SI         -
+19   ruta_orden_compra              VARCHAR(500) COLLATE "utf8mb4_unicode_ci" SI         -
+20   ruta_factura                   VARCHAR(500) COLLATE "utf8mb4_unicode_ci" SI         -
+21   ruta_contrato_arriendo         VARCHAR(500) COLLATE "utf8mb4_unicode_ci" SI         -
+22   ruta_foto_activo               VARCHAR(500) COLLATE "utf8mb4_unicode_ci" SI         -
+23   clase_id                       INTEGER              SI         -
+24   funcionario_id                 INTEGER              SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (2):
+  - clase_id -> clases_activo(id)
+  - funcionario_id -> funcionarios(id)
+
+Indices (4):
+  - clase_id: clase_id
+  - funcionario_id: funcionario_id
+  - ix_activos_placa_codigo_interno: placa_codigo_interno (UNIQUE)
+  - ix_activos_serie: serie
+
+Registros actuales: 0
+
+================================================================================
+TABLA: auditoria_activos
+================================================================================
+
+Columnas (7):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    activo_id                      INTEGER              NO         -
+3    campo_modificado               VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+4    valor_anterior                 TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+5    valor_nuevo                    TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+6    usuario_id                     INTEGER              SI         -
+7    fecha_cambio                   DATETIME             SI         (now())
+
+Clave Primaria: id
+
+Claves Foraneas (2):
+  - activo_id -> activos(id)
+  - usuario_id -> usuarios(id)
+
+Indices (2):
+  - activo_id: activo_id
+  - usuario_id: usuario_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: clases_activo
+================================================================================
+
+Columnas (2):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    nombre_clase                   VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+
+Clave Primaria: id
+
+Indices (1):
+  - nombre_clase: nombre_clase (UNIQUE)
+
+Registros actuales: 4
+
+================================================================================
+TABLA: detalles_entrada_salida
+================================================================================
+
+Columnas (17):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    movimiento_id                  INTEGER              NO         -
+2    ciudad                         VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+3    sede                           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+4    solicitante_responsable_nombre VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+5    solicitante_responsable_cc     VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+6    solicitante_responsable_cargo_area VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+7    tercero_entidad_persona        VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+8    tercero_nit_cc                 VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+9    tercero_direccion              VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+10   tercero_movil                  VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+11   tipo_operacion                 VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+12   motivo                         TEXT COLLATE "utf8mb4_unicode_ci" NO         -
+13   motivo_otro                    TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+14   fecha_retorno_estimada         DATETIME             SI         -
+15   accesorios_generales           JSON                 SI         -
+16   autorizado_por_nombre          VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+17   autorizado_por_cargo           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: movimiento_id
+
+Claves Foraneas (1):
+  - movimiento_id -> movimientos(id)
+
+Indices (1):
+  - ix_detalles_entrada_salida_movimiento_id: movimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: detalles_entrega
+================================================================================
+
+Columnas (26):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    movimiento_id                  INTEGER              NO         -
+2    proveedor_id                   INTEGER              SI         -
+3    factura                        VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+4    orden_compra_contrato          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    fecha_oc_contrato              DATETIME             SI         -
+6    tipo_contrato                  VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+7    valor_contrato                 FLOAT                SI         -
+8    objeto_contrato                TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+9    tipo_elementos                 JSON                 SI         -
+10   requiere_montaje               TINYINT              SI         -
+11   requiere_capacitacion          TINYINT              SI         -
+12   incluye_accesorios             TINYINT              SI         -
+13   tipo_transporte                VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+14   tipo_asignacion                VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+15   lugar_entrega_actual           VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+16   quien_entrega_nombre           VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+17   quien_entrega_cedula           VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+18   quien_entrega_cargo            VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+19   quien_entrega_area             VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+20   quien_entrega_centro_costo     VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+21   quien_recibe_nombre            VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+22   quien_recibe_cedula            VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+23   quien_recibe_cargo             VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+24   quien_recibe_area              VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+25   quien_recibe_centro_costo      VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+26   garantia_meses                 INTEGER              SI         -
+
+Clave Primaria: movimiento_id
+
+Claves Foraneas (2):
+  - movimiento_id -> movimientos(id)
+  - proveedor_id -> proveedores(id)
+
+Indices (2):
+  - ix_detalles_entrega_movimiento_id: movimiento_id
+  - proveedor_id: proveedor_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: detalles_paz_salvo
+================================================================================
+
+Columnas (3):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    movimiento_id                  INTEGER              NO         -
+2    funcionario_desvinculado_id    INTEGER              NO         -
+3    observaciones_paz_salvo        TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: movimiento_id
+
+Claves Foraneas (2):
+  - movimiento_id -> movimientos(id)
+  - funcionario_desvinculado_id -> funcionarios(id)
+
+Indices (2):
+  - funcionario_desvinculado_id: funcionario_desvinculado_id
+  - ix_detalles_paz_salvo_movimiento_id: movimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: detalles_traslado
+================================================================================
+
+Columnas (22):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    movimiento_id                  INTEGER              NO         -
+2    fecha_traslado                 DATETIME             SI         -
+3    hora_traslado                  VARCHAR(20) COLLATE "utf8mb4_unicode_ci" SI         -
+4    caracteristica                 VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    lugar_destino                  VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+6    tipo_traslado_json             JSON                 SI         -
+7    accesorios_generales_json      JSON                 SI         -
+8    ubicacion_inicial              VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+9    ubicacion_final                VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+10   origen_responsable_nombre      VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+11   origen_responsable_cc          VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+12   origen_responsable_cargo       VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+13   origen_area                    VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+14   origen_codigo_costo            VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+15   origen_centro_costo            VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+16   nuevo_responsable_nombre       VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+17   nuevo_responsable_cc           VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+18   nuevo_responsable_cargo        VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+19   destino_area                   VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+20   destino_codigo_costo           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+21   destino_centro_costo           VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+22   estado_activo                  VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: movimiento_id
+
+Claves Foraneas (1):
+  - movimiento_id -> movimientos(id)
+
+Indices (1):
+  - ix_detalles_traslado_movimiento_id: movimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: documentos_adjuntos_biomedicos
+================================================================================
+
+Columnas (5):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    hoja_vida_id                   INTEGER              NO         -
+3    tipo_documento                 VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+4    ruta_archivo                   VARCHAR(500) COLLATE "utf8mb4_unicode_ci" NO         -
+5    fecha_carga                    DATE                 SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - hoja_vida_id -> hojas_vida_biomedicos(id)
+
+Indices (1):
+  - hoja_vida_id: hoja_vida_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: firmas
+================================================================================
+
+Columnas (5):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    documento_id                   INTEGER              NO         -
+3    tipo_documento                 VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+4    rol_firma                      VARCHAR(50) COLLATE "utf8mb4_unicode_ci" NO         -
+5    firma_base64                   TEXT COLLATE "utf8mb4_unicode_ci" NO         -
+
+Clave Primaria: id
+
+Indices (2):
+  - _documento_tipo_rol_uc: documento_id, tipo_documento, rol_firma (UNIQUE)
+  - ix_firmas_documento_id: documento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: funcionarios
+================================================================================
+
+Columnas (7):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    nombres                        VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+3    apellidos                      VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+4    cedula                         VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+5    cargo                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    area                           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+7    centro_costo                   VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Indices (1):
+  - cedula: cedula (UNIQUE)
+
+Registros actuales: 0
+
+================================================================================
+TABLA: hojas_vida_biomedicos
+================================================================================
+
+Columnas (33):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    activo_id                      INTEGER              NO         -
+3    permiso_comercializacion       VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+4    n_factura                      VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+5    n_orden_compra                 VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    fecha_fabricacion              DATETIME             SI         -
+7    fecha_instalacion              DATETIME             SI         -
+8    distribuidor                   VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+9    forma_adquisicion              VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+10   telefono                       VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+11   correo_electronico             VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+12   fecha_ingreso                  DATETIME             SI         -
+13   vencimiento_garantia           DATETIME             SI         -
+14   costo                          FLOAT                SI         -
+15   vida_util_anios                INTEGER              SI         -
+16   voltaje                        VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+17   frecuencia                     VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+18   dimensiones                    VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+19   corriente                      VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+20   potencia                       VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+21   peso                           VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+22   equipo_fijo_movil              VARCHAR(20) COLLATE "utf8mb4_unicode_ci" SI         -
+23   humedad_relativa               VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+24   temperatura_trabajo            VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+25   manual_usuario                 TINYINT              SI         -
+26   manual_servicio                TINYINT              SI         -
+27   clasificacion_riesgo           VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+28   clasificacion_biomedica        VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+29   periodicidad_mantenimiento     VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+30   requiere_calibracion           TINYINT              SI         -
+31   periodicidad_metrologia        VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+32   foto_url                       VARCHAR(255) COLLATE "utf8mb4_unicode_ci" SI         -
+33   hoja_pdf_fisica_url            VARCHAR(255) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - activo_id -> activos(id)
+
+Indices (1):
+  - activo_id: activo_id (UNIQUE)
+
+Registros actuales: 0
+
+================================================================================
+TABLA: mantenimiento_fotos
+================================================================================
+
+Columnas (4):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    mantenimiento_id               INTEGER              NO         -
+3    ruta_foto                      VARCHAR(500) COLLATE "utf8mb4_unicode_ci" NO         -
+4    descripcion                    VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - mantenimiento_id -> mantenimientos(id)
+
+Indices (1):
+  - ix_mantenimiento_fotos_mantenimiento_id: mantenimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: mantenimiento_tipos
+================================================================================
+
+Columnas (2):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    nombre                         VARCHAR(100) COLLATE "utf8mb4_unicode_ci" NO         -
+
+Clave Primaria: id
+
+Indices (1):
+  - nombre: nombre (UNIQUE)
+
+Registros actuales: 5
+
+================================================================================
+TABLA: mantenimientos
+================================================================================
+
+Columnas (9):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    activo_id                      INTEGER              NO         -
+3    tipo_id                        INTEGER              NO         -
+4    fecha_mantenimiento            DATETIME             NO         -
+5    duracion_minutos               INTEGER              SI         -
+6    observaciones                  TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+7    usuario_id                     INTEGER              NO         -
+8    estado                         VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+9    atributos_reporte_json         JSON                 SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (3):
+  - activo_id -> activos(id)
+  - tipo_id -> mantenimiento_tipos(id)
+  - usuario_id -> usuarios(id)
+
+Indices (3):
+  - ix_mantenimientos_activo_id: activo_id
+  - ix_mantenimientos_tipo_id: tipo_id
+  - usuario_id: usuario_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: mantenimientos_biomedicos
+================================================================================
+
+Columnas (7):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    hoja_vida_id                   INTEGER              NO         -
+3    fecha                          DATE                 SI         -
+4    numero_reporte                 VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+5    tipo_mtto                      VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    actividad_observaciones        TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+7    firma_responsable              VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - hoja_vida_id -> hojas_vida_biomedicos(id)
+
+Indices (1):
+  - hoja_vida_id: hoja_vida_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: movimiento_activos
+================================================================================
+
+Columnas (9):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    movimiento_id                  INTEGER              NO         -
+3    activo_id                      INTEGER              NO         -
+4    valor_comercial_momento        FLOAT                SI         -
+5    valor_libros_momento           FLOAT                SI         -
+6    depreciacion_acumulada_momento FLOAT                SI         -
+7    ubicacion_origen               VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+8    ubicacion_destino              VARCHAR(200) COLLATE "utf8mb4_unicode_ci" SI         -
+9    observaciones_contables        TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Claves Foraneas (2):
+  - movimiento_id -> movimientos(id)
+  - activo_id -> activos(id)
+
+Indices (2):
+  - ix_movimiento_activos_activo_id: activo_id
+  - ix_movimiento_activos_movimiento_id: movimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: movimiento_documentos_adjuntos
+================================================================================
+
+Columnas (5):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    movimiento_id                  INTEGER              NO         -
+3    nombre_documento               VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+4    ruta_archivo                   VARCHAR(500) COLLATE "utf8mb4_unicode_ci" NO         -
+5    created_at                     DATETIME             SI         (now())
+
+Clave Primaria: id
+
+Claves Foraneas (1):
+  - movimiento_id -> movimientos(id)
+
+Indices (1):
+  - movimiento_id: movimiento_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: movimientos
+================================================================================
+
+Columnas (11):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    tipo_movimiento                VARCHAR(50) COLLATE "utf8mb4_unicode_ci" NO         -
+3    fecha                          DATETIME             NO         -
+4    observaciones_generales        TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+5    usuario_id                     INTEGER              SI         -
+6    funcionario_id                 INTEGER              SI         -
+7    estado_aprobacion              VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+8    aprobado_por_id                INTEGER              SI         -
+9    fecha_aprobacion               DATETIME             SI         -
+10   motivo_rechazo                 TEXT COLLATE "utf8mb4_unicode_ci" SI         -
+11   requiere_aprobacion            TINYINT              NO         -
+
+Clave Primaria: id
+
+Claves Foraneas (3):
+  - usuario_id -> usuarios(id)
+  - funcionario_id -> funcionarios(id)
+  - aprobado_por_id -> usuarios(id)
+
+Indices (5):
+  - aprobado_por_id: aprobado_por_id
+  - funcionario_id: funcionario_id
+  - ix_movimientos_estado_aprobacion: estado_aprobacion
+  - ix_movimientos_fecha: fecha
+  - usuario_id: usuario_id
+
+Registros actuales: 0
+
+================================================================================
+TABLA: proveedores
+================================================================================
+
+Columnas (6):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    razon_social                   VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+3    nit                            VARCHAR(50) COLLATE "utf8mb4_unicode_ci" NO         -
+4    direccion                      VARCHAR(200) COLLATE "utf8mb4_unicode_ci" NO         -
+5    persona_contacto               VARCHAR(150) COLLATE "utf8mb4_unicode_ci" SI         -
+6    numero_contacto                VARCHAR(50) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Indices (2):
+  - ix_proveedores_nit: nit (UNIQUE)
+  - razon_social: razon_social (UNIQUE)
+
+Registros actuales: 0
+
+================================================================================
+TABLA: usuarios
+================================================================================
+
+Columnas (6):
+#    Columna                        Tipo                 Nullable   Default
+--------------------------------------------------------------------------------
+1    id                             INTEGER              NO         -
+2    email                          VARCHAR(120) COLLATE "utf8mb4_unicode_ci" NO         -
+3    clave_hash                     VARCHAR(512) COLLATE "utf8mb4_unicode_ci" NO         -
+4    rol                            VARCHAR(20) COLLATE "utf8mb4_unicode_ci" NO         -
+5    cargo                          VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+6    area                           VARCHAR(100) COLLATE "utf8mb4_unicode_ci" SI         -
+
+Clave Primaria: id
+
+Indices (1):
+  - ix_usuarios_email: email (UNIQUE)
+
+Registros actuales: 1
+
+================================================================================
+RESUMEN DE RELACIONES
+================================================================================
+
+Total de relaciones (Foreign Keys): 25
+
+1. accesorios.movimiento_activo_id -> movimiento_activos.id
+2. activo_accesorios.activo_id -> activos.id
+3. activos.clase_id -> clases_activo.id
+4. activos.funcionario_id -> funcionarios.id
+5. auditoria_activos.activo_id -> activos.id
+6. auditoria_activos.usuario_id -> usuarios.id
+7. detalles_entrada_salida.movimiento_id -> movimientos.id
+8. detalles_entrega.movimiento_id -> movimientos.id
+9. detalles_entrega.proveedor_id -> proveedores.id
+10. detalles_paz_salvo.funcionario_desvinculado_id -> funcionarios.id
+11. detalles_paz_salvo.movimiento_id -> movimientos.id
+12. detalles_traslado.movimiento_id -> movimientos.id
+13. documentos_adjuntos_biomedicos.hoja_vida_id -> hojas_vida_biomedicos.id
+14. hojas_vida_biomedicos.activo_id -> activos.id
+15. mantenimiento_fotos.mantenimiento_id -> mantenimientos.id
+16. mantenimientos.activo_id -> activos.id
+17. mantenimientos.tipo_id -> mantenimiento_tipos.id
+18. mantenimientos.usuario_id -> usuarios.id
+19. mantenimientos_biomedicos.hoja_vida_id -> hojas_vida_biomedicos.id
+20. movimiento_activos.activo_id -> activos.id
+21. movimiento_activos.movimiento_id -> movimientos.id
+22. movimiento_documentos_adjuntos.movimiento_id -> movimientos.id
+23. movimientos.aprobado_por_id -> usuarios.id
+24. movimientos.funcionario_id -> funcionarios.id
+25. movimientos.usuario_id -> usuarios.id
+
+================================================================================
+ANALISIS COMPLETADO
+================================================================================
+
+(process:22984): GLib-GIO-WARNING **: 04:04:06.049: Unexpectedly, UWP app `Microsoft.ScreenSketch_11.2509.30.0_x64__8wekyb3d8bbwe' (AUMId `Microsoft.ScreenSketch_8wekyb3d8bbwe!App') supports 29 extensions but has no verbs
+
+(process:22984): GLib-GIO-WARNING **: 04:04:06.079: Unexpectedly, UWP app `Evernote.Evernote_10.162.3.0_x64__q4d96b2w5wcc2' (AUMId `Evernote.Evernote_q4d96b2w5wcc2!Evernote') supports 1 extensions but has no verbs

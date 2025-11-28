@@ -1,0 +1,520 @@
+/**
+ * ============================================================================
+ * SIN EFECTOS VISUALES - GLOBAL
+ * ============================================================================
+ * Este archivo elimina TODOS los efectos visuales que causan movimiento
+ * en TODA la aplicación para evitar mareos.
+ *
+ * Fecha: 2025-11-18
+ * Aplicar a: TODOS los templates
+ * ============================================================================
+ */
+
+/* ============================================================================
+   ELIMINAR TODAS LAS TRANSICIONES Y TRANSFORMACIONES
+   ============================================================================ */
+*,
+*::before,
+*::after {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   ELIMINAR EFECTOS EN ESTADOS HOVER, ACTIVE, FOCUS
+   ============================================================================ */
+*:hover,
+*:active,
+*:focus,
+*:focus-within {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   ELIMINAR ANIMACIONES DE @keyframes
+   ============================================================================ */
+@keyframes none {
+    0%, 100% {
+        transform: none;
+    }
+}
+
+/* Sobrescribir cualquier animación existente */
+[class*="fade"],
+[class*="slide"],
+[class*="zoom"],
+[class*="bounce"],
+[class*="pulse"],
+[class*="shake"],
+[class*="rotate"],
+[class*="flip"],
+[class*="scale"] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   BOOTSTRAP: ELIMINAR TRANSICIONES
+   ============================================================================ */
+.fade,
+.collapsing,
+.modal.fade,
+.alert,
+.btn,
+.form-control,
+.form-select,
+.nav-link,
+.dropdown-menu,
+.card,
+.accordion-button,
+.progress-bar {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Modales sin transición */
+.modal.fade .modal-dialog {
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Collapse sin transición */
+.collapse:not(.show) {
+    display: none !important;
+}
+
+.collapse.show {
+    display: block !important;
+}
+
+/* ============================================================================
+   COMPONENTES iOS: ELIMINAR EFECTOS
+   ============================================================================ */
+.ios-btn,
+.ios-btn-primary,
+.ios-btn-secondary,
+.ios-btn-danger,
+.ios-btn-warning,
+.ios-btn-success,
+.ios-btn-link {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+.ios-btn:hover,
+.ios-btn:active,
+.ios-btn:focus {
+    transform: none !important;
+    transition: none !important;
+}
+
+.ios-card,
+.ios-card:hover,
+.ios-card:active {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   INPUTS Y FORMULARIOS
+   ============================================================================ */
+input,
+textarea,
+select,
+button,
+.form-control,
+.form-select,
+.form-check-input {
+    transition: none !important;
+    animation: none !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus,
+.form-control:focus,
+.form-select:focus {
+    transition: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+/* ============================================================================
+   TABLAS Y FILAS
+   ============================================================================ */
+table,
+tbody,
+thead,
+tr,
+td,
+th {
+    transition: none !important;
+    transform: none !important;
+}
+
+tr:hover,
+td:hover,
+th:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--bs-table-hover-bg, rgba(0, 0, 0, 0.02)) !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   NAVEGACIÓN
+   ============================================================================ */
+.nav,
+.nav-link,
+.nav-tabs,
+.nav-pills,
+.navbar,
+.navbar-nav,
+.dropdown,
+.dropdown-menu,
+.dropdown-item {
+    transition: none !important;
+    animation: none !important;
+}
+
+.nav-link:hover,
+.dropdown-item:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   BADGES Y PILLS
+   ============================================================================ */
+.badge,
+.ios-badge,
+span[class*="badge"],
+.pill {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   CARDS Y CONTENEDORES
+   ============================================================================ */
+.card,
+.card-body,
+.card-header,
+.card-footer,
+.accordion,
+.accordion-item,
+.accordion-button {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.card:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   ALERTS Y TOASTS
+   ============================================================================ */
+.alert,
+.toast,
+.notification {
+    transition: none !important;
+    animation: none !important;
+}
+
+.alert-dismissible .btn-close {
+    transition: none !important;
+}
+
+/* ============================================================================
+   PROGRESS BARS
+   ============================================================================ */
+.progress,
+.progress-bar {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   SPINNERS Y LOADERS (mantener solo rotación esencial)
+   ============================================================================ */
+.spinner-border,
+.spinner-grow {
+    animation: spinner-border 0.75s linear infinite !important;
+}
+
+/* ============================================================================
+   LINKS
+   ============================================================================ */
+a,
+a:hover,
+a:active,
+a:focus {
+    transition: none !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   IMÁGENES E ICONOS
+   ============================================================================ */
+img,
+svg,
+i,
+[class*="icon"] {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+img:hover,
+svg:hover,
+i:hover {
+    transform: none !important;
+}
+
+/* ============================================================================
+   MODALES Y OVERLAYS
+   ============================================================================ */
+.modal,
+.modal-dialog,
+.modal-content,
+.modal-backdrop,
+.offcanvas,
+.tooltip,
+.popover {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   PAGINACIÓN
+   ============================================================================ */
+.pagination,
+.page-item,
+.page-link {
+    transition: none !important;
+}
+
+.page-link:hover {
+    transform: none !important;
+}
+
+/* ============================================================================
+   SIDEBAR Y MENÚS
+   ============================================================================ */
+.sidebar,
+.sidebar-menu,
+.menu-item,
+aside,
+nav {
+    transition: none !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   LISTAS
+   ============================================================================ */
+ul,
+ol,
+li {
+    transition: none !important;
+    transform: none !important;
+}
+
+li:hover {
+    transform: none !important;
+}
+
+.list-group,
+.list-group-item {
+    transition: none !important;
+}
+
+.list-group-item:hover {
+    transform: none !important;
+}
+
+/* ============================================================================
+   TABS Y PESTAÑAS
+   ============================================================================ */
+.tab-content,
+.tab-pane {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   OVERLAYS Y BACKDROPS
+   ============================================================================ */
+[class*="backdrop"],
+[class*="overlay"] {
+    transition: none !important;
+}
+
+/* ============================================================================
+   SCROLLBAR (sin smooth scroll)
+   ============================================================================ */
+html {
+    scroll-behavior: auto !important;
+}
+
+* {
+    scroll-behavior: auto !important;
+}
+
+/* ============================================================================
+   EFECTOS DE SOMBRA (mantener pero sin transición)
+   ============================================================================ */
+.shadow,
+.shadow-sm,
+.shadow-lg,
+[class*="shadow"] {
+    transition: none !important;
+}
+
+/* ============================================================================
+   REDUCIR OPACIDAD DE SOMBRAS (menos intrusivas)
+   ============================================================================ */
+.shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ============================================================================
+   BACKDROP FILTERS (eliminar blur en movimiento)
+   ============================================================================ */
+[style*="backdrop-filter"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================================================
+   REACT/JAVASCRIPT: ELIMINAR ANIMACIONES
+   ============================================================================ */
+[data-aos],
+[data-animate],
+[class*="animate__"] {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   FILAS DE ACTIVOS Y MOVIMIENTOS (específico)
+   ============================================================================ */
+.ios-asset-row,
+.movimiento-card,
+.proveedor-row,
+.funcionario-row {
+    transition: none !important;
+    transform: none !important;
+}
+
+.ios-asset-row:hover,
+.movimiento-card:hover,
+.proveedor-row:hover,
+.funcionario-row:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ============================================================================
+   CHIPS Y FILTROS
+   ============================================================================ */
+.ios-filter-chip,
+.chip,
+.tag {
+    transition: none !important;
+    transform: none !important;
+}
+
+.ios-filter-chip:hover {
+    transform: none !important;
+}
+
+/* ============================================================================
+   WIZARD Y FORMULARIOS MULTI-PASO
+   ============================================================================ */
+.wizard-step,
+.form-step,
+.wizard-dot,
+.progress-fill {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+/* ============================================================================
+   BÚSQUEDA
+   ============================================================================ */
+.ios-search-bar,
+.ios-search-input,
+.search-input {
+    transition: none !important;
+}
+
+.ios-search-input:focus {
+    transition: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* ============================================================================
+   MENÚ DE USUARIO
+   ============================================================================ */
+.user-menu,
+.user-dropdown,
+.profile-menu {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+footer,
+.footer {
+    transition: none !important;
+}
+
+/* ============================================================================
+   IMPORTANTE: Desactivar todas las animaciones CSS
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Forzar desactivación para todos */
+* {
+    animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+}
+
+/* ============================================================================
+   FIN DEL ARCHIVO
+   ============================================================================ */

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_submit_button, render_form_errors %}
+
+{% block title %}Gestión de Mantenimientos{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Gestión de Mantenimientos</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item active">Gestión de Mantenimientos</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-wrench me-1"></i>
+            Listado de Mantenimientos Registrados
+            <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="btn btn-primary btn-sm float-end">
+                <i class="fas fa-plus me-1"></i> Nuevo Mantenimiento
+            </a>
+        </div>
+        <div class="card-body">
+            {% if mantenimientos %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="datatablesSimple">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Activo</th>
+                            <th>Placa</th>
+                            <th>Tipo Mantenimiento</th>
+                            <th>Fecha Programada</th>
+                            <th>Estado</th>
+                            <th>Registrado Por</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mantenimiento in mantenimientos %}
+                        <tr>
+                            <td>{{ mantenimiento.id }}</td>
+                            <td>{{ mantenimiento.activo.nombre_activo }}</td>
+                            <td>
+                                <a href="{{ url_for('activos.ver_activo', activo_id=mantenimiento.activo.id) }}">{{ mantenimiento.activo.placa_codigo_interno }}</a>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ mantenimiento.tipo.nombre }}</span>
+                            </td>
+                            <td>{{ mantenimiento.fecha_mantenimiento.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if mantenimiento.estado == 'Pendiente' %}
+                                    <span class="badge bg-warning text-dark">{{ mantenimiento.estado }}</span>
+                                {% elif mantenimiento.estado == 'Completado' %}
+                                    <span class="badge bg-success">{{ mantenimiento.estado }}</span>
+                                {% elif mantenimiento.estado == 'Cancelado' %}
+                                    <span class="badge bg-danger">{{ mantenimiento.estado }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ mantenimiento.estado }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ mantenimiento.usuario.email }}</td>
+                            <td>
+                                <a href="#" class="btn btn-info btn-sm" title="Ver Detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-warning btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ mantenimiento.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <!-- Modal de Confirmación de Eliminación -->
+                                <div class="modal fade" id="deleteModal{{ mantenimiento.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ mantenimiento.id }}" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteModalLabel{{ mantenimiento.id }}">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                        ¿Está seguro de que desea eliminar el mantenimiento #{{ mantenimiento.id }} para el activo <strong>{{ mantenimiento.activo.nombre_activo }}</strong>?
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form action="#" method="POST" style="display: inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center" role="alert">
+                No hay mantenimientos registrados para TICs, mobiliario o equipos industriales.
+                <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="alert-link">¡Crea el primero!</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

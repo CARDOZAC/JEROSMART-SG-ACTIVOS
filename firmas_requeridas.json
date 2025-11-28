@@ -1,5 +1,50 @@
 {
-  "entrada_salida": ["Responsable_del_activo", "Jefe_inmediato_del_responsable","VoBo_activos_fijos","soporte_clinica_primavera/tercero_a_cargo"],
-  "traslado": ["Responsable_Actual", "Responsable_Nuevo", "Jefe_inmediato_del_responsable_nuevo","VoBo_activos_fijos"],
-  "entrega": ["Funcionario_Entrega","jefe_inmediato_funcionario_entrega","Funcionario_Recibe","jefe_inmediato_quien_recibe","VoBo_activos_fijos","soporte_clinica_primavera"]
+  "_comment": "Configuración de roles de firma requeridos por tipo de movimiento - ACTUALIZADO 2025-11-17",
+  "_note": "Los roles deben coincidir EXACTAMENTE con los que esperan las plantillas PDF",
+
+  "entrada_salida": [
+    "Firma_Solicitante_Responsable",
+    "Soporte_Quien_Recibe_Entrega",
+    "Jefe_Inmediato",
+    "VoBo_Activos_Fijos"
+  ],
+
+  "traslado": [
+    "Responsable_Destino",
+    "Soporte_Tecnico",
+    "Responsable_Origen",
+    "VoBo_Activos_Fijos"
+  ],
+
+  "entrega": [
+    "Quien_Entrega",
+    "Quien_Recibe",
+    "Soporte_Lider",
+    "VoBo_Activos_Fijos",
+    "Soporte_Tecnico",
+    "VoBo_Subdirectora"
+  ],
+
+  "reporte_dano_perdida": [
+    "Responsable_Reporte",
+    "Soporte_Tecnico",
+    "Jefe_Area",
+    "VoBo_Activos_Fijos"
+  ],
+
+  "_labels_spanish": {
+    "Firma_Solicitante_Responsable": "Firma responsable del Activo (Macro o Microresponsable)",
+    "Soporte_Quien_Recibe_Entrega": "Soporte Clínica Primavera / Tercero a cargo",
+    "Jefe_Inmediato": "Jefe (Inmediato)",
+    "VoBo_Activos_Fijos": "Vo.Bo. Responsable Activos Fijos",
+    "Responsable_Destino": "Quién recibe",
+    "Soporte_Tecnico": "Soporte Técnico (correspondiente al activo)",
+    "Responsable_Origen": "Quién entrega",
+    "Quien_Entrega": "Quién Entrega",
+    "Quien_Recibe": "Quién Recibe",
+    "Soporte_Lider": "Soporte (Líder o Jefe área encargada)",
+    "VoBo_Subdirectora": "Vo Bo Subdirector Administrativo",
+    "Responsable_Reporte": "Quien Reporta (Responsable del Activo)",
+    "Jefe_Area": "Jefe del Área"
+  }
 }

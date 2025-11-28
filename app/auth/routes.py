@@ -1,13 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import render_template, redirect, url_for, flash, request, current_app, session
+from flask_login import login_user, logout_user, current_user
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from sqlalchemy import select
 
 from ..models import User  # Asumo que tu modelo de usuario se llama User y está en app/models.py
 from .forms import LoginForm, ForgotPasswordForm, ResetPasswordForm
 from ..extensions import db, login_manager
-
-# El Blueprint se define sin prefijo, ya que se establece al registrarlo en app/__init__.py
-auth_bp = Blueprint('auth', __name__, template_folder='templates')
+from ..decorators import login_required
+from . import auth_bp  # Importar el Blueprint definido en __init__.py
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -16,7 +16,7 @@ def load_user(user_id):
     almacenado en la sesión. Es esencial para el funcionamiento de la sesión.
     """
     # user_id es una cadena, se debe convertir a entero para la consulta.
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -24,20 +24,47 @@ def login():
         return redirect(url_for('main.index'))
 
     form = LoginForm()
+
+    # DEBUG: Log del intento de login
+    if request.method == 'POST':
+        current_app.logger.info(f"[LOGIN DEBUG] Intento de login recibido")
+        current_app.logger.info(f"[LOGIN DEBUG] Email recibido: {form.email.data}")
+        current_app.logger.info(f"[LOGIN DEBUG] Form válido: {form.validate_on_submit()}")
+        if form.errors:
+            current_app.logger.error(f"[LOGIN DEBUG] Errores del formulario: {form.errors}")
+
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        stmt = select(User).where(User.email == form.email.data)
+        user = db.session.scalars(stmt).first()
+
+        # DEBUG: Log del usuario encontrado
+        current_app.logger.info(f"[LOGIN DEBUG] Usuario encontrado: {user is not None}")
+        if user:
+            current_app.logger.info(f"[LOGIN DEBUG] Email del usuario: {user.email}")
+            password_ok = user.check_password(form.password.data)
+            current_app.logger.info(f"[LOGIN DEBUG] Contraseña correcta: {password_ok}")
+
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+            # Guardar el rol en la sesión para fácil acceso en templates
+            session['rol'] = user.rol
+            session['user_id'] = user.id
+            session['email'] = user.email
+            current_app.logger.info(f"[LOGIN] Usuario {user.email} con rol {user.rol} inició sesión")
             return redirect(url_for('main.index'))
         else:
+            current_app.logger.warning(f"[LOGIN DEBUG] Login fallido para email: {form.email.data}")
             flash('Credenciales inválidas. Por favor, verifica tu correo y contraseña.', 'danger')
-
-    return render_template('login.html', form=form)
+    return render_template('auth/login.html', form=form)
 
 
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    # Limpiar la sesión
+    session.pop('rol', None)
+    session.pop('user_id', None)
+    session.pop('email', None)
     logout_user()
     flash('Has cerrado sesión exitosamente.', 'success')
     return redirect(url_for('auth.login'))
@@ -54,7 +81,8 @@ def forgot_password():
 
     form = ForgotPasswordForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        stmt = select(User).where(User.email == form.email.data)
+        user = db.session.scalars(stmt).first()
         if user:
             # --- LÓGICA PARA ENVIAR EMAIL ---
             # Aquí se implementaría la lógica de envío de correo.
@@ -74,7 +102,7 @@ def forgot_password():
         flash('Si tu correo está registrado, recibirás un enlace para resetear tu contraseña en breve.', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('forgot_password.html', form=form)
+    return render_template('auth/forgot_password.html', form=form)
 
 
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
@@ -92,11 +120,12 @@ def reset_password(token):
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=email).first()
+        stmt = select(User).where(User.email == email)
+        user = db.session.scalars(stmt).first()
         if user:
             user.set_password(form.password.data)
             db.session.commit()
             flash('Tu contraseña ha sido actualizada exitosamente. Ahora puedes iniciar sesión.', 'success')
             return redirect(url_for('auth.login'))
 
-    return render_template('reset_password.html', form=form, token=token)
+    return render_template('auth/reset_password.html', form=form, token=token)

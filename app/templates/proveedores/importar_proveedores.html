@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Importar Proveedores{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Eliminar efectos visuales */
+    * {
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .upload-area {
+        border: 2px dashed var(--ios-separator);
+        border-radius: var(--ios-radius-lg);
+        padding: var(--ios-space-xxl);
+        text-align: center;
+        background: var(--ios-bg-secondary);
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: var(--ios-blue);
+        background: var(--ios-bg-tertiary);
+    }
+
+    .upload-icon {
+        font-size: 64px;
+        color: var(--ios-blue);
+        margin-bottom: var(--ios-space-md);
+    }
+
+    .instructions-card {
+        background: linear-gradient(135deg, #EBF5FF 0%, #F0F9FF 100%);
+        border-left: 4px solid var(--ios-blue);
+        padding: var(--ios-space-lg);
+        border-radius: var(--ios-radius-md);
+        margin-bottom: var(--ios-space-lg);
+    }
+
+    .column-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: var(--ios-blue);
+        color: white;
+        border-radius: var(--ios-radius-pill);
+        font-size: 13px;
+        font-weight: 500;
+        margin: 4px;
+    }
+
+    .column-badge.required {
+        background: var(--ios-red);
+    }
+
+    .example-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: var(--ios-space-md);
+        font-size: 13px;
+    }
+
+    .example-table th {
+        background: var(--ios-blue);
+        color: white;
+        padding: 8px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .example-table td {
+        padding: 8px;
+        border-bottom: 1px solid var(--ios-separator);
+    }
+
+    .example-table tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('proveedores.listar_proveedores') }}"
+                   class="ios-btn ios-btn-secondary me-3"
+                   title="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h1 class="ios-navbar-large-title mb-0">
+                    Importar Proveedores
+                </h1>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="instructions-card">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-info-circle-fill" style="font-size: 24px; color: var(--ios-blue); margin-right: 16px; margin-top: 2px;"></i>
+                    <div>
+                        <h5 class="mb-3" style="color: var(--ios-blue); font-weight: 600;">
+                            📋 Instrucciones de Importación
+                        </h5>
+                        <p class="mb-2">
+                            El archivo CSV debe contener las siguientes columnas <strong>exactamente con estos nombres</strong>:
+                        </p>
+                        <div class="mb-3">
+                            <span class="column-badge required">Nombre Del Proveedor</span>
+                            <span class="column-badge required">NIT</span>
+                            <span class="column-badge">Persona De Contacto</span>
+                            <span class="column-badge">Teléfono</span>
+                            <span class="column-badge">Dirección</span>
+                        </div>
+                        <ul class="mb-0" style="font-size: 14px;">
+                            <li><strong>Columnas obligatorias:</strong> Nombre Del Proveedor y NIT</li>
+                            <li><strong>Columnas opcionales:</strong> Persona De Contacto, Teléfono, Dirección</li>
+                            <li>La primera fila debe contener los nombres de las columnas</li>
+                            <li>Los proveedores con NIT duplicado serán omitidos</li>
+                            <li>Soporta archivos codificados en UTF-8, Latin-1 o Windows-1252</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo de CSV -->
+            <div class="ios-card mb-4">
+                <div class="ios-card-body">
+                    <h6 class="mb-3" style="font-weight: 600; color: var(--ios-label-primary);">
+                        <i class="bi bi-table"></i> Ejemplo de archivo CSV
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="example-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Del Proveedor</th>
+                                    <th>NIT</th>
+                                    <th>Persona De Contacto</th>
+                                    <th>Teléfono</th>
+                                    <th>Dirección</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Proveedor Ejemplo S.A.S.</td>
+                                    <td>900123456-7</td>
+                                    <td>Juan Pérez</td>
+                                    <td>3001234567</td>
+                                    <td>Calle 123 #45-67</td>
+                                </tr>
+                                <tr>
+                                    <td>Distribuidora Médica Ltda</td>
+                                    <td>800987654-3</td>
+                                    <td>María Gómez</td>
+                                    <td>3109876543</td>
+                                    <td>Carrera 45 #12-34</td>
+                                </tr>
+                                <tr>
+                                    <td>Equipos Hospitalarios S.A.</td>
+                                    <td>700456789-1</td>
+                                    <td>Carlos Rodríguez</td>
+                                    <td>3201234567</td>
+                                    <td>Avenida 68 #23-45</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('proveedores.descargar_plantilla_csv') }}"
+                           class="ios-btn ios-btn-secondary ios-btn-sm">
+                            <i class="bi bi-download"></i>
+                            Descargar Plantilla CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Carga -->
+            <div class="ios-card">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('proveedores.importar_proveedores') }}">
+                    <div class="ios-card-body">
+                        <label for="archivo_csv" class="upload-area">
+                            <input type="file"
+                                   id="archivo_csv"
+                                   name="archivo_csv"
+                                   accept=".csv"
+                                   required
+                                   style="display: none;"
+                                   onchange="updateFileName(this)">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-upload"></i>
+                            </div>
+                            <h5 style="color: var(--ios-label-primary); font-weight: 600; margin-bottom: 8px;">
+                                Seleccionar Archivo CSV
+                            </h5>
+                            <p style="color: var(--ios-label-secondary); font-size: 15px; margin-bottom: 0;">
+                                Haz clic aquí o arrastra tu archivo CSV
+                            </p>
+                            <p id="file-name" style="color: var(--ios-blue); font-weight: 600; margin-top: 12px; display: none;">
+                                <!-- El nombre del archivo aparecerá aquí -->
+                            </p>
+                        </label>
+                    </div>
+
+                    <div class="ios-card-footer">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('proveedores.listar_proveedores') }}"
+                               class="ios-btn ios-btn-secondary">
+                                <i class="bi bi-x-circle"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="ios-btn ios-btn-primary">
+                                <i class="bi bi-cloud-upload-fill"></i>
+                                Importar Proveedores
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFileName(input) {
+    const fileNameDisplay = document.getElementById('file-name');
+    if (input.files && input.files[0]) {
+        fileNameDisplay.textContent = '📄 ' + input.files[0].name;
+        fileNameDisplay.style.display = 'block';
+    } else {
+        fileNameDisplay.style.display = 'none';
+    }
+}
+
+// Drag and drop functionality
+const uploadArea = document.querySelector('.upload-area');
+const fileInput = document.getElementById('archivo_csv');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--ios-blue)';
+    uploadArea.style.background = 'var(--ios-bg-tertiary)';
+});
+
+uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--ios-separator)';
+    uploadArea.style.background = 'var(--ios-bg-secondary)';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--ios-separator)';
+    uploadArea.style.background = 'var(--ios-bg-secondary)';
+
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileName(fileInput);
+    }
+});
+</script>
+{% endblock %}

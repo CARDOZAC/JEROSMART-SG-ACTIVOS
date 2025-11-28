@@ -2,6 +2,7 @@
 {% block title %}Registrar Nuevo Movimiento{% endblock %}
 
 {% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/signature_styles.css') }}">
 <style>
     /* Estilos del asistente de creación */
     .wizard-card {
@@ -19,12 +20,12 @@
     }
     .progress-bar {
         background-color: var(--accent-blue-dark);
-        transition: width .4s ease-in-out;
+        transition: none;
         border-radius: 0.5rem;
     }
     .form-step {
         display: none;
-        animation: fadeIn .5s ease-out;
+        animation: none;
         padding: 2.5rem;
     }
     .form-step.active {
@@ -50,10 +51,7 @@
         padding-top: 1.5rem;
         border-top: 1px solid var(--color-border);
     }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    /* @keyframes fadeIn removida - efectos reducidos 90% */
     .search-container {
         position: relative;
     }
@@ -71,7 +69,7 @@
     }
     .search-results .list-group-item {
         cursor: pointer;
-        transition: background-color .2s;
+        transition: none;
         border: none;
     }
     .search-results .list-group-item:hover {
@@ -128,6 +126,46 @@
         max-height: 200px;
         overflow-y: auto;
     }
+    /* Estilos para el autocompletado */
+    .autocomplete-container {
+        position: relative;
+    }
+    .autocomplete-results {
+        position: absolute;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        width: 100%;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 1050;
+        box-shadow: var(--card-shadow-hover);
+    }
+    /* Estilos iOS para el autocompletado */
+    .ios-autocomplete-results {
+        position: absolute;
+        width: 100%;
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-md);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border: 0.5px solid var(--ios-separator);
+        z-index: 1050;
+        max-height: 280px;
+        overflow-y: auto;
+        margin-top: 6px;
+    }
+    .ios-autocomplete-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 0.5px solid var(--ios-separator);
+    }
+    .ios-autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    .ios-autocomplete-item:hover {
+        background: var(--ios-bg-tertiary);
+    }
+    .ios-autocomplete-item .item-label { font-weight: 500; color: var(--ios-label-primary); }
+    .ios-autocomplete-item .item-sublabel { font-size: 14px; color: var(--ios-label-secondary); }
 </style>
 {% endblock %}
 
@@ -147,10 +185,11 @@
                     </div>
                 </div>
 
-                <form id="movement-form" method="POST" action="{{ url_for('add_movimiento') }}">
+                <form id="movement-form" method="POST" action="{{ url_for('movimientos.add_movimiento') }}">
                     <!-- Campos ocultos para enviar datos JSON -->
                     <input type="hidden" name="activos_data" id="activos_data">
                     <input type="hidden" name="accesorios_data" id="accesorios_data">
+                    <input type="hidden" name="firmas_data" id="firmas_data">
                     <input type="hidden" name="tipo_operacion_es" id="tipo_operacion_es">
 
                     <!-- Paso 1: Seleccionar Tipo de Acta -->
@@ -165,6 +204,7 @@
                                 <option value="Entrega">Acta de Entrega</option>
                                 <option value="Traslado">Acta de Traslado</option>
                                 <option value="Paz y Salvo">Acta de Paz y Salvo</option>
+                                <option value="Reporte de Daño o Pérdida">Reporte de Daño o Pérdida</option>
                             </select>
                             <div class="form-text text-muted">
                                 Nota: “Entrada” y “Salida” se registrarán como <strong>Entrada/Salida</strong> en la base de datos.
@@ -196,7 +236,7 @@
                         <div id="activos-agregados-list" class="added-asset-list">
                             <div id="no-activos-message" class="text-muted text-center p-3" style="display: block;">Aún no has añadido ningún activo.</div>
                         </div>
-                        <div class="form-navigation-buttons">
+                        <div class="form-navigation-buttons" id="step2-nav">
                             <button type="button" class="btn btn-outline-secondary btn-prev"><i class="bi bi-arrow-left me-1"></i> Anterior</button>
                             <button type="button" class="btn btn-primary btn-lg btn-next">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
@@ -209,74 +249,136 @@
                             
                             <!-- SECCIÓN ENTREGA (antes 'seccion_entrega.html') -->
                             <div id="seccion-entrega" style="display: none;">
-                                <h5 class="mb-3">Detalles del Acta de Entrega</h5>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="proveedor_id" class="form-label">Proveedor</label>
-                                        <input type="text" name="proveedor_id" id="proveedor_id" class="form-control" placeholder="Nombre del proveedor">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="entrega_factura" class="form-label">Factura</label>
-                                        <input type="text" name="entrega_factura" id="entrega_factura" class="form-control" placeholder="N° de Factura">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="entrega_contrato_nro" class="form-label">N° Contrato</label>
-                                        <input type="text" name="entrega_contrato_nro" id="entrega_contrato_nro" class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="entrega_contrato_fecha" class="form-label">Fecha del Contrato</label>
-                                        <input type="date" name="entrega_contrato_fecha" id="entrega_contrato_fecha" class="form-control">
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="entrega_objeto_contrato" class="form-label">Objeto del Contrato o Entrega</label>
-                                        <textarea name="entrega_objeto_contrato" id="entrega_objeto_contrato" class="form-control" rows="3"></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Tipo de Elemento Entregado</label>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos biomédicos" id="tipo_biomedicos">
-                                            <label class="form-check-label" for="tipo_biomedicos">Equipos biomédicos</label>
+                                <h5 class="mb-4 text-center text-primary"><i class="bi bi-archive-fill me-2"></i>Detalles del Acta de Entrega</h5>
+
+                                <!-- Datos del Proveedor y Contrato -->
+                                <div class="card mb-4">
+                                    <div class="card-header fw-bold"><i class="bi bi-building-fill me-2"></i>Información de Proveedor y Contrato</div>
+                                    <div class="card-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6"><label for="fecha_entrega" class="form-label">Fecha de Entrega</label><input type="date" name="fecha_entrega" id="fecha_entrega" class="form-control"></div>
+                                            <div class="col-md-6"><label for="hora_entrega" class="form-label">Hora de Entrega</label><input type="time" name="hora_entrega" id="hora_entrega" class="form-control"></div>
                                         </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos[]" value="Equipos TIC" id="tipo_tic">
-                                            <label class="form-check-label" for="tipo_tic">Equipos TIC</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos[]" value="Mobiliario y enseres" id="tipo_mobiliario">
-                                            <label class="form-check-label" for="tipo_mobiliario">Mobiliario y enseres</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos[]" value="Equipo de vigilancia" id="tipo_vigilancia">
-                                            <label class="form-check-label" for="tipo_vigilancia">Equipo de vigilancia</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Características</label>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" name="requiere_montaje" id="requiere_montaje">
-                                            <label class="form-check-label" for="requiere_montaje">Requiere montaje</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" name="requiere_capacitacion" id="requiere_capacitacion">
-                                            <label class="form-check-label" for="requiere_capacitacion">Requiere capacitación</label>
+                                        <div class="row g-3">
+                                            <div class="col-md-8">
+                                                <label for="proveedor_id" class="form-label">Proveedor</label>
+                                                <select name="proveedor_id" id="proveedor_id" class="form-select">
+                                                    <option value="">-- Seleccione un Proveedor --</option>
+                                                    {% for proveedor in proveedores %}
+                                                        <option value="{{ proveedor.id }}">{{ proveedor.razon_social }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="entrega_factura" class="form-label">N° Factura</label>
+                                                <input type="text" name="entrega_factura" id="entrega_factura" class="form-control">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="entrega_contrato_nro" class="form-label">Orden de Compra / Contrato N°</label>
+                                                <input type="text" name="entrega_contrato_nro" id="entrega_contrato_nro" class="form-control">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="entrega_contrato_fecha" class="form-label">Fecha de Contrato</label>
+                                                <input type="date" name="entrega_contrato_fecha" id="entrega_contrato_fecha" class="form-control">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="tipo_contrato" class="form-label">Tipo de Contrato (si aplica)</label>
+                                                <input type="text" name="tipo_contrato" id="tipo_contrato" class="form-control">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="valor_contrato" class="form-label">Valor Contrato/Factura</label>
+                                                <input type="number" name="valor_contrato" id="valor_contrato" class="form-control" placeholder="0.00">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="garantia_meses" class="form-label">Garantía (meses)</label>
+                                                <input type="number" name="garantia_meses" id="garantia_meses" class="form-control" placeholder="Ej: 12">
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="entrega_objeto_contrato" class="form-label">Objeto del Contrato</label>
+                                                <textarea name="entrega_objeto_contrato" id="entrega_objeto_contrato" class="form-control" rows="2"></textarea>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="entrega_tipo_asignacion" class="form-label">Tipo de Asignación</label>
-                                        <input type="text" name="entrega_tipo_asignacion" id="entrega_tipo_asignacion" class="form-control">
+                                </div>
+
+                                <!-- Tipo de Elemento Entregado -->
+                                <div class="card mb-4">
+                                    <div class="card-header fw-bold"><i class="bi bi-tags-fill me-2"></i>Tipo de Elemento Entregado (Marque lo que aplique)</div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos biomédicos"> <label class="form-check-label">Equipos biomédicos</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipo Electroindustrial"> <label class="form-check-label">Equipo Electroindustrial</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos TIC"> <label class="form-check-label">Equipos TIC</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Mobiliario y enseres"> <label class="form-check-label">Mobiliario y enseres</label></div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipo de vigilancia"> <label class="form-check-label">Equipo de vigilancia</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Mobiliario y enseres hospitalarios"> <label class="form-check-label">Mobiliario y enseres hospitalarios</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Maquinaria y equipo industrial"> <label class="form-check-label">Maquinaria y equipo industrial</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Transporte"> <label class="form-check-label">Transporte</label></div>
+
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Propio"> <label class="form-check-label">Propio</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Ajeno"> <label class="form-check-label">Ajeno</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_montaje" id="requiere_montaje"> <label class="form-check-label" for="requiere_montaje">Requiere montaje</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" name="requiere_capacitacion" id="requiere_capacitacion"> <label class="form-check-label" for="requiere_capacitacion">Requiere capacitación</label></div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <label for="tipo_transporte" class="form-label">Transporte (¿Cuál?)</label>
+                                                <input type="text" name="tipo_transporte" id="tipo_transporte" class="form-control" placeholder="Especifique el tipo de transporte">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="tipo_asignacion" class="form-label">Tipo de Asignación</label>
+                                                <input type="text" name="tipo_asignacion" id="tipo_asignacion" class="form-control" placeholder="Especifique el tipo de asignación">
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <!-- Información de Entrega y Recepción -->
+                                <div class="row">
+                                    <!-- Columna Quién Entrega -->
                                     <div class="col-md-6">
-                                        <label for="entrega_nombre" class="form-label">Quién Entrega</label>
-                                        <input type="text" name="entrega_nombre" id="entrega_nombre" class="form-control">
+                                        <div class="card h-100">
+                                            <div class="card-header fw-bold"><i class="bi bi-box-arrow-up-right me-2"></i>Quién Entrega</div>
+                                            <div class="card-body">
+                                                <div class="mb-2 autocomplete-container">
+                                                    <label for="entrega_responsable_nombre" class="form-label">Nombre</label>
+                                                    <input type="text" name="entrega_responsable_nombre" id="entrega_responsable_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar manualmente...">
+                                                </div>
+                                                <div class="mb-2"><label for="entrega_responsable_cc" class="form-label">CC o NIT</label><input type="text" name="entrega_responsable_cc" id="entrega_responsable_cc" class="form-control"></div>
+                                                <div class="mb-2"><label for="entrega_responsable_cargo" class="form-label">Cargo</label><input type="text" name="entrega_responsable_cargo" id="entrega_responsable_cargo" class="form-control"></div>
+                                                <div class="mb-2"><label for="entrega_responsable_area" class="form-label">Área o Servicio</label><input type="text" name="entrega_responsable_area" id="entrega_responsable_area" class="form-control"></div>
+                                                <div class="mb-2"><label for="quien_entrega_centro_costo" class="form-label">Centro Costo</label><input type="text" name="quien_entrega_centro_costo" id="quien_entrega_centro_costo" class="form-control"></div>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <!-- Columna Quién Recibe -->
                                     <div class="col-md-6">
-                                        <label for="recibe_nombre" class="form-label">Quién Recibe</label>
-                                        <input type="text" name="recibe_nombre" id="recibe_nombre" class="form-control">
+                                        <div class="card h-100">
+                                            <div class="card-header fw-bold"><i class="bi bi-box-arrow-in-down-left me-2"></i>Quién Recibe</div>
+                                            <div class="card-body">
+                                                <div class="mb-2 autocomplete-container">
+                                                    <label for="recibe_responsable_nombre" class="form-label">Nombre</label>
+                                                    <input type="text" name="recibe_responsable_nombre" id="recibe_responsable_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar manualmente...">
+                                                </div>
+                                                <div class="mb-2"><label for="recibe_responsable_cc" class="form-label">CC o NIT</label><input type="text" name="recibe_responsable_cc" id="recibe_responsable_cc" class="form-control"></div>
+                                                <div class="mb-2"><label for="recibe_responsable_cargo" class="form-label">Cargo</label><input type="text" name="recibe_responsable_cargo" id="recibe_responsable_cargo" class="form-control"></div>
+                                                <div class="mb-2"><label for="recibe_responsable_area" class="form-label">Área o Servicio</label><input type="text" name="recibe_responsable_area" id="recibe_responsable_area" class="form-control"></div>
+                                                <div class="mb-2"><label for="recibe_responsable_centro_costo" class="form-label">Centro Costo</label><input type="text" name="recibe_responsable_centro_costo" id="recibe_responsable_centro_costo" class="form-control"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="observaciones_acta" class="form-label">Observaciones</label>
-                                        <textarea name="observaciones_acta" id="observaciones_acta" class="form-control" rows="3"></textarea>
-                                    </div>
+                                </div>
+
+                                <!-- Observaciones Generales -->
+                                <div class="mt-4">
+                                    <label for="observaciones_acta" class="form-label fw-bold">Observaciones Generales del Acta</label>
+                                    <textarea name="observaciones_acta" id="observaciones_acta" class="form-control" rows="3"></textarea>
                                 </div>
                             </div>
 
@@ -285,6 +387,10 @@
                                 <h5 class="mb-3">Detalles del Acta de Traslado</h5>
                                 <div class="row g-3">
                                     <div class="col-md-6">
+                                        <label for="numero_traslado" class="form-label">Número de traslado</label>
+                                        <input type="text" name="numero_traslado" id="numero_traslado" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
                                         <label for="fecha_traslado" class="form-label">Fecha de Traslado</label>
                                         <input type="date" name="fecha_traslado" id="fecha_traslado" class="form-control">
                                     </div>
@@ -292,6 +398,52 @@
                                         <label for="hora_traslado" class="form-label">Hora de Traslado</label>
                                         <input type="time" name="hora_traslado" id="hora_traslado" class="form-control">
                                     </div>
+                                </div>
+
+                                <!-- Características del traslado -->
+                                <div class="card mb-4">
+                                    <div class="card-header fw-bold">Características del traslado (marque con una x)</div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="caracteristica_traslado" value="asignacion_permanente" id="asignacion_permanente">
+                                                    <label class="form-check-label" for="asignacion_permanente">Asignación permanente de activo</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="caracteristica_traslado" value="asignacion_temporal" id="asignacion_temporal">
+                                                    <label class="form-check-label" for="asignacion_temporal">Asignación temporal del activo</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="caracteristica_traslado" value="activo_ajeno" id="activo_ajeno">
+                                                    <label class="form-check-label" for="activo_ajeno">Activo Ajeno</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="caracteristica_traslado" value="requiere_instalacion" id="requiere_instalacion">
+                                                    <label class="form-check-label" for="requiere_instalacion">Requiere instalación/adecuación</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <label for="lugar_destino" class="form-label">Lugar o evento de destino</label>
+                                                <input type="text" name="lugar_destino" id="lugar_destino" class="form-control">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="estado_activo_traslado" class="form-label">Estado del Activo</label>
+                                                <select name="estado_activo_traslado" id="estado_activo_traslado" class="form-select">
+                                                    <option value="Bueno" selected>Bueno</option>
+                                                    <option value="Regular">Regular</option>
+                                                    <option value="Malo">Malo</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
                                     <div class="col-12">
                                         <label class="form-label">Tipo de Traslado</label>
                                         <div class="form-check">
@@ -314,6 +466,10 @@
                                             <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Activo de un centro de costo a otro" id="tipo_costo_costo">
                                             <label class="form-check-label" for="tipo_costo_costo">Activo de un centro de costo a otro</label>
                                         </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Traslado del activo de un tercero" id="tipo_tercero">
+                                            <label class="form-check-label" for="tipo_tercero">Traslado del activo de un tercero</label>
+                                        </div>
                                     </div>
                                     <div class="col-12">
                                         <label for="traslado_ubicacion_inicial" class="form-label">Ubicación Inicial</label>
@@ -323,9 +479,9 @@
                                         <label for="traslado_ubicacion_final" class="form-label">Ubicación Final</label>
                                         <input type="text" name="traslado_ubicacion_final" id="traslado_ubicacion_final" class="form-control">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-4 autocomplete-container">
                                         <label for="origen_responsable_nombre" class="form-label">Nombre Responsable Origen</label>
-                                        <input type="text" name="origen_responsable_nombre" id="origen_responsable_nombre" class="form-control">
+                                        <input type="text" name="origen_responsable_nombre" id="origen_responsable_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar...">
                                     </div>
                                     <div class="col-md-4">
                                         <label for="origen_responsable_cc" class="form-label">Cédula Responsable Origen</label>
@@ -336,8 +492,20 @@
                                         <input type="text" name="origen_responsable_cargo" id="origen_responsable_cargo" class="form-control">
                                     </div>
                                     <div class="col-md-4">
+                                        <label for="area_origen" class="form-label">Área Origen</label>
+                                        <input type="text" name="area_origen" id="area_origen" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="codigo_costo_origen" class="form-label">Código Centro Costo Origen</label>
+                                        <input type="text" name="codigo_costo_origen" id="codigo_costo_origen" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="centro_costo_origen" class="form-label">Centro Costo Origen</label>
+                                        <input type="text" name="centro_costo_origen" id="centro_costo_origen" class="form-control">
+                                    </div>
+                                    <div class="col-md-4 autocomplete-container">
                                         <label for="nuevo_responsable_nombre" class="form-label">Nombre Nuevo Responsable</label>
-                                        <input type="text" name="nuevo_responsable_nombre" id="nuevo_responsable_nombre" class="form-control">
+                                        <input type="text" name="nuevo_responsable_nombre" id="nuevo_responsable_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar...">
                                     </div>
                                     <div class="col-md-4">
                                         <label for="nuevo_responsable_cc" class="form-label">Cédula Nuevo Responsable</label>
@@ -347,20 +515,51 @@
                                         <label for="nuevo_responsable_cargo" class="form-label">Cargo Nuevo Responsable</label>
                                         <input type="text" name="nuevo_responsable_cargo" id="nuevo_responsable_cargo" class="form-control">
                                     </div>
+                                    <div class="col-md-4">
+                                        <label for="area_destino" class="form-label">Área Destino</label>
+                                        <input type="text" name="area_destino" id="area_destino" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="codigo_costo_destino" class="form-label">Código Centro Costo Destino</label>
+                                        <input type="text" name="codigo_costo_destino" id="codigo_costo_destino" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="centro_costo_destino" class="form-label">Centro Costo Destino</label>
+                                        <input type="text" name="centro_costo_destino" id="centro_costo_destino" class="form-control">
+                                    </div>
+                                <div class="col-12">
+                                    <label for="observaciones_traslado" class="form-label">Observaciones</label>
+                                    <textarea name="observaciones_traslado" id="observaciones_traslado" class="form-control" rows="3"></textarea>
+                                </div>
                                 </div>
                             </div>
                             
                             <!-- SECCIÓN ENTRADA/SALIDA (antes 'seccion_entrada_salida.html') -->
                             <div id="seccion-entrada-salida" style="display: none;">
-                                <h5 class="mb-3">Detalles del Acta de Entrada/Salida</h5>
+                                <h5 class="mb-3 text-center text-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Detalles del Acta de Entrada/Salida</h5>
                                 <div class="row g-3">
+                                    <div class="col-md-6"><label for="fecha_Entrada" class="form-label">Fecha</label><input type="date" name="fecha_Entrada" id="fecha_Entrada" class="form-control"></div>
+                                    <div class="col-md-6"><label for="hora_Entrada" class="form-label">Hora</label><input type="time" name="hora_Entrada" id="hora_Entrada" class="form-control"></div>
                                     <div class="col-md-6"><label for="ciudad_es" class="form-label">Ciudad</label><input type="text" name="ciudad_es" id="ciudad_es" class="form-control" value="Villavicencio"></div>
                                     <div class="col-md-6"><label for="sede_es" class="form-label">Sede</label><input type="text" name="sede_es" id="sede_es" class="form-control" value="CORPORACION CLINICA PRIMAVERA"></div>
                                     <hr class="my-3">
                                     <h6 class="text-secondary">Datos del Solicitante</h6>
-                                    <div class="col-md-6"><label for="solicitante_responsable_nombre" class="form-label">Nombre Responsable</label><input type="text" name="solicitante_responsable_nombre" id="solicitante_responsable_nombre" class="form-control"></div>
+                                    <div class="col-md-6 autocomplete-container">
+                                        <label for="solicitante_responsable_nombre" class="form-label">Nombre Responsable</label>
+                                        <input type="text" name="solicitante_responsable_nombre" id="solicitante_responsable_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar...">
+                                    </div>
                                     <div class="col-md-6"><label for="solicitante_responsable_cc" class="form-label">Cédula</label><input type="text" name="solicitante_responsable_cc" id="solicitante_responsable_cc" class="form-control"></div>
                                     <div class="col-12"><label for="solicitante_responsable_cargo_area" class="form-label">Cargo/Área</label><input type="text" name="solicitante_responsable_cargo_area" id="solicitante_responsable_cargo_area" class="form-control"></div>
+                                    <hr class="my-3">
+                                    <h6 class="text-secondary">Autorización</h6>
+                                    <div class="col-md-6 autocomplete-container">
+                                        <label for="autorizado_por_nombre" class="form-label">Autorizado por (Nombre)</label>
+                                        <input type="text" name="autorizado_por_nombre" id="autorizado_por_nombre" class="form-control" autocomplete="off" placeholder="Buscar o ingresar...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="autorizado_por_cargo" class="form-label">Cargo</label>
+                                        <input type="text" name="autorizado_por_cargo" id="autorizado_por_cargo" class="form-control">
+                                    </div>
                                     <hr class="my-3">
                                     <h6 class="text-secondary">Datos del Tercero</h6>
                                     <div class="col-md-6"><label for="tercero_entidad_persona" class="form-label">Entidad/Persona (Tercero)</label><input type="text" name="tercero_entidad_persona" id="tercero_entidad_persona" class="form-control"></div>
@@ -371,7 +570,7 @@
                                     <h6 class="text-secondary">Detalles de la Operación</h6>
                                     <div class="col-12">
                                         <label for="motivo_es" class="form-label">Motivo</label>
-                                        <select name="motivo_es" id="motivo_es" class="form-select">
+                                        <select name="motivo_es" id="motivo_es" class="form-select" onchange="toggleOtroMotivo(this.value)">
                                             <option value="" selected disabled>-- Elige un motivo --</option>
                                             <option value="Salida Por Mantenimiento">Salida Por Mantenimiento</option>
                                             <option value="Salida Por Préstamo a la Clinica">Salida Por Préstamo a la Clínica</option>
@@ -380,13 +579,17 @@
                                             <option value="Otro">Otro</option>
                                         </select>
                                     </div>
-                                    <div class="col-12" id="motivo_otro_group" style="display: none;">
-                                        <label for="motivo_otro" class="form-label">Especifique el motivo</label>
-                                        <input type="text" name="motivo_otro" id="motivo_otro" class="form-control">
+                                    <div class="col-12" id="motivo_otro_es_group" style="display: none;">
+                                        <label for="motivo_otro_es" class="form-label">Especifique el motivo</label>
+                                        <input type="text" name="motivo_otro_es" id="motivo_otro_es" class="form-control">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="fecha_retorno_estimada" class="form-label">Fecha de Retorno Estimada</label>
                                         <input type="date" name="fecha_retorno_estimada" id="fecha_retorno_estimada" class="form-control">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="observaciones_generales_es" class="form-label">Observaciones Generales</label>
+                                        <textarea name="observaciones_generales_es" id="observaciones_generales_es" class="form-control" rows="3"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -418,11 +621,35 @@
                                 </div>
                             </div>
 
+                            <!-- SECCIÓN REPORTE DE DAÑO O PÉRDIDA -->
+                            {% include 'secciones_movimientos/seccion_reporte_dano_perdida.html' %}
+
                         </div>
                         <div class="form-navigation-buttons">
                             <button type="button" class="btn btn-outline-secondary btn-prev"><i class="bi bi-arrow-left me-1"></i> Anterior</button>
+                            <button type="button" class="btn btn-primary btn-lg btn-next">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 4: Firmas Digitales (NUEVO) -->
+                    <div class="form-step" data-step="4">
+                        <h3 class="step-header"><i class="bi bi-pen-fill"></i>Paso 4: Firmas Digitales (Opcional)</h3>
+
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <strong>Nota:</strong> Puede firmar ahora o después en la sección de "Firmar Acta".
+                            Las firmas son opcionales en esta etapa pero requeridas para generar el documento final.
+                        </div>
+
+                        <!-- Contenedor de firmas dinámicas según el tipo de acta -->
+                        <div id="firmas-container">
+                            <p class="text-muted text-center">Seleccione un tipo de acta en el Paso 1 para ver las firmas requeridas.</p>
+                        </div>
+
+                        <div class="form-navigation-buttons" id="step4-nav">
+                            <button type="button" class="btn btn-outline-secondary btn-prev"><i class="bi bi-arrow-left me-1"></i> Anterior</button>
                             <!-- El botón de submit va al final -->
-                            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check-circle-fill me-1"></i> Guardar y Continuar</button>
+                            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check-circle-fill me-1"></i> Guardar Acta</button>
                         </div>
                     </div>
                 </form>
@@ -480,7 +707,21 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/signature_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/paz_y_salvo_wizard.js') }}"></script>
+<!-- jQuery y jQuery UI para autocompletado (alternativa a JS puro) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+// ----- Utilidad debounce (SCOPE GLOBAL) -----
+const debounce = (fn, delay = 250) => {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // ----- Estado global del asistente -----
     const form = document.getElementById('movement-form');
@@ -492,6 +733,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let accesoriosPorActivo = {}; // { 'activo_id': [ {desc, cant}, ... ], ...}
     let currentStepIndex = 0;
     let currentActivoIdModal = null;
+    let signaturePadInstances = {}; // Instancias de iOSSignaturePad
+    let firmasData = {}; // Almacenar las firmas como Data URLs
+
+    // Configuración de firmas según tipo de movimiento
+    const firmasRequeridas = {
+        'Entrada/Salida': ['Responsable_del_activo', 'Jefe_inmediato_del_responsable', 'VoBo_activos_fijos', 'soporte_clinica_primavera/tercero_a_cargo'],
+        'Traslado': ['Responsable_Actual', 'Responsable_Nuevo', 'Jefe_inmediato_del_responsable_nuevo', 'VoBo_activos_fijos'],
+        'Entrega': ['Funcionario_Entrega', 'jefe_inmediato_funcionario_entrega', 'Funcionario_Recibe', 'jefe_inmediato_quien_recibe', 'VoBo_activos_fijos', 'soporte_clinica_primavera'],
+        'Reporte de Daño o Pérdida': ['Responsable_Reporte', 'Soporte_Tecnico', 'Jefe_Area', 'VoBo_Activos_Fijos']
+    };
 
     // Referencias a los contenedores
     const activoSearchSection = document.getElementById('activo-search-section');
@@ -499,15 +750,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const listContainer = document.getElementById('activos-agregados-list');
     const noActivosMessage = document.getElementById('no-activos-message');
     const accesoriosModal = new bootstrap.Modal(document.getElementById('addAccesoriosModal'));
-    
-    // ----- Utilidades -----
-    const debounce = (fn, delay = 250) => {
-        let t;
-        return (...args) => {
-            clearTimeout(t);
-            t = setTimeout(() => fn(...args), delay);
-        };
-    };
 
     function setProgress() {
         const progress = ((currentStepIndex + 1) / steps.length) * 100;
@@ -519,12 +761,17 @@ document.addEventListener('DOMContentLoaded', () => {
         steps.forEach((s, i) => s.classList.toggle('active', i === idx));
         currentStepIndex = idx;
         setProgress();
+        const selectedType = tipoSelect.value;
+
         if (currentStepIndex === 1) { // Paso 2: Activos
             togglePazYSalvoUI();
             renderActivosList();
-        }
+        } 
         if (currentStepIndex === 2) { // Paso 3: Detalles
             toggleDetailSections();
+        }
+        if (currentStepIndex === 3) { // Paso 4: Firmas
+            renderSignaturePads();
         }
     }
 
@@ -536,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (currentStepIndex === 1) {
-                if (tipoSelect.value !== 'Paz y Salvo' && activosAgregados.length === 0) {
+                if (tipoSelect.value !== 'Paz y Salvo' && activosAgregados.length === 0 && tipoSelect.value !== 'Entrada') {
                     flashMessage('Debes añadir al menos un activo para este tipo de movimiento.', 'danger');
                     return;
                 }
@@ -554,11 +801,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----- Renderización de activos como tarjetas -----
     function renderActivosList() {
         listContainer.innerHTML = '';
-        if (activosAgregados.length === 0) {
+        if (activosAgregados.length === 0 && tipoSelect.value !== 'Entrada') {
             listContainer.appendChild(noActivosMessage);
             return;
         }
-        listContainer.appendChild(noActivosMessage);
+        
         noActivosMessage.style.display = 'none';
 
         activosAgregados.forEach((a, i) => {
@@ -718,7 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'Traslado': document.getElementById('seccion-traslado'),
             'Entrada': document.getElementById('seccion-entrada-salida'),
             'Salida': document.getElementById('seccion-entrada-salida'),
-            'Paz y Salvo': document.getElementById('seccion-paz-y-salvo')
+            'Paz y Salvo': document.getElementById('seccion-paz-y-salvo'),
+            'Reporte de Daño o Pérdida': document.getElementById('seccion-reporte_dano_perdida')
         };
         Object.values(sections).forEach(sec => {
             if (sec) sec.style.display = 'none';
@@ -751,34 +999,170 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Control para mostrar/ocultar el campo "Otro" en Entrada/Salida
     document.getElementById('motivo_es').addEventListener('change', (e) => {
-        const motivoOtroGroup = document.getElementById('motivo_otro_group');
+        const motivoOtroGroup = document.getElementById('motivo_otro_es_group');
+        const motivoOtroInput = document.getElementById('motivo_otro_es');
         if (e.target.value === 'Otro') {
             motivoOtroGroup.style.display = 'block';
-            document.getElementById('motivo_otro').name = 'motivo_es';
-            e.target.name = '';
+            motivoOtroInput.required = true;
         } else {
             motivoOtroGroup.style.display = 'none';
-            document.getElementById('motivo_otro').name = '';
-            e.target.name = 'motivo_es';
+            motivoOtroInput.required = false;
         }
     });
 
 
+    // ----- Renderizar pads de firma según el tipo de acta -----
+    function renderSignaturePads() {
+        const firmasContainer = document.getElementById('firmas-container');
+        const selectedType = tipoSelect.value;
+
+        // Normalizar el tipo para buscar en firmasRequeridas
+        let tipoNormalizado = selectedType;
+        if (selectedType === 'Entrada' || selectedType === 'Salida') {
+            tipoNormalizado = 'Entrada/Salida';
+        }
+
+        const roles = firmasRequeridas[tipoNormalizado];
+
+        if (!roles || roles.length === 0) {
+            firmasContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    No hay firmas configuradas para este tipo de acta.
+                </div>
+            `;
+            return;
+        }
+
+        // Limpiar instancias anteriores
+        Object.values(signaturePadInstances).forEach(sig => {
+            if (sig && sig.destroy) sig.destroy();
+        });
+        signaturePadInstances = {};
+
+        firmasContainer.innerHTML = '';
+
+        roles.forEach((rol, index) => {
+            const rolLabel = rol.replace(/_/g, ' ').replace(/\//g, ' / ').replace(/\b\w/g, l => l.toUpperCase());
+            const containerId = `firma-${rol.replace(/\//g, '-')}`;
+
+            const sigWrapper = document.createElement('div');
+            sigWrapper.className = 'mb-4';
+            sigWrapper.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">${index + 1}. ${rolLabel}</h5>
+                    <span class="badge bg-secondary">Opcional</span>
+                </div>
+                <div id="${containerId}">
+                    <div class="signature-wrapper">
+                        <div class="signature-header">
+                            <div class="signature-label">
+                                <i class="bi bi-pen"></i>
+                                ${rolLabel}
+                            </div>
+                            <div class="signature-actions">
+                                <button type="button" class="signature-btn signature-btn-clear" id="clear-${rol.replace(/\//g, '-')}">
+                                    <i class="bi bi-trash3"></i>
+                                    <span class="signature-btn-text">Limpiar</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="signature-pad-container" style="height: 240px;">
+                            <canvas id="canvas-${rol.replace(/\//g, '-')}"></canvas>
+                            <div class="signature-placeholder">
+                                <i class="bi bi-pen"></i>
+                                <span>Firme aquí con su dedo o mouse (opcional)</span>
+                            </div>
+                            <div class="signature-validation-icon">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                        </div>
+                        <div class="signature-footer">
+                            <div class="signature-info">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Las firmas son opcionales en esta etapa. Puede firmar ahora o después.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            firmasContainer.appendChild(sigWrapper);
+
+            // Inicializar SignatureHandler con delay escalonado
+            setTimeout(() => {
+                try {
+                    const handler = new SignatureHandler({
+                        canvasId: `canvas-${rol.replace(/\//g, '-')}`,
+                        clearButtonId: `clear-${rol.replace(/\//g, '-')}`,
+                        options: {
+                            backgroundColor: 'rgba(250, 250, 250, 1)',
+                            penColor: '#000000',
+                            minWidth: 0.5,
+                            maxWidth: 2.5
+                        },
+                        onChange: (data) => {
+                            if (handler.isSignatureValid()) {
+                                firmasData[rol] = handler.getData();
+                            } else {
+                                delete firmasData[rol];
+                            }
+                        }
+                    });
+
+                    signaturePadInstances[rol] = handler;
+
+                    // Si ya hay una firma guardada, cargarla
+                    if (firmasData[rol]) {
+                        handler.setData(firmasData[rol]);
+                    }
+                } catch (error) {
+                    console.error(`Error al inicializar SignatureHandler para ${rol}:`, error);
+                }
+            }, 100 * index); // Delay para que se creen de forma escalonada
+        });
+    }
+
     // ----- Envío del formulario -----
     form.addEventListener('submit', (e) => {
+        // DEBUG: Log antes de recopilar firmas
+        console.log('[DEBUG] Pads de firma disponibles:', Object.keys(signaturePadInstances));
+        console.log('[DEBUG] firmasData antes de recopilar:', firmasData);
+
+        // Recopilar firmas actuales de los pads antes de enviar
+        Object.keys(signaturePadInstances).forEach(rol => {
+            const sig = signaturePadInstances[rol];
+            console.log(`[DEBUG] Verificando firma para rol "${rol}":`, {
+                exists: !!sig,
+                isValid: sig ? sig.isSignatureValid() : false
+            });
+            if (sig && sig.isSignatureValid()) {
+                const firmData = sig.getData();
+                firmasData[rol] = firmData;
+                console.log(`[DEBUG] Firma capturada para "${rol}":`, firmData ? firmData.substring(0, 50) + '...' : 'null');
+            }
+        });
+
+        console.log('[DEBUG] firmasData después de recopilar:', Object.keys(firmasData));
+        console.log('[DEBUG] Total de firmas:', Object.keys(firmasData).length);
+
         // Empaquetar arrays en campos ocultos para el backend
         document.getElementById('activos_data').value = JSON.stringify(activosAgregados);
         document.getElementById('accesorios_data').value = JSON.stringify(accesoriosPorActivo);
+        document.getElementById('firmas_data').value = JSON.stringify(firmasData);
 
-        // Normalizar Entrada/Salida para que Flask lo procese
+        console.log('[DEBUG] Campo firmas_data value:', document.getElementById('firmas_data').value.substring(0, 100));
+
+        // Normalizar tipo de movimiento para que Flask lo procese
         const selectedType = tipoSelect.value;
+        let hiddenTypeInput = form.querySelector('input[name="tipo_movimiento_form"]');
+        if (!hiddenTypeInput) {
+            hiddenTypeInput = document.createElement('input');
+            hiddenTypeInput.type = 'hidden';
+            hiddenTypeInput.name = 'tipo_movimiento';
+            form.appendChild(hiddenTypeInput);
+        }
         if (selectedType === 'Entrada' || selectedType === 'Salida') {
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = 'tipo_movimiento';
-            hidden.value = 'Entrada/Salida';
-            form.appendChild(hidden);
-            tipoSelect.name = ''; // Evitar envío del valor original del select
+            hiddenTypeInput.value = selectedType; // Enviar 'Entrada' o 'Salida'
         } else {
             tipoSelect.name = 'tipo_movimiento';
         }
@@ -825,5 +1209,317 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) el.style.display = 'none';
         });
 });
+
+    function toggleOtroMotivo(value) {
+        const otroInputGroup = document.getElementById('motivo_otro_es_group');
+        const otroInput = document.getElementById('motivo_otro_es');
+        if (value === 'Otro') {
+            otroInputGroup.style.display = 'block';
+            otroInput.required = true;
+        } else {
+            otroInputGroup.style.display = 'none';
+            otroInput.required = false;
+        }
+    }
+
+
+
+    // =====================================================================
+    // FUNCIONALIDAD DE AUTOCOMPLETADO DE FUNCIONARIOS
+    // =====================================================================
+    function setupAutocomplete(inputId, cedulaId, cargoId, areaId, centroCostoId) {
+        // Estilo James Gosling: Validación de pre-condiciones.
+        const input = document.getElementById(inputId);
+        if (!input) {
+            console.warn(`[Autocomplete] No se encontró el input con ID: ${inputId}`);
+            return;
+        }
+
+        const container = input.closest('.autocomplete-container');
+        if (!container) {
+            console.warn(`[Autocomplete] El input ${inputId} debe estar dentro de un div con clase 'autocomplete-container'`);
+            return;
+        }
+
+        let resultsContainer = container.querySelector('.ios-autocomplete-results');
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.className = 'ios-autocomplete-results';
+            resultsContainer.style.display = 'none';
+            container.appendChild(resultsContainer);
+        }
+
+        // Función robusta para manejar la búsqueda y renderizado
+        const handleSearch = async () => {
+            const term = input.value;
+            // No buscar si el término es muy corto. Permite al usuario borrar el campo.
+            if (term.length < 3) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            // Mostrar un indicador de carga (estilo Gosling: feedback al usuario)
+            resultsContainer.innerHTML = `<div class="ios-autocomplete-item"><span class="item-sublabel">Buscando...</span></div>`;
+            resultsContainer.style.display = 'block';
+
+            try {
+                const response = await fetch(`{{ url_for('funcionarios.buscar_funcionarios') }}?term=${encodeURIComponent(term)}`);
+                if (!response.ok) {
+                    throw new Error(`Error en la red: ${response.statusText}`);
+                }
+                const funcionarios = await response.json();
+
+                resultsContainer.innerHTML = '';
+                if (funcionarios.length > 0) {
+                    funcionarios.forEach(func => {
+                        const item = document.createElement('div');
+                        item.className = 'ios-autocomplete-item';
+                        item.innerHTML = `<div class="item-label">${func.label}</div><div class="item-sublabel">${func.sublabel}</div>`;
+                        
+                        // Evento para seleccionar un funcionario
+                        item.addEventListener('click', () => {
+                            document.getElementById(inputId).value = func.value; // Nombre y Apellido
+                            if (cedulaId) document.getElementById(cedulaId).value = func.cedula;
+                            if (cargoId) document.getElementById(cargoId).value = func.cargo;
+                            
+                            if (areaId) {
+                                let areaText = func.area || '';
+                                // El campo de área en Entrada/Salida es combinado
+                                if (inputId === 'solicitante_responsable_nombre') {
+                                    areaText = func.cargo ? `${func.cargo} / ${func.area}` : func.area;
+                                } 
+                                document.getElementById(areaId).value = areaText;
+                            }
+                            if (centroCostoId) document.getElementById(centroCostoId).value = func.centro_costo;
+                            
+                            resultsContainer.style.display = 'none';
+                        });
+                        resultsContainer.appendChild(item);
+                    });
+                } else {
+                    // Feedback claro si no hay resultados. Permite la entrada manual.
+                    resultsContainer.innerHTML = `<div class="ios-autocomplete-item"><span class="item-sublabel">No se encontraron funcionarios. Puede continuar con la entrada manual.</span></div>`;
+                }
+            } catch (error) {
+                console.error('[Autocomplete] Error en la búsqueda:', error);
+                resultsContainer.innerHTML = `<div class="ios-autocomplete-item"><span class="item-sublabel text-danger">Error al buscar. Verifique la conexión.</span></div>`;
+            }
+        };
+
+        input.addEventListener('input', debounce(handleSearch, 350));
+
+        // Ocultar resultados si se hace clic fuera
+        document.addEventListener('click', (e) => {
+            if (!container.contains(e.target)) {
+                resultsContainer.style.display = 'none';
+            }
+        });
+    }
+
+    // Inicializar autocompletado para los campos relevantes
+    // Acta de Entrega
+    setupAutocomplete('entrega_responsable_nombre', 'entrega_responsable_cc', 'entrega_responsable_cargo', 'entrega_responsable_area', null);
+    setupAutocomplete('recibe_responsable_nombre', 'recibe_responsable_cc', 'recibe_responsable_cargo', 'recibe_responsable_area', 'recibe_responsable_centro_costo');
+    // Acta de Traslado
+    setupAutocomplete('origen_responsable_nombre', 'origen_responsable_cc', 'origen_responsable_cargo', null, null);
+    setupAutocomplete('nuevo_responsable_nombre', 'nuevo_responsable_cc', 'nuevo_responsable_cargo', null, null);
+    // Acta de Entrada/Salida
+    setupAutocomplete('solicitante_responsable_nombre', 'solicitante_responsable_cc', 'solicitante_responsable_cargo_area', null, null);
+    setupAutocomplete('autorizado_por_nombre', null, 'autorizado_por_cargo', null, null);
+
+    // ==============================================================================
+    // MEJORAS ENTRADA/SALIDA - INTERACTIVIDAD DINÁMICA
+    // ==============================================================================
+
+    // 1. Mostrar/ocultar campo "Fecha Retorno Estimada" según tipo de operación
+    const radioEntrada = document.getElementById('op-es-entrada');
+    const radioSalida = document.getElementById('op-es-salida');
+    const fechaRetornoContainer = document.getElementById('fecha_retorno_container');
+    const fechaRetornoInput = document.getElementById('fecha_retorno_estimada');
+
+    function toggleFechaRetorno() {
+        if (radioSalida && radioSalida.checked) {
+            fechaRetornoContainer.style.display = 'block';
+            fechaRetornoInput.setAttribute('required', 'required');
+        } else {
+            fechaRetornoContainer.style.display = 'none';
+            fechaRetornoInput.removeAttribute('required');
+            fechaRetornoInput.value = ''; // Limpiar valor si se cambia a Entrada
+        }
+    }
+
+    if (radioEntrada && radioSalida) {
+        radioEntrada.addEventListener('change', toggleFechaRetorno);
+        radioSalida.addEventListener('change', toggleFechaRetorno);
+        // Ejecutar al cargar para establecer estado inicial
+        toggleFechaRetorno();
+    }
+
+    // 2. Gestión del selector de terceros
+    const terceroSelector = document.getElementById('tercero_selector');
+    const btnCargarTercero = document.getElementById('btn_cargar_tercero');
+    const terceroEntidadInput = document.getElementById('tercero_entidad_persona');
+    const terceroNitInput = document.getElementById('tercero_nit_cc');
+    const terceroDireccionInput = document.getElementById('tercero_direccion');
+    const terceroMovilInput = document.getElementById('tercero_movil');
+
+    // Habilitar/deshabilitar botón "Cargar Datos" según selección
+    if (terceroSelector && btnCargarTercero) {
+        terceroSelector.addEventListener('change', function() {
+            if (this.value) {
+                btnCargarTercero.disabled = false;
+            } else {
+                btnCargarTercero.disabled = true;
+            }
+        });
+
+        // Cargar datos del tercero seleccionado
+        btnCargarTercero.addEventListener('click', async function() {
+            const terceroId = terceroSelector.value;
+            if (!terceroId) return;
+
+            try {
+                // Mostrar indicador de carga
+                btnCargarTercero.innerHTML = '<i class="bi bi-hourglass-split"></i> Cargando...';
+                btnCargarTercero.disabled = true;
+
+                const response = await fetch(`{{ url_for('movimientos.get_tercero_api') }}?id=${terceroId}`);
+                if (!response.ok) {
+                    throw new Error('Error al cargar tercero');
+                }
+
+                const tercero = await response.json();
+
+                // Autocompletar campos
+                terceroEntidadInput.value = tercero.nombre_completo || '';
+                terceroNitInput.value = tercero.numero_documento || '';
+                terceroDireccionInput.value = tercero.direccion || '';
+                terceroMovilInput.value = tercero.telefono || '';
+
+                // Feedback visual
+                [terceroEntidadInput, terceroNitInput, terceroDireccionInput, terceroMovilInput].forEach(input => {
+                    input.classList.add('border-success');
+                    setTimeout(() => input.classList.remove('border-success'), 2000);
+                });
+
+                // Restaurar botón
+                btnCargarTercero.innerHTML = '<i class="bi bi-check-circle"></i> Datos Cargados';
+                setTimeout(() => {
+                    btnCargarTercero.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Cargar Datos';
+                    btnCargarTercero.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error al cargar tercero:', error);
+                alert('Error al cargar los datos del tercero. Por favor, inténtelo de nuevo.');
+                btnCargarTercero.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Cargar Datos';
+                btnCargarTercero.disabled = false;
+            }
+        });
+    }
+
+    // 3. Mostrar/ocultar campo "Otro" motivo (ya existe lógica similar, pero aseguramos)
+    const motivoSelect = document.getElementById('motivo_seleccionado');
+    const motivoOtroContainer = document.getElementById('motivo_otro_container');
+    const motivoOtroInput = document.querySelector('input[name="motivo_otro"]');
+
+    if (motivoSelect && motivoOtroContainer) {
+        motivoSelect.addEventListener('change', function() {
+            if (this.value === 'Otro') {
+                motivoOtroContainer.style.display = 'block';
+                if (motivoOtroInput) motivoOtroInput.setAttribute('required', 'required');
+            } else {
+                motivoOtroContainer.style.display = 'none';
+                if (motivoOtroInput) {
+                    motivoOtroInput.removeAttribute('required');
+                    motivoOtroInput.value = ''; // Limpiar valor
+                }
+            }
+        });
+    }
+
+    // ==============================================================================
+    // VALIDACIONES ADICIONALES PARA ENTRADA/SALIDA (FASE 3)
+    // ==============================================================================
+
+    // 4. Validación al enviar formulario (solo para tipo Entrada/Salida)
+    if (form && tipoSelect) {
+        form.addEventListener('submit', function(e) {
+            const tipoMovimiento = tipoSelect.value;
+
+            // Solo validar si es Entrada/Salida
+            if (tipoMovimiento === 'Entrada' || tipoMovimiento === 'Salida') {
+                let errores = [];
+
+                // Validar campos requeridos de Entrada/Salida
+                const ciudad = document.querySelector('select[name="ciudad"]');
+                const sede = document.querySelector('select[name="sede"]');
+                const terceroNombre = document.getElementById('tercero_entidad_persona');
+                const terceroNit = document.getElementById('tercero_nit_cc');
+
+                if (ciudad && !ciudad.value) {
+                    errores.push('• Ciudad es requerida');
+                    ciudad.classList.add('is-invalid');
+                }
+
+                if (sede && !sede.value) {
+                    errores.push('• Sede es requerida');
+                    sede.classList.add('is-invalid');
+                }
+
+                if (terceroNombre && !terceroNombre.value.trim()) {
+                    errores.push('• Nombre de Entidad/Persona (Tercero) es requerido');
+                    terceroNombre.classList.add('is-invalid');
+                }
+
+                if (terceroNit && !terceroNit.value.trim()) {
+                    errores.push('• NIT/Cédula del Tercero es requerido');
+                    terceroNit.classList.add('is-invalid');
+                }
+
+                // Validar fecha retorno solo para Salidas
+                if (tipoMovimiento === 'Salida') {
+                    const fechaRetorno = document.getElementById('fecha_retorno_estimada');
+                    if (fechaRetorno && !fechaRetorno.value) {
+                        errores.push('• Fecha de Retorno Estimada es requerida para Salidas');
+                        fechaRetorno.classList.add('is-invalid');
+                    }
+                }
+
+                // Validar motivo "Otro"
+                if (motivoSelect && motivoSelect.value === 'Otro') {
+                    if (motivoOtroInput && !motivoOtroInput.value.trim()) {
+                        errores.push('• Debe especificar el motivo cuando selecciona "Otro"');
+                        motivoOtroInput.classList.add('is-invalid');
+                    }
+                }
+
+                // Si hay errores, prevenir envío y mostrar alerta
+                if (errores.length > 0) {
+                    e.preventDefault();
+
+                    alert('Por favor corrija los siguientes errores antes de continuar:\n\n' + errores.join('\n'));
+
+                    // Scroll al primer campo con error
+                    const primerInvalido = document.querySelector('.is-invalid');
+                    if (primerInvalido) {
+                        primerInvalido.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        primerInvalido.focus();
+                    }
+                }
+            }
+        });
+
+        // Remover clase is-invalid al corregir el campo
+        document.querySelectorAll('input, select, textarea').forEach(field => {
+            field.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+            field.addEventListener('change', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+    }
 </script>
 {% endblock %}

@@ -1,0 +1,7 @@
+nombre_activo,placa_codigo_interno,marca,modelo,serie,ubicacion,clase_id,valor_comercial
+Equipo de Rayos X Portátil,EBM-001,Siemens,Mobilett XP,SN123456,Radiología Piso 2,1,45000000
+Computador Portátil Dell,TIC-001,Dell,Latitude 5420,DELL987654,Sistemas Piso 3,3,3500000
+Escritorio Ejecutivo,MUE-001,Rimax,Moderno 120,N/A,Dirección Piso 4,4,850000
+Monitor Signos Vitales (Sin valor),EBM-002,Philips,IntelliVue MP50,PH456789,UCI Piso 5,1,
+Impresora Multifuncional,TIC-002,HP,LaserJet Pro M428,HP112233,Administración Piso 1,3,
+Activo Fantasma Ejemplo,GHOST-001,Desconocido,N/A,N/A,Bodega Sótano,4,

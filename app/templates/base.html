@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="h-full" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,8 +26,27 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ubicacion_selector.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loader.css') }}">
+
+    <!-- SIN EFECTOS VISUALES - Aplicar ÚLTIMO para sobrescribir todo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sin-efectos-visuales.css') }}">
+
+    <!-- Initialize theme BEFORE page render to prevent flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (prefersDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
     {% block head_extra %}{% endblock %}
 </head>
 
@@ -41,104 +60,239 @@
 </li>
 {%- endmacro %}
 
-<body class="d-flex flex-column h-full">
+<body class="d-flex flex-column h-full" style="background: var(--ios-bg-primary);">
 
-    <!-- Navbar -->
-    <header class="shadow-sm">
-        <nav class="navbar navbar-expand-lg navbar-custom" aria-label="Menú principal">
-            <div class="container-fluid px-4">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
-                    <i class="bi bi-gear-wide-connected me-2 fs-4"></i>SG Activos Fijos
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
-                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" 
-                        aria-label="Alternar navegación">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <!-- iOS Navbar with Glassmorphism -->
+    <header style="position: sticky; top: 0; z-index: 1000;">
+        <nav class="ios-navbar" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--ios-separator); padding: 16px 24px;">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center justify-content-between">
+                    <!-- Logo -->
+                    <a class="text-decoration-none d-flex align-items-center" href="{{ url_for('main.index') }}" style="font-size: 20px; font-weight: 600; color: var(--ios-label-primary); letter-spacing: -0.02em;">
+                        <i class="bi bi-gear-wide-connected me-2" style="font-size: 24px; color: var(--ios-blue);"></i>
+                        <span class="d-none d-md-inline">SG Activos Fijos</span>
+                        <span class="d-inline d-md-none">SGAF</span>
+                    </a>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                        {{ nav_link('main.index', 'Dashboard', 'index') }}
-                        {{ nav_link('ver_activos', 'Inventario', 'ver_activos') }}
-                        {{ nav_link('ver_movimientos', 'Movimientos', 'ver_movimientos') }}
+                    <!-- Desktop Menu -->
+                    <div class="d-none d-lg-flex align-items-center gap-2">
+                        <a href="{{ url_for('main.index') }}" class="ios-btn-link {% if active_page == 'index' %}fw-semibold{% endif %}" style="padding: 8px 14px;">
+                            <i class="bi bi-house-door"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('activos_v2.listado') }}" class="ios-btn-link {% if active_page == 'ver_activos' %}fw-semibold{% endif %}" style="padding: 8px 14px;">
+                            <i class="bi bi-box-seam"></i> Inventario
+                        </a>
+                        <a href="{{ url_for('movimientos.ver_movimientos') }}" class="ios-btn-link {% if active_page == 'ver_movimientos' %}fw-semibold{% endif %}" style="padding: 8px 14px;">
+                            <i class="bi bi-arrows-move"></i> Movimientos
+                        </a>
+                        <a href="{{ url_for('proveedores.listar_proveedores') }}" class="ios-btn-link {% if active_page == 'listar_proveedores' %}fw-semibold{% endif %}" style="padding: 8px 14px;">
+                            <i class="bi bi-truck"></i> Proveedores
+                        </a>
 
-                        {% if session.get('rol') == 'admin' %}
-                        {{ nav_link('ver_proveedores', 'Proveedores', 'proveedores') }}
-                        {{ nav_link('ver_funcionarios', 'Funcionarios', 'funcionarios') }}
-                        {% endif %}
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {% if active_page in ['gestion_biomedicos', 'register', 'importar_activos'] %}active-link{% endif %}"
-                               href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Módulos Especiales
-                            </a>
-                            <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-2" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('biomedicos.index') }}">Gestión Biomédicos</a></li>
-                                {% if session.get('rol') == 'admin' %}
+                        {% if session.get('rol') == 'Admin' %}
+                        <div class="dropdown">
+                            <button class="ios-btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" style="padding: 8px 14px; border: none;">
+                                <i class="bi bi-grid-3x3-gap"></i> Más
+                            </button>
+                            <ul class="dropdown-menu" style="border-radius: var(--ios-radius-md); border: 0.5px solid var(--ios-separator); box-shadow: var(--ios-shadow-lg); padding: 8px; min-width: 200px;">
+                                <li><a class="dropdown-item" href="{{ url_for('reportes.index') }}" style="border-radius: var(--ios-radius-xs); padding: 10px 12px;"><i class="bi bi-file-bar-graph me-2"></i>Reportes</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('funcionarios.ver_funcionarios') }}" style="border-radius: var(--ios-radius-xs); padding: 10px 12px;"><i class="bi bi-people me-2"></i>Funcionarios</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('register') }}">Registrar Usuario</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('importar_activos') }}">Importar Activos (CSV)</a></li>
-                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('biomedicos.index') }}" style="border-radius: var(--ios-radius-xs); padding: 10px 12px;"><i class="bi bi-heart-pulse me-2"></i>Biomédicos</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('mantenimientos.index') }}" style="border-radius: var(--ios-radius-xs); padding: 10px 12px;"><i class="bi bi-tools me-2"></i>Mantenimientos</a></li>
                             </ul>
-                        </li>
-                    </ul>
+                        </div>
+                        {% endif %}
+                    </div>
 
-                    <!-- Usuario -->
-                    <div class="d-flex align-items-center">
+                    <!-- User & Mobile Menu -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Dark Mode Toggle -->
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar entre modo claro y oscuro">
+                            <div class="theme-toggle-slider">
+                                <i class="bi bi-sun-fill"></i>
+                                <i class="bi bi-moon-stars-fill"></i>
+                            </div>
+                        </button>
+
                         {% if current_user.is_authenticated %}
-                        <span class="navbar-text me-3 d-none d-lg-block fw-light">
-                            Hola, <strong>{{ session['username'] }}</strong>
+                        <span class="d-none d-lg-block ios-text-caption me-2">
+                            Hola, <strong class="ios-text-body">{{ session['username'] }}</strong>
                         </span>
-                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light rounded-pill px-3">
-                            <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
+                        <a href="{{ url_for('auth.logout') }}" class="ios-btn ios-btn-secondary ios-btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
                         </a>
                         {% else %}
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light rounded-pill px-3">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+                        <a href="{{ url_for('auth.login') }}" class="ios-btn ios-btn-primary ios-btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Ingresar
                         </a>
                         {% endif %}
+
+                        <!-- Mobile Menu Toggle -->
+                        <button class="ios-btn ios-btn-secondary ios-btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                            <i class="bi bi-list"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </nav>
     </header>
 
+    <!-- Mobile Menu Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" style="background: var(--ios-bg-secondary); border-left: 0.5px solid var(--ios-separator);">
+        <div class="offcanvas-header" style="border-bottom: 0.5px solid var(--ios-separator);">
+            <h5 class="ios-text-headline">Menú</h5>
+            <button type="button" class="ios-btn-link" data-bs-dismiss="offcanvas">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" style="padding: 0;">
+            <div class="ios-list" style="border: none;">
+                <a href="{{ url_for('main.index') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(0, 122, 255, 0.1);">
+                        <i class="bi bi-house-door" style="color: var(--ios-blue);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Dashboard</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{{ url_for('activos_v2.listado') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(52, 199, 89, 0.1);">
+                        <i class="bi bi-box-seam" style="color: var(--ios-green);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Inventario</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{{ url_for('movimientos.ver_movimientos') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(175, 82, 222, 0.1);">
+                        <i class="bi bi-arrows-move" style="color: var(--ios-purple);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Movimientos</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{{ url_for('proveedores.listar_proveedores') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(255, 149, 0, 0.1);">
+                        <i class="bi bi-truck" style="color: var(--ios-orange);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Proveedores</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                {% if session.get('rol') == 'Admin' %}
+                <a href="{{ url_for('reportes.index') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(255, 149, 0, 0.1);">
+                        <i class="bi bi-file-bar-graph" style="color: var(--ios-orange);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Reportes</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                <a href="{{ url_for('biomedicos.index') }}" class="ios-list-item text-decoration-none">
+                    <div class="ios-list-item-icon" style="background: rgba(255, 59, 48, 0.1);">
+                        <i class="bi bi-heart-pulse" style="color: var(--ios-red);"></i>
+                    </div>
+                    <div class="ios-list-item-content">
+                        <div class="ios-list-item-title">Gestión Biomédicos</div>
+                    </div>
+                    <div class="ios-list-item-accessory">
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Contenido -->
     <main class="flex-grow-1 py-4">
         <div class="container-fluid px-4">
+            <!-- iOS Flash Messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show flash-message custom-alert rounded-3 shadow-sm" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    {% set icon_map = {
+                        'success': 'check-circle-fill',
+                        'danger': 'x-circle-fill',
+                        'warning': 'exclamation-triangle-fill',
+                        'info': 'info-circle-fill'
+                    } %}
+                    {% set category_class = {
+                        'success': 'ios-notification-success',
+                        'danger': 'ios-notification-error',
+                        'warning': 'ios-notification-warning',
+                        'info': 'ios-notification-info'
+                    } %}
+                    <div class="ios-notification {{ category_class.get(category, 'ios-notification-info') }} mb-3" role="alert">
+                        <div class="ios-notification-icon">
+                            <i class="bi bi-{{ icon_map.get(category, 'info-circle-fill') }}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <strong>{{ category|title }}</strong>
+                            <p style="margin: 4px 0 0 0; font-size: 15px;">{{ message }}</p>
+                        </div>
+                        <button type="button" class="ios-btn-link" onclick="this.parentElement.remove()" style="padding: 4px;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            
+
             {% block content %}{% endblock %}
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-auto py-3 footer-custom border-top">
-        <div class="container text-center text-secondary">
-            <small>
-                Diseñado y mantenido por SIG Activos Fijos © <span id="year"></span>. 
-                Todos los derechos reservados.
-            </small>
+    <!-- iOS Footer -->
+    <footer class="mt-auto py-4" style="background: var(--ios-bg-secondary); border-top: 0.5px solid var(--ios-separator);">
+        <div class="container text-center">
+            <p class="ios-text-caption mb-2">
+                Diseñado y mantenido por <strong>SG Activos Fijos JEROSMART</strong>
+            </p>
+            <p class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                © <span id="year"></span> JEROSMART. Todos los derechos reservados.
+            </p>
         </div>
     </footer>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous" defer></script>
 
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Select2 for advanced search in selects -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Signature Pad -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js" defer></script>
+
     <!-- Custom Scripts -->
+    <script src="{{ url_for('static', filename='js/ubicacion_selector.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/loader.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-    
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

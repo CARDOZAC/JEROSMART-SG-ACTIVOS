@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Activo - {{ activo.nombre_activo }}{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wizard.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div id="asset-wizard-root"></div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- React 18 y ReactDOM desde CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone para transpilar JSX en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Wizard Component -->
+    <script type="text/babel" src="{{ url_for('static', filename='js/wizard_activos.jsx') }}?v={{ range(10000, 99999) | random }}"></script>
+
+    <!-- Inicialización del Wizard con datos del activo -->
+    <script type="text/babel">
+        // PARCHE TEMPORAL: Interceptar fetch para validar datos de atributos
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args).then(response => {
+                // Clonar la respuesta para poder leerla
+                const clonedResponse = response.clone();
+
+                // Si es la API de atributos, validar los datos
+                if (args[0] && args[0].includes('/activos/api/clase_atributos/')) {
+                    return clonedResponse.json().then(data => {
+                        console.log('🔍 PARCHE: Interceptando respuesta de atributos');
+                        console.log('📦 Data original:', data);
+
+                        // Filtrar elementos undefined, null o inválidos
+                        const dataLimpia = Array.isArray(data)
+                            ? data.filter(attr => {
+                                const esValido = attr && typeof attr === 'object' && attr.name && attr.label;
+                                if (!esValido) {
+                                    console.warn('⚠️ PARCHE: Elemento inválido filtrado:', attr);
+                                }
+                                return esValido;
+                            })
+                            : [];
+
+                        console.log('✅ PARCHE: Data limpia:', dataLimpia);
+                        console.log('📊 PARCHE: Elementos filtrados:', data.length - dataLimpia.length);
+
+                        // Retornar una nueva respuesta con los datos limpios
+                        return new Response(JSON.stringify(dataLimpia), {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    });
+                }
+
+                return response;
+            });
+        };
+
+        const assetData = {{ datos_activo_json | safe }};
+
+        const container = document.getElementById('asset-wizard-root');
+        if (container) {
+            const root = ReactDOM.createRoot(container);
+            root.render(<AssetWizard mode="edit" assetData={assetData} />);
+        }
+    </script>
+{% endblock %}

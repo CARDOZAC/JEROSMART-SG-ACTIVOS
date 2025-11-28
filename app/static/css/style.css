@@ -3,7 +3,7 @@
    ========================================================================== */
 /* Paleta de colores renovada: Profesional, limpia y moderna */
 :root {
-  /* --- Paleta de Colores Principal --- */
+  /* --- Paleta de Colores Principal (LIGHT MODE) --- */
   --color-background: #f4f7f9;       /* Un gris azulado muy claro, para el fondo general */
   --color-surface: #ffffff;         /* Blanco puro para tarjetas y superficies principales */
   --color-secondary-surface: #f8f9fa; /* Un blanco ligeramente apagado para variedad */
@@ -20,7 +20,7 @@
   --accent-blue-dark: #0a58ca;      /* Azul más oscuro para hovers de botones */
   --accent-green: #198754;          /* Verde para éxito */
   --accent-gold: #ffc107;           /* Amarillo para advertencias */
-  
+
   /* --- Variables de Estado (Badges, Alertas) --- */
   --color-success: var(--accent-green);
   --color-warning: var(--accent-gold);
@@ -33,6 +33,45 @@
   --card-shadow: 0 4px 12px rgba(var(--shadow-color-rgb), 0.08);
   --card-shadow-hover: 0 8px 24px rgba(var(--shadow-color-rgb), 0.12);
   --transition-speed: 0.3s;         /* Velocidad de transición unificada */
+}
+
+/* ==========================================================================
+   DARK MODE VARIABLES
+   ========================================================================== */
+[data-theme="dark"] {
+  /* --- Paleta de Colores Principal (DARK MODE) --- */
+  --color-background: #0d1117;      /* Fondo oscuro principal */
+  --color-surface: #161b22;         /* Superficies y tarjetas */
+  --color-secondary-surface: #1c2128; /* Superficies secundarias */
+  --color-border: #30363d;          /* Bordes sutiles */
+
+  /* --- Paleta de Texto --- */
+  --text-primary: #e6edf3;          /* Texto principal claro */
+  --text-secondary: #8b949e;        /* Texto secundario */
+  --text-on-accent: #ffffff;        /* Sin cambios */
+
+  /* --- Paleta de Acentos (ajustados para dark) --- */
+  --accent-blue: #58a6ff;           /* Azul más claro para contraste */
+  --accent-blue-soft: #1c2d4a;      /* Azul oscuro suave */
+  --accent-blue-dark: #79c0ff;      /* Azul más brillante */
+  --accent-green: #3fb950;          /* Verde brillante */
+  --accent-gold: #ffc107;           /* Sin cambios */
+
+  /* --- Variables de Estado --- */
+  --color-success: #3fb950;
+  --color-warning: #d29922;
+  --color-danger: #f85149;
+  --color-info: #58a6ff;
+
+  /* --- Sombras (más oscuras) --- */
+  --shadow-color-rgb: 0, 0, 0;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Transición suave al cambiar de tema */
+body, .card, .stat-card, .action-card, .navbar-custom {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ==========================================================================
@@ -94,27 +133,27 @@ body {
   margin-bottom: 3rem !important;
 }
 
-/* Botones con estilo pastel */
+/* Botones con estilo pastel - efectos reducidos 90% */
 .btn-primary {
     background-color: var(--accent-blue) !important;
     border-color: var(--accent-blue) !important;
     color: var(--text-on-accent) !important;
     font-weight: 600;
     border-radius: 0.75rem;
-    transition: all var(--transition-speed) ease;
-    box-shadow: 0 2px 4px rgba(var(--shadow-color-rgb), 0.1);
+    transition: none;
+    box-shadow: none;
 }
 .btn-primary:hover {
     background-color: var(--accent-blue-dark) !important;
     border-color: var(--accent-blue-dark) !important;
-    box-shadow: 0 4px 12px rgba(var(--shadow-color-rgb), 0.15);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 .btn-outline-primary {
     border-color: var(--accent-blue);
     color: var(--accent-blue);
     border-radius: 0.75rem;
-    transition: all var(--transition-speed) ease;
+    transition: none;
     font-weight: 600;
 }
 .btn-outline-primary:hover {
@@ -449,3 +488,264 @@ body {
   animation: fadeIn 0.6s ease-out forwards;
   opacity: 0;
 }
+
+/* ==========================================================================
+   5. ESTILOS WIZARD COMPONENT
+   ========================================================================== */
+
+/* Contenedor principal del wizard */
+.wizard-container {
+  background-color: var(--color-surface);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 900px;
+}
+
+/* Barra de progreso del wizard */
+.wizard-progress {
+  margin-bottom: 2rem;
+}
+
+.wizard-progress .progress {
+  height: 0.75rem;
+  border-radius: 1rem;
+  background-color: var(--color-border);
+  overflow: hidden;
+}
+
+.wizard-progress .progress-bar {
+  background-color: var(--accent-blue);
+  transition: width var(--transition-speed) ease;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+}
+
+/* Indicadores de pasos del wizard */
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+  position: relative;
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--color-border);
+  z-index: 0;
+}
+
+.wizard-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+  background-color: var(--color-background);
+  padding: 0 0.5rem;
+  min-width: 100px;
+  text-align: center;
+}
+
+.wizard-step-indicator i {
+  font-size: 2rem;
+  color: var(--text-secondary);
+  transition: all var(--transition-speed) ease;
+}
+
+.wizard-step-indicator span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-speed) ease;
+}
+
+/* Estado: Paso completado */
+.wizard-step-indicator.completed i {
+  color: var(--accent-green);
+}
+
+.wizard-step-indicator.completed span {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+/* Estado: Paso activo */
+.wizard-step-indicator.active i {
+  color: var(--accent-blue);
+  transform: scale(1.2);
+}
+
+.wizard-step-indicator.active span {
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+/* Contenedor de pasos del formulario */
+.wizard-step {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.wizard-step.wizard-step-active {
+  display: block;
+}
+
+.wizard-step.hidden {
+  display: none;
+}
+
+/* Botones de navegación del wizard */
+.wizard-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--color-border);
+}
+
+.wizard-navigation .btn {
+  min-width: 120px;
+}
+
+/* Etiquetas de información del wizard */
+.wizard-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.wizard-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.wizard-header p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive: Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+  .wizard-steps {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wizard-steps::before {
+    display: none;
+  }
+
+  .wizard-step-indicator {
+    flex-direction: row;
+    min-width: auto;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.75rem;
+    background-color: var(--color-surface);
+    border-radius: var(--card-radius);
+    box-shadow: 0 2px 4px rgba(var(--shadow-color-rgb), 0.05);
+  }
+
+  .wizard-step-indicator i {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+
+  .wizard-step-indicator span {
+    text-align: left;
+  }
+
+  .wizard-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .wizard-navigation .btn {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   DARK MODE TOGGLE BUTTON
+   ========================================================================== */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 60px;
+  height: 32px;
+  background-color: var(--color-border);
+  border-radius: 50px;
+  padding: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle:hover {
+  background-color: var(--accent-blue-soft);
+}
+
+[data-theme="dark"] .theme-toggle {
+  background-color: var(--accent-blue-dark);
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-surface);
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .theme-toggle-slider {
+  transform: translateX(28px);
+}
+
+.theme-toggle i {
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+}
+
+.theme-toggle .bi-sun-fill {
+  color: var(--accent-gold);
+  opacity: 1;
+}
+
+.theme-toggle .bi-moon-stars-fill {
+  color: var(--accent-blue);
+  opacity: 0;
+  position: absolute;
+}
+
+[data-theme="dark"] .theme-toggle .bi-sun-fill {
+  opacity: 0;
+}
+
+[data-theme="dark"] .theme-toggle .bi-moon-stars-fill {
+  opacity: 1;
+}
+

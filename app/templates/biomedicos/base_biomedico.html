@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-wizard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/biomedicos/hojas-vida.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1400px; padding: var(--ios-space-lg);">
+
+    <!-- Breadcrumb iOS -->
+    <nav aria-label="breadcrumb" style="margin-bottom: var(--ios-space-md);">
+        <ol class="breadcrumb" style="background: transparent; padding: 0;">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('main.index') }}" style="color: var(--ios-blue); text-decoration: none;">
+                    <i class="bi bi-house-door"></i> Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('biomedicos.index') }}" style="color: var(--ios-blue); text-decoration: none;">
+                    Gestión Biomédica
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% block breadcrumb_active %}{% endblock %}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Título de la página con estilo iOS -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 34px; font-weight: 700; color: var(--ios-label-primary); margin-bottom: 4px; letter-spacing: -0.02em;">
+                {% block page_title %}Gestión Biomédica{% endblock %}
+            </h1>
+            <p class="text-muted" style="font-size: var(--ios-font-size-subhead); margin: 0;">
+                {% block page_subtitle %}Sistema de gestión de equipos biomédicos{% endblock %}
+            </p>
+        </div>
+        <div>
+            {% block page_actions %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Contenido específico -->
+    {% block biomedico_content %}{% endblock %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-toast.css') }}">
+<script src="{{ url_for('static', filename='js/ios-toast.js') }}"></script>
+{% block biomedico_scripts %}{% endblock %}
+{% endblock %}

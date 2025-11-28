@@ -1,24 +1,226 @@
 <div id="seccion-paz-y-salvo" class="details-form">
   <h4 class="mb-3">Detalles del Acta de Paz y Salvo</h4>
 
+  <!-- Smart Employee Search -->
   <div class="row g-3">
-    <div class="col-12 position-relative">
-      <label class="form-label">Funcionario a desvincular <span class="text-danger">*</span></label>
-      <input type="text" id="funcionario-paz-y-salvo-search" class="form-control" placeholder="Buscar por nombre o cédula...">
-      <div id="funcionario-paz-y-salvo-search-results" class="list-group search-results mt-1"></div>
-      <input type="hidden" name="funcionario_id">
-    </div>
-
-    <div class="col-12 position-relative">
-      <label class="form-label">V° B° Quién recibe (Jefe Inmediato) <span class="text-danger">*</span></label>
-      <input type="text" id="jefe-inmediato-search" class="form-control" placeholder="Buscar por nombre o cédula...">
-      <div id="jefe-inmediato-search-results" class="list-group search-results mt-1"></div>
-      <input type="hidden" name="jefe_inmediato_id">
-    </div>
-
     <div class="col-12">
-      <label class="form-label">Observaciones</label>
-      <textarea name="observaciones_generales" class="form-control" rows="3"></textarea>
+      <div class="alert alert-info d-flex align-items-center">
+        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+        <div>
+          <strong>Búsqueda Inteligente:</strong> Escribe el nombre o cédula del funcionario a desvincular.
+          Los activos asignados se cargarán automáticamente.
+        </div>
+      </div>
     </div>
+
+    <div class="col-md-8 position-relative">
+      <label class="form-label fw-bold">
+        Funcionario a Desvincular
+        <span class="text-danger">*</span>
+      </label>
+      <input
+        type="text"
+        id="funcionario-paz-salvo-search"
+        class="form-control form-control-lg"
+        placeholder="🔍 Buscar por nombre o cédula..."
+        autocomplete="off"
+        required>
+      <div id="funcionario-paz-salvo-results" class="list-group search-results mt-1"></div>
+      <input type="hidden" name="funcionario_desvinculado_id" id="funcionario_desvinculado_id">
+      <input type="hidden" name="nombre_funcionario" id="nombre_funcionario">
+      <input type="hidden" name="cargo_funcionario" id="cargo_funcionario">
+      <input type="hidden" name="area_funcionario" id="area_funcionario">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label fw-bold">Fecha de Elaboración</label>
+      <input
+        type="date"
+        name="fecha_elaboracion_paz_salvo"
+        class="form-control form-control-lg"
+        required>
+    </div>
+
+    <!-- Employee Info Display (Auto-filled) -->
+    <div class="col-12" id="funcionario-info-display" style="display: none;">
+      <div class="card border-success">
+        <div class="card-header bg-success text-white">
+          <i class="bi bi-person-check-fill me-2"></i>
+          <strong>Funcionario Seleccionado</strong>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <p class="mb-1"><strong>Nombre:</strong></p>
+              <p id="display-nombre" class="text-muted">-</p>
+            </div>
+            <div class="col-md-4">
+              <p class="mb-1"><strong>Cédula:</strong></p>
+              <p id="display-cedula" class="text-muted">-</p>
+            </div>
+            <div class="col-md-4">
+              <p class="mb-1"><strong>Cargo:</strong></p>
+              <p id="display-cargo" class="text-muted">-</p>
+            </div>
+          </div>
+          <div class="row mt-2">
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Área:</strong></p>
+              <p id="display-area" class="text-muted">-</p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Activos Asignados:</strong></p>
+              <p id="display-activos-count" class="text-success fw-bold">0 activos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asset States Section -->
+    <div class="col-12 mt-4" id="estados-activos-section" style="display: none;">
+      <h5 class="fw-bold mb-3">
+        <i class="bi bi-clipboard-check me-2"></i>
+        Estado de los Activos
+      </h5>
+      <p class="text-muted mb-3">
+        Selecciona el estado actual de cada activo que el funcionario está devolviendo.
+      </p>
+
+      <div id="activos-estados-container" class="table-responsive">
+        <!-- Tabla dinámica se llenará con JavaScript -->
+      </div>
+    </div>
+
+    <!-- Additional Assets (Manual Add) -->
+    <div class="col-12 mt-4">
+      <div class="card border-warning">
+        <div class="card-header bg-warning bg-opacity-10">
+          <i class="bi bi-plus-circle me-2"></i>
+          <strong>Activos Adicionales (No Asignados Formalmente)</strong>
+        </div>
+        <div class="card-body">
+          <p class="text-muted mb-3">
+            Si el funcionario utilizaba activos que no estaban asignados formalmente a su nombre,
+            agrégalos aquí. Estos activos quedarán en custodia del departamento de activos fijos.
+          </p>
+          <button
+            type="button"
+            class="btn btn-outline-warning"
+            id="btn-agregar-activo-adicional">
+            <i class="bi bi-plus-lg me-1"></i>
+            Agregar Activo Adicional
+          </button>
+          <div id="activos-adicionales-container" class="mt-3">
+            <!-- Los activos adicionales se agregarán aquí -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observations -->
+    <div class="col-12 mt-4">
+      <label class="form-label fw-bold">
+        <i class="bi bi-chat-left-text me-2"></i>
+        Observaciones
+      </label>
+      <textarea
+        name="observaciones_paz_salvo"
+        class="form-control"
+        rows="4"
+        placeholder="Detalles adicionales sobre el estado de los activos, daños reportados, o notas importantes..."></textarea>
+      <div class="form-text">
+        Ejemplo: "El mouse presenta desgaste en el botón izquierdo. El monitor tiene una pequeña rayadura en la esquina superior."
+      </div>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="col-12 mt-4">
+      <div class="card border-primary">
+        <div class="card-header bg-primary text-white">
+          <i class="bi bi-clipboard-data me-2"></i>
+          <strong>Resumen del Paz y Salvo</strong>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-4">
+              <div class="p-3 bg-light rounded">
+                <h2 class="mb-0 text-success" id="summary-total-activos">0</h2>
+                <p class="text-muted mb-0">Total Activos</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 bg-light rounded">
+                <h2 class="mb-0 text-primary" id="summary-buenos">0</h2>
+                <p class="text-muted mb-0">Estado Bueno</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 bg-light rounded">
+                <h2 class="mb-0 text-danger" id="summary-malo-regular">0</h2>
+                <p class="text-muted mb-0">Requieren Atención</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden field for asset states -->
+    <input type="hidden" name="estados_activos_data" id="estados_activos_data">
   </div>
 </div>
+
+<style>
+/* Enhanced Search Results */
+.search-results {
+  position: absolute;
+  z-index: 1050;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.search-results .list-group-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-results .list-group-item:hover {
+  background-color: #f8f9fa;
+  border-left: 4px solid #0d6efd;
+}
+
+/* Asset State Table */
+.asset-state-row {
+  transition: background-color 0.2s ease;
+}
+
+.asset-state-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* State Radio Buttons */
+.estado-radio-group {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.estado-radio-group input[type="radio"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+/* Additional Assets */
+.activo-adicional-card {
+  border-left: 4px solid #ffc107;
+  transition: all 0.2s ease;
+}
+
+.activo-adicional-card:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>

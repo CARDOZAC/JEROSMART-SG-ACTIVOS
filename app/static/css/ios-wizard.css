@@ -1,0 +1,561 @@
+/**
+ * ========================================================================
+ * iOS WIZARD STYLES
+ * Estilos para el componente Wizard universal con diseño iOS
+ * ========================================================================
+ */
+
+/* ========================================================================
+   CONTENEDOR PRINCIPAL
+   ======================================================================== */
+.ios-wizard {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--ios-space-8);
+}
+
+/* ========================================================================
+   PROGRESS BAR
+   ======================================================================== */
+.wizard-progress {
+    margin-bottom: var(--ios-space-8);
+}
+
+.progress-track {
+    height: 4px;
+    background: var(--ios-gray-5);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: var(--ios-space-3);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--ios-blue) 0%, var(--ios-blue-dark) 100%);
+    border-radius: 2px;
+    transition: none;
+}
+
+.progress-text {
+    display: block;
+    text-align: center;
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-gray-1);
+    font-weight: 500;
+}
+
+/* ========================================================================
+   STEP DOTS (Indicadores de navegación)
+   ======================================================================== */
+.wizard-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--ios-space-3);
+    margin-bottom: var(--ios-space-8);
+}
+
+.wizard-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ios-gray-4);
+    transition: none;
+    cursor: pointer;
+}
+
+.wizard-dot.active {
+    width: 24px;
+    border-radius: 5px;
+    background: var(--ios-blue);
+}
+
+.wizard-dot.completed {
+    background: var(--ios-green);
+}
+
+.wizard-dot:hover {
+    /* Efecto hover removido */
+}
+
+/* ========================================================================
+   STEP CONTENT
+   ======================================================================== */
+.wizard-content {
+    position: relative;
+    min-height: 400px;
+}
+
+.wizard-step,
+.wizard-step-content {
+    animation: none;
+}
+
+.step-title,
+.wizard-step-title {
+    font-size: var(--ios-font-size-title1);
+    font-weight: 700;
+    margin-bottom: var(--ios-space-2);
+    color: #000;
+}
+
+.step-subtitle,
+.wizard-step-subtitle {
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-gray-1);
+    margin-bottom: var(--ios-space-6);
+    line-height: 1.5;
+}
+
+.step-body {
+    margin-bottom: var(--ios-space-6);
+}
+
+/* ========================================================================
+   NAVIGATION BUTTONS
+   ======================================================================== */
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--ios-space-8);
+    gap: var(--ios-space-4);
+}
+
+.btn-wizard {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: var(--ios-radius-md);
+    border: none;
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    font-family: var(--ios-font-family);
+    cursor: pointer;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ios-space-2);
+}
+
+.btn-back {
+    background: var(--ios-gray-6);
+    color: var(--ios-blue);
+}
+
+.btn-back:hover {
+    background: var(--ios-gray-5);
+    transform: translateX(-4px);
+}
+
+.btn-next,
+.btn-finish {
+    background: var(--ios-blue);
+    color: white;
+    box-shadow: 0 2px 8px 0 rgba(0, 122, 255, 0.3);
+}
+
+.btn-next:hover,
+.btn-finish:hover {
+    background: var(--ios-blue-dark);
+    box-shadow: 0 4px 16px 0 rgba(0, 122, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-wizard:active {
+    transform: scale(0.96);
+    transition: all var(--ios-duration-fast) var(--ios-easing);
+}
+
+.btn-wizard:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ========================================================================
+   FORM ELEMENTS DENTRO DEL WIZARD
+   ======================================================================== */
+.wizard-step .form-group {
+    margin-bottom: var(--ios-space-5);
+}
+
+.wizard-step .form-label {
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 500;
+    color: var(--ios-gray-1);
+    margin-bottom: var(--ios-space-2);
+    display: block;
+}
+
+.wizard-step .form-control,
+.wizard-step .form-select {
+    font-family: var(--ios-font-family);
+    font-size: var(--ios-font-size-body);
+    padding: 12px 16px;
+    border-radius: var(--ios-radius-md);
+    border: 1px solid var(--ios-gray-5);
+    background: white;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+    width: 100%;
+}
+
+.wizard-step .form-control:focus,
+.wizard-step .form-select:focus {
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+.wizard-step .form-control.is-invalid,
+.wizard-step .form-select.is-invalid {
+    border-color: var(--ios-red);
+    box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1);
+}
+
+.wizard-step .form-check-input {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--ios-gray-4);
+    transition: all var(--ios-duration-fast) var(--ios-easing);
+}
+
+.wizard-step .form-check-input:checked {
+    background-color: var(--ios-blue);
+    border-color: var(--ios-blue);
+}
+
+.wizard-step .form-check-label {
+    font-size: var(--ios-font-size-body);
+    margin-left: var(--ios-space-2);
+}
+
+/* ========================================================================
+   ANIMACIONES (Removidas - Efectos reducidos 90%)
+   ======================================================================== */
+/* @keyframes slideInFromRight - removida */
+/* @keyframes slideInFromLeft - removida */
+/* @keyframes fadeIn - removida */
+
+/* ========================================================================
+   CARDS DENTRO DEL WIZARD (para opciones seleccionables)
+   ======================================================================== */
+.wizard-option-card {
+    background: var(--ios-glass-bg);
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 1.5px solid var(--ios-gray-5);
+    border-radius: var(--ios-radius-lg);
+    padding: var(--ios-space-5);
+    cursor: pointer;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+    margin-bottom: var(--ios-space-4);
+}
+
+.wizard-option-card:hover {
+    border-color: var(--ios-blue);
+    background: var(--ios-glass-bg-light);
+    transform: translateY(-2px);
+    box-shadow: var(--ios-shadow-md);
+}
+
+.wizard-option-card.selected {
+    border-color: var(--ios-blue);
+    background: rgba(0, 122, 255, 0.1);
+}
+
+.wizard-option-card .option-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--ios-space-3);
+    color: var(--ios-blue);
+}
+
+.wizard-option-card .option-title {
+    font-size: var(--ios-font-size-title3);
+    font-weight: 600;
+    margin-bottom: var(--ios-space-2);
+}
+
+.wizard-option-card .option-description {
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-gray-1);
+}
+
+/* ========================================================================
+   SUMMARY VIEW (Resumen al final del wizard)
+   ======================================================================== */
+.wizard-summary {
+    background: var(--ios-glass-bg);
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 1px solid var(--ios-glass-border);
+    border-radius: var(--ios-radius-lg);
+    padding: var(--ios-space-6);
+    margin-bottom: var(--ios-space-6);
+}
+
+.wizard-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--ios-space-4) 0;
+    border-bottom: 0.5px solid var(--ios-gray-5);
+}
+
+.wizard-summary-item:last-child {
+    border-bottom: none;
+}
+
+.wizard-summary-label {
+    font-size: var(--ios-font-size-subhead);
+    color: var(--ios-gray-1);
+    font-weight: 500;
+}
+
+.wizard-summary-value {
+    font-size: var(--ios-font-size-body);
+    font-weight: 600;
+    color: #000;
+}
+
+/* ========================================================================
+   RESPONSIVE
+   ======================================================================== */
+@media (max-width: 768px) {
+    .ios-wizard {
+        padding: var(--ios-space-4);
+    }
+
+    .step-title {
+        font-size: var(--ios-font-size-title2);
+    }
+
+    .wizard-nav {
+        flex-direction: column;
+    }
+
+    .btn-wizard {
+        width: 100%;
+    }
+
+    .btn-back {
+        order: 2;
+    }
+
+    .btn-next,
+    .btn-finish {
+        order: 1;
+    }
+}
+
+/* ========================================================================
+   UTILIDADES ESPECÍFICAS
+   ======================================================================== */
+.wizard-help-text {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-gray-1);
+    margin-top: var(--ios-space-1);
+}
+
+.wizard-error-text {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-red);
+    margin-top: var(--ios-space-1);
+}
+
+.wizard-section-divider {
+    height: 1px;
+    background: var(--ios-gray-5);
+    margin: var(--ios-space-6) 0;
+}
+
+.wizard-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ios-space-8);
+}
+
+.wizard-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--ios-gray-5);
+    border-top-color: var(--ios-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ========================================================================
+   ENHANCED INPUT COMPONENTS (iOS Style)
+   ======================================================================== */
+.enhanced-input-group {
+    margin-bottom: var(--ios-space-5);
+    position: relative;
+}
+
+.enhanced-label {
+    display: block;
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 500;
+    color: #000;
+    margin-bottom: var(--ios-space-2);
+}
+
+.required-star {
+    color: var(--ios-red);
+    margin-left: 2px;
+}
+
+.enhanced-input,
+.enhanced-select,
+.enhanced-textarea {
+    width: 100%;
+    font-family: var(--ios-font-family);
+    font-size: var(--ios-font-size-body);
+    padding: 12px 16px;
+    border-radius: var(--ios-radius-md);
+    border: 1px solid var(--ios-gray-5);
+    background: white;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.enhanced-input:focus,
+.enhanced-select:focus,
+.enhanced-textarea:focus {
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+.enhanced-input-group.has-error .enhanced-input,
+.enhanced-input-group.has-error .enhanced-select,
+.enhanced-input-group.has-error .enhanced-textarea {
+    border-color: var(--ios-red);
+}
+
+.enhanced-input-group.has-error .enhanced-input:focus,
+.enhanced-input-group.has-error .enhanced-select:focus,
+.enhanced-input-group.has-error .enhanced-textarea:focus {
+    box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1);
+}
+
+.input-error-message {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-red);
+    margin-top: var(--ios-space-1);
+    font-weight: 500;
+}
+
+.input-underline {
+    display: none; /* No se usa en diseño iOS */
+}
+
+/* Select específico con flecha personalizada */
+.enhanced-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M8 10.5L3.5 6h9L8 10.5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* ========================================================================
+   FORM GRID (Layout responsivo iOS)
+   ======================================================================== */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ios-space-4);
+}
+
+@media (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid .full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ========================================================================
+   PROPERTY TYPE CARDS (Selector de tipo de propiedad)
+   ======================================================================== */
+.property-type-selector {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ios-space-4);
+    margin-bottom: var(--ios-space-6);
+}
+
+@media (min-width: 768px) {
+    .property-type-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.property-type-card {
+    background: var(--ios-glass-bg);
+    backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(var(--ios-saturation));
+    border: 1.5px solid var(--ios-gray-5);
+    border-radius: var(--ios-radius-lg);
+    padding: var(--ios-space-6);
+    cursor: pointer;
+    transition: all var(--ios-duration-normal) var(--ios-easing);
+    text-align: center;
+}
+
+.property-type-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--ios-blue);
+}
+
+.property-type-card.selected {
+    background: rgba(0, 122, 255, 0.05);
+    border-color: var(--ios-blue);
+    border-width: 2px;
+}
+
+.property-type-icon {
+    font-size: 48px;
+    color: var(--ios-blue);
+    margin-bottom: var(--ios-space-3);
+}
+
+.property-type-card h3 {
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    margin-bottom: var(--ios-space-2);
+    color: #000;
+}
+
+.property-type-card p {
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-gray-1);
+    margin-bottom: var(--ios-space-2);
+}
+
+.property-type-card small {
+    font-size: var(--ios-font-size-footnote);
+}
+
+/* ========================================================================
+   ALERTAS Y MENSAJES
+   ======================================================================== */
+.error-message {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-red);
+    margin-top: var(--ios-space-2);
+    font-weight: 500;
+    padding: var(--ios-space-2) var(--ios-space-3);
+    background: rgba(255, 59, 48, 0.1);
+    border-radius: var(--ios-radius-sm);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

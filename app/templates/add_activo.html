@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ 'Editar Activo' if modo_edicion else 'Agregar Nuevo Activo' }}
+{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wizard-clean.css') }}">
+{% endblock %}
+
+
+{% block content %}
+
+    <div
+        id="asset-wizard-root"
+        data-mode="{% if modo_edicion %}edit{% else %}create{% endif %}"
+        {% if modo_edicion and datos_activo_json %}
+        data-asset-json='{{ datos_activo_json | safe }}'
+        {% endif %}
+    ></div>
+{% endblock %}
+
+{% block scripts %}
+    <!--
+      NOTA DE OPTIMIZACIÓN (Estilo James Gosling):
+      Para un entorno de producción, se recomienda encarecidamente pre-compilar los archivos JSX
+      a JavaScript estándar (ES5/ES6) durante un proceso de build (ej. con Webpack, Vite o Parcel)
+      en lugar de usar Babel Standalone en el navegador. La transpilación en el cliente
+      introduce una latencia significativa en el renderizado inicial y consume recursos innecesarios.
+      Un sistema pre-compilado es más robusto, eficiente y seguro.
+    -->
+
+    <!-- React 18 y ReactDOM desde CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone para transpilar JSX en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Cargar el JSX del wizard mediante fetch e inyectarlo -->
+    <script>
+        (async function loadWizard() {
+            try {
+                // Cargar el código JSX
+                const response = await fetch("{{ url_for('static', filename='js/wizard_activos_v3.jsx') }}?v={{ range(100000, 999999) | random }}");
+                const jsxCode = await response.text();
+
+                // Transpilar y ejecutar
+                const transformedCode = Babel.transform(jsxCode, {
+                    presets: ['react']
+                }).code;
+
+                // Ejecutar el código transpilado
+                eval(transformedCode);
+
+                // Inicializar el wizard
+                const container = document.getElementById('asset-wizard-root');
+                if (container && typeof AssetWizard !== 'undefined') {
+                    const mode = container.dataset.mode || 'create';
+                    let assetData = null;
+
+                    if (mode === 'edit' && container.dataset.assetJson) {
+                        try {
+                            assetData = JSON.parse(container.dataset.assetJson);
+                        } catch (e) {
+                            console.error("Error al parsear datos del activo:", e);
+                        }
+                    }
+
+                    const root = ReactDOM.createRoot(container);
+                    root.render(React.createElement(AssetWizard, { mode: mode, assetData: assetData }));
+                    console.log('✅ Wizard inicializado correctamente');
+                } else if (!container) {
+                    console.error('❌ Container #asset-wizard-root no encontrado');
+                } else {
+                    console.error('❌ AssetWizard no está definido después de transpilar');
+                }
+            } catch (error) {
+                console.error('❌ Error cargando wizard:', error);
+            }
+        })();
+    </script>
+{% endblock %}

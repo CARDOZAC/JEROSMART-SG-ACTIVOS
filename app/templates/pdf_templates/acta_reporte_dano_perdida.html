@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Daño o Pérdida de Activo Fijo</title>
+    <style>
+        @page {
+            size: Letter;
+            margin: 15mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 7.5pt;
+            line-height: 1.1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* HEADER */
+        .header-table td {
+            border: 1px solid #000;
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+
+        .logo-cell {
+            width: 90px;
+            text-align: center;
+        }
+
+        .logo-img {
+            width: 70px;
+            height: auto;
+            max-height: 48px;
+        }
+
+        .header-center {
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .title1 { font-size: 9.5pt; }
+        .title2 { font-size: 8pt; }
+        .title3 { font-size: 8.5pt; margin-top: 2px; }
+
+        .header-right {
+            width: 155px;
+            font-size: 6.5pt;
+            line-height: 1.35;
+        }
+
+        /* INTRO */
+        .intro-section {
+            margin: 8px 0;
+        }
+
+        .intro-title {
+            font-weight: bold;
+            font-size: 8pt;
+            margin-bottom: 3px;
+        }
+
+        .intro-text {
+            font-size: 6.5pt;
+            line-height: 1.2;
+            text-align: justify;
+        }
+
+        /* FORM */
+        .info-row {
+            display: table;
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .info-cell {
+            display: table-cell;
+            padding: 2px 0;
+            font-size: 7pt;
+        }
+
+        .info-label {
+            font-weight: bold;
+            display: inline;
+        }
+
+        .info-value {
+            display: inline;
+            border-bottom: 1px solid #000;
+            padding: 0 3px;
+            min-width: 100px;
+        }
+
+        /* CHECKBOXES */
+        .checkbox-section {
+            margin: 8px 0;
+        }
+
+        .checkbox-table {
+            width: 100%;
+        }
+
+        .checkbox-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: top;
+            font-size: 7pt;
+        }
+
+        .checkbox-header {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 7.5pt;
+        }
+
+        .checkbox-item {
+            margin: 2px 0;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .checkbox {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border: 1px solid #000;
+            margin-right: 3px;
+            text-align: center;
+            line-height: 8px;
+            font-size: 7pt;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* ASSET TABLE */
+        .asset-table {
+            margin: 8px 0;
+            font-size: 7pt;
+        }
+
+        .asset-table th {
+            background-color: #d9d9d9;
+            border: 1px solid #000;
+            padding: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .asset-table td {
+            border: 1px solid #000;
+            padding: 3px;
+            text-align: center;
+        }
+
+        /* SIGNATURES */
+        .signature-section {
+            margin-top: 15px;
+            page-break-inside: avoid;
+        }
+
+        .signature-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .signature-cell {
+            display: table-cell;
+            width: 50%;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 25px;
+            padding-top: 3px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            font-size: 7.5pt;
+        }
+
+        .signature-role {
+            font-size: 6.5pt;
+            color: #333;
+        }
+
+        .signature-id {
+            font-size: 6.5pt;
+            color: #333;
+        }
+
+        /* EMPHASIS */
+        .text-danger {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .text-warning {
+            color: #f57c00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+            </td>
+            <td class="header-center">
+                <div class="title1">CORPORACIÓN CLINICA PRIMAVERA</div>
+                <div class="title2">GESTIÓN DE ACTIVOS FIJOS</div>
+                <div class="title3">REPORTE DE DAÑO O PÉRDIDA DE ACTIVO FIJO</div>
+            </td>
+            <td class="header-right">
+                <div><strong>Código:</strong> AF-FM-DP-001</div>
+                <div><strong>Versión:</strong> 1.0</div>
+                <div><strong>Fecha:</strong> {{ fecha_actual }}</div>
+                <div><strong>Consecutivo:</strong> {{ consecutivo_movimiento }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- INTRO -->
+    <div class="intro-section">
+        <div class="intro-title">INFORMACIÓN DEL REPORTE</div>
+        <div class="intro-text">
+            El presente documento tiene como finalidad reportar formalmente un incidente relacionado con daño o pérdida
+            de un activo fijo propiedad de la Corporación Clínica Primavera. La información contenida permitirá
+            gestionar adecuadamente las acciones correctivas o preventivas necesarias para mitigar el impacto del incidente.
+        </div>
+    </div>
+
+    <!-- TIPO DE REPORTE -->
+    <div class="checkbox-section">
+        <table class="checkbox-table">
+            <tr>
+                <td>
+                    <div class="checkbox-header">TIPO DE REPORTE</div>
+                    <div class="checkbox-item">
+                        <span class="checkbox">{{ 'X' if reporte_tipo == 'Daño' else '' }}</span>
+                        <span>Daño del Activo</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <span class="checkbox">{{ 'X' if reporte_tipo == 'Pérdida' else '' }}</span>
+                        <span>Pérdida del Activo</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- FECHA Y UBICACIÓN DEL INCIDENTE -->
+    <div class="info-row">
+        <div class="info-cell" style="width: 33%;">
+            <span class="info-label">Fecha del Incidente:</span>
+            <span class="info-value">{{ fecha_incidente }}</span>
+        </div>
+        <div class="info-cell" style="width: 33%;">
+            <span class="info-label">Hora:</span>
+            <span class="info-value">{{ hora_incidente }}</span>
+        </div>
+        <div class="info-cell" style="width: 34%;">
+            <span class="info-label">Área/Servicio:</span>
+            <span class="info-value">{{ area_incidente }}</span>
+        </div>
+    </div>
+
+    <div class="info-row">
+        <div class="info-cell">
+            <span class="info-label">Ubicación Específica:</span>
+            <span class="info-value">{{ ubicacion_especifica }}</span>
+        </div>
+    </div>
+
+    <!-- ACTIVO AFECTADO -->
+    <div class="intro-title" style="margin-top: 10px; margin-bottom: 5px;">ACTIVO AFECTADO</div>
+    <table class="asset-table">
+        <thead>
+            <tr>
+                <th style="width: 10%;">No.</th>
+                <th style="width: 15%;">Placa</th>
+                <th style="width: 35%;">Nombre del Activo</th>
+                <th style="width: 15%;">Marca</th>
+                <th style="width: 15%;">Modelo</th>
+                <th style="width: 10%;">Serie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>{{ placa_codigo_interno }}</td>
+                <td>{{ nombre_activo }}</td>
+                <td>{{ marca }}</td>
+                <td>{{ modelo }}</td>
+                <td>{{ numero_serie }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- DESCRIPCIÓN DEL INCIDENTE -->
+    <div class="intro-title" style="margin-top: 10px; margin-bottom: 5px;">DESCRIPCIÓN DEL INCIDENTE</div>
+    <div style="border: 1px solid #000; padding: 5px; font-size: 7pt; min-height: 50px; text-align: justify;">
+        {{ descripcion_incidente }}
+    </div>
+
+    <!-- CAUSA DEL INCIDENTE -->
+    <div class="checkbox-section">
+        <table class="checkbox-table">
+            <tr>
+                <td>
+                    <div class="checkbox-header">CAUSA DEL INCIDENTE</div>
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Uso inadecuado' in causas_incidente else '' }}</span>
+                                <span>Uso inadecuado</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Accidente' in causas_incidente else '' }}</span>
+                                <span>Accidente</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Fallo del equipo' in causas_incidente else '' }}</span>
+                                <span>Fallo del equipo</span>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Robo' in causas_incidente else '' }}</span>
+                                <span>Robo</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Extravío' in causas_incidente else '' }}</span>
+                                <span>Extravío</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Desgaste natural' in causas_incidente else '' }}</span>
+                                <span>Desgaste natural</span>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Negligencia' in causas_incidente else '' }}</span>
+                                <span>Negligencia</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <span class="checkbox">{{ 'X' if 'Otro' in causas_incidente else '' }}</span>
+                                <span>Otro: {{ causa_incidente_otro or '' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ESTADO Y COSTO -->
+    <div class="info-row">
+        <div class="info-cell" style="width: 33%;">
+            <span class="info-label">Estado Actual:</span>
+            <span class="info-value">{{ estado_activo }}</span>
+        </div>
+        <div class="info-cell" style="width: 33%;">
+            <span class="info-label">Req. Reparación:</span>
+            <span class="info-value">{{ requiere_reparacion }}</span>
+        </div>
+        <div class="info-cell" style="width: 34%;">
+            <span class="info-label">Costo Estimado:</span>
+            <span class="info-value">{% if costo_estimado %}${{ '{:,.2f}'.format(costo_estimado) }}{% endif %}</span>
+        </div>
+    </div>
+
+    <div class="info-row">
+        <div class="info-cell">
+            <span class="info-label">Garantía Vigente:</span>
+            <span class="info-value">{{ garantia_vigente }}</span>
+        </div>
+    </div>
+
+    <!-- QUIEN REPORTA -->
+    <div class="intro-title" style="margin-top: 10px; margin-bottom: 5px;">DATOS DE QUIEN REPORTA</div>
+    <div class="info-row">
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Nombre Completo:</span>
+            <span class="info-value">{{ responsable_reporte_nombre }}</span>
+        </div>
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Cédula:</span>
+            <span class="info-value">{{ responsable_reporte_cc }}</span>
+        </div>
+    </div>
+    <div class="info-row">
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Cargo:</span>
+            <span class="info-value">{{ responsable_reporte_cargo }}</span>
+        </div>
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Área:</span>
+            <span class="info-value">{{ responsable_reporte_area }}</span>
+        </div>
+    </div>
+    <div class="info-row">
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Teléfono:</span>
+            <span class="info-value">{{ responsable_reporte_telefono }}</span>
+        </div>
+        <div class="info-cell" style="width: 50%;">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ responsable_reporte_email }}</span>
+        </div>
+    </div>
+
+    <!-- ACCIONES TOMADAS -->
+    <div class="intro-title" style="margin-top: 10px; margin-bottom: 5px;">ACCIONES TOMADAS</div>
+    <div style="border: 1px solid #000; padding: 5px; font-size: 7pt; min-height: 40px; text-align: justify;">
+        {{ acciones_tomadas }}
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div class="intro-title" style="margin-top: 10px; margin-bottom: 5px;">OBSERVACIONES ADICIONALES</div>
+    <div style="border: 1px solid #000; padding: 5px; font-size: 7pt; min-height: 40px; text-align: justify;">
+        {{ observaciones_adicionales }}
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="signature-section">
+        <div class="signature-row">
+            <div class="signature-cell">
+                {% if firmas['Responsable_Reporte'] %}
+                <div style="text-align: center; margin-bottom: 5px;">
+                    <img src="{{ firmas['Responsable_Reporte']['firma_path'] }}"
+                         alt="Firma"
+                         style="max-width: 150px; max-height: 50px;">
+                </div>
+                {% endif %}
+                <div class="signature-line">
+                    <div class="signature-name">{{ firmas['Responsable_Reporte']['nombre'] if firmas.get('Responsable_Reporte') else '___________________________' }}</div>
+                    <div class="signature-role">Quien Reporta (Responsable del Activo)</div>
+                    <div class="signature-id">CC: {{ firmas['Responsable_Reporte']['cedula'] if firmas.get('Responsable_Reporte') else '____________' }}</div>
+                </div>
+            </div>
+            <div class="signature-cell">
+                {% if firmas['Soporte_Tecnico'] %}
+                <div style="text-align: center; margin-bottom: 5px;">
+                    <img src="{{ firmas['Soporte_Tecnico']['firma_path'] }}"
+                         alt="Firma"
+                         style="max-width: 150px; max-height: 50px;">
+                </div>
+                {% endif %}
+                <div class="signature-line">
+                    <div class="signature-name">{{ firmas['Soporte_Tecnico']['nombre'] if firmas.get('Soporte_Tecnico') else '___________________________' }}</div>
+                    <div class="signature-role">Soporte Técnico</div>
+                    <div class="signature-id">CC: {{ firmas['Soporte_Tecnico']['cedula'] if firmas.get('Soporte_Tecnico') else '____________' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="signature-row">
+            <div class="signature-cell">
+                {% if firmas['Jefe_Area'] %}
+                <div style="text-align: center; margin-bottom: 5px;">
+                    <img src="{{ firmas['Jefe_Area']['firma_path'] }}"
+                         alt="Firma"
+                         style="max-width: 150px; max-height: 50px;">
+                </div>
+                {% endif %}
+                <div class="signature-line">
+                    <div class="signature-name">{{ firmas['Jefe_Area']['nombre'] if firmas.get('Jefe_Area') else '___________________________' }}</div>
+                    <div class="signature-role">Jefe del Área</div>
+                    <div class="signature-id">CC: {{ firmas['Jefe_Area']['cedula'] if firmas.get('Jefe_Area') else '____________' }}</div>
+                </div>
+            </div>
+            <div class="signature-cell">
+                {% if firmas['VoBo_Activos_Fijos'] %}
+                <div style="text-align: center; margin-bottom: 5px;">
+                    <img src="{{ firmas['VoBo_Activos_Fijos']['firma_path'] }}"
+                         alt="Firma"
+                         style="max-width: 150px; max-height: 50px;">
+                </div>
+                {% endif %}
+                <div class="signature-line">
+                    <div class="signature-name">{{ firmas['VoBo_Activos_Fijos']['nombre'] if firmas.get('VoBo_Activos_Fijos') else '___________________________' }}</div>
+                    <div class="signature-role">Vo.Bo. Responsable Activos Fijos</div>
+                    <div class="signature-id">CC: {{ firmas['VoBo_Activos_Fijos']['cedula'] if firmas.get('VoBo_Activos_Fijos') else '____________' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 6pt; text-align: center; color: #666;">
+        Documento generado electrónicamente por el Sistema de Gestión de Activos Fijos | Corporación Clínica Primavera<br>
+        Fecha de generación: {{ fecha_actual }} | Este documento tiene validez legal conforme a la Ley 527 de 1999
+    </div>
+</body>
+</html>

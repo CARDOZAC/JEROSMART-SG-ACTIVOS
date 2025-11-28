@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(timeout:*)",
+      "Bash(dir \"C:\\Users\\david\\SIG MOVIMIENTOS ACTIVOS FIJOS\\app\\auth\\templates\")",
+      "Bash(dir:*)",
+      "Bash(tree /F \"C:\\Users\\david\\SIG MOVIMIENTOS ACTIVOS FIJOS\\app\\auth\\templates\")",
+      "Bash(./venv/Scripts/python.exe:*)",
+      "Bash(estructura_bd_mysql.txt)",
+      "Bash(set DB_TYPE=mysql)",
+      "Bash(set DB_USER=root)",
+      "Bash(set DB_PASSWORD=JeroNimoDaviLex9824.)",
+      "Bash(set:*)",
+      "Bash(venvScriptspython.exe actualizar_ubicaciones.py \"C:\\Users\\david\\Downloads\\ajenos200.csv\")",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(ipconfig:*)",
+      "Bash(venvScriptspython.exe analizar_activos_faltantes.py)",
+      "Bash(.venvScriptspython.exe analizar_activos_faltantes.py)",
+      "Bash(cd:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

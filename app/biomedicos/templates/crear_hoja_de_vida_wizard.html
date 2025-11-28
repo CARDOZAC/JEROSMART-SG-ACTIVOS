@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Hoja de Vida de Equipo Biomédico{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="wizard-container">
+        <!-- Barra de progreso -->
+        <div class="wizard-progress">
+            <div class="progress">
+                <div id="wizard-progress-bar" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Paso 1 de 4</div>
+            </div>
+        </div>
+
+        <!-- Indicadores de paso -->
+        <div id="wizard-step-indicator" class="wizard-steps"></div>
+
+        <!-- Formulario del Wizard -->
+        <form id="wizard-form" class="mt-4">
+            <!-- Paso 1: Datos Generales -->
+            <div id="step-1" class="wizard-step">
+                <h3 class="mb-4">Paso 1: Datos Generales</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="equipo" class="form-label">Equipo</label>
+                        <input type="text" class="form-control" id="equipo" name="equipo" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="marca" class="form-label">Marca</label>
+                        <input type="text" class="form-control" id="marca" name="marca">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="modelo" class="form-label">Modelo</label>
+                        <input type="text" class="form-control" id="modelo" name="modelo">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="serie" class="form-label">Serie</label>
+                        <input type="text" class="form-control" id="serie" name="serie">
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="servicio" class="form-label">Servicio</label>
+                        <input type="text" class="form-control" id="servicio" name="servicio">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="ubicacion" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="ubicacion" name="ubicacion">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: Datos de Adquisición -->
+            <div id="step-2" class="wizard-step hidden">
+                <h3 class="mb-4">Paso 2: Datos de Adquisición</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="distribuidor" class="form-label">Distribuidor</label>
+                        <input type="text" class="form-control" id="distribuidor" name="distribuidor">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="costo" class="form-label">Costo</label>
+                        <input type="number" class="form-control" id="costo" name="costo">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+                        <input type="date" class="form-control" id="fecha_ingreso" name="fecha_ingreso">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="vencimiento_garantia" class="form-label">Vencimiento Garantía</label>
+                        <input type="date" class="form-control" id="vencimiento_garantia" name="vencimiento_garantia">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 3: Datos Técnicos -->
+            <div id="step-3" class="wizard-step hidden">
+                <h3 class="mb-4">Paso 3: Datos Técnicos</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="voltaje" class="form-label">Voltaje</label>
+                        <input type="text" class="form-control" id="voltaje" name="voltaje">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="frecuencia" class="form-label">Frecuencia</label>
+                        <input type="text" class="form-control" id="frecuencia" name="frecuencia">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="potencia" class="form-label">Potencia</label>
+                        <input type="text" class="form-control" id="potencia" name="potencia">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="peso" class="form-label">Peso</label>
+                        <input type="text" class="form-control" id="peso" name="peso">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 4: Mantenimiento y Documentos -->
+            <div id="step-4" class="wizard-step hidden">
+                <h3 class="mb-4">Paso 4: Mantenimiento y Documentos</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="periodicidad_mantenimiento" class="form-label">Periodicidad Mantenimiento</label>
+                        <input type="text" class="form-control" id="periodicidad_mantenimiento" name="periodicidad_mantenimiento">
+                    </div>
+                    <div class="col-md-6 mb-3 form-check mt-5">
+                        <input type="checkbox" class="form-check-input" id="requiere_calibracion" name="requiere_calibracion">
+                        <label class="form-check-label" for="requiere_calibracion">Requiere Calibración</label>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-3">
+                        <label for="foto_url" class="form-label">Foto del Equipo</label>
+                        <input type="file" class="form-control" id="foto_url" name="foto_url">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="wizard-navigation mt-4">
+                <button type="button" id="wizard-btn-prev" class="btn btn-secondary">Anterior</button>
+                <button type="button" id="wizard-btn-next" class="btn btn-primary">Siguiente</button>
+                <button type="submit" id="wizard-btn-submit" class="btn btn-success hidden">Finalizar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Helper to show loading state
+    function showLoading(isloading) {
+        const nextBtn = document.getElementById('wizard-btn-next');
+        const submitBtn = document.getElementById('wizard-btn-submit');
+        if (isloading) {
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Finalizando...';
+        } else {
+            nextBtn.disabled = false;
+            nextBtn.innerHTML = 'Siguiente';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Finalizar';
+        }
+    }
+
+    // Helper to show error messages
+    function showError(message) {
+        // You can implement a more sophisticated error display mechanism here
+        alert(message);
+    }
+
+    const wizard = new WizardComponent({
+        steps: [
+            {
+                id: 'step-1',
+                title: 'Datos Generales',
+                validate: () => {
+                    const equipo = document.getElementById('equipo').value;
+                    if (!equipo) {
+                        showError('El campo "Equipo" es obligatorio.');
+                        return false;
+                    }
+                    return true;
+                },
+                onSave: () => {
+                    return {
+                        equipo: document.getElementById('equipo').value,
+                        marca: document.getElementById('marca').value,
+                        modelo: document.getElementById('modelo').value,
+                        serie: document.getElementById('serie').value,
+                        servicio: document.getElementById('servicio').value,
+                        ubicacion: document.getElementById('ubicacion').value,
+                    };
+                }
+            },
+            {
+                id: 'step-2',
+                title: 'Adquisición',
+                onSave: () => {
+                    return {
+                        distribuidor: document.getElementById('distribuidor').value,
+                        costo: document.getElementById('costo').value,
+                        fecha_ingreso: document.getElementById('fecha_ingreso').value,
+                        vencimiento_garantia: document.getElementById('vencimiento_garantia').value,
+                    };
+                }
+            },
+            {
+                id: 'step-3',
+                title: 'Datos Técnicos',
+                onSave: () => {
+                    return {
+                        voltaje: document.getElementById('voltaje').value,
+                        frecuencia: document.getElementById('frecuencia').value,
+                        potencia: document.getElementById('potencia').value,
+                        peso: document.getElementById('peso').value,
+                    };
+                }
+            },
+            {
+                id: 'step-4',
+                title: 'Mantenimiento',
+                onSave: () => {
+                    return {
+                        periodicidad_mantenimiento: document.getElementById('periodicidad_mantenimiento').value,
+                        requiere_calibracion: document.getElementById('requiere_calibracion').checked,
+                    };
+                }
+            }
+        ],
+        onStepChange: async (fromIndex, toIndex, data) => {
+            if (toIndex > fromIndex) { // Moving forward
+                showLoading(true);
+                try {
+                    const response = await fetch('/api/wizard/hoja-vida/step', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        showError(result.message);
+                        showLoading(false);
+                        return false; // Prevent moving to the next step
+                    }
+                } catch (error) {
+                    showError('Ocurrió un error de conexión.');
+                    showLoading(false);
+                    return false; // Prevent moving to the next step
+                }
+                showLoading(false);
+            }
+            return true; // Allow step change
+        },
+        onComplete: async (data) => {
+            showLoading(true);
+            const formData = new FormData();
+            
+            // Append all data to FormData
+            for (const step in data) {
+                for (const key in data[step]) {
+                    formData.append(key, data[step][key]);
+                }
+            }
+
+            const foto = document.getElementById('foto_url').files[0];
+            if (foto) {
+                formData.append('foto_activo', foto);
+            }
+
+            try {
+                const response = await fetch('/api/wizard/hoja-vida/finish', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = "{{ url_for('biomedicos.index') }}";
+                } else {
+                    showError('Error al crear la hoja de vida: ' + result.message);
+                }
+            } catch (error) {
+                showError('Ocurrió un error de conexión.');
+            } finally {
+                showLoading(false);
+            }
+        }
+    });
+
+    // Initial call to start the wizard
+    (async () => {
+        const activo_id = {{ activo_id|tojson }};
+        try {
+            const response = await fetch('/api/wizard/hoja-vida/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ activo_id: activo_id })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                showError(result.message);
+                // Disable the wizard if it fails to start
+                document.getElementById('wizard-form').style.display = 'none';
+            }
+        } catch (error) {
+            showError('Ocurrió un error de conexión al iniciar el wizard.');
+            document.getElementById('wizard-form').style.display = 'none';
+        }
+    })();
+});
+</script>
+{% endblock %}

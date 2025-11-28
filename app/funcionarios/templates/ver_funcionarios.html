@@ -7,18 +7,25 @@
     <div class="section-card">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="h3 mb-0"><i class="bi bi-people-fill me-2"></i>Gestión de Funcionarios</h2>
-            <a href="{{ url_for('add_funcionario') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Agregar Funcionario</a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('funcionarios.importar_csv') }}" class="btn btn-success">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Importar CSV
+                </a>
+                <a href="{{ url_for('funcionarios.add_funcionario') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i> Agregar Funcionario
+                </a>
+            </div>
         </div>
 
         <div class="card-body p-0">
             <div class="filter-bar mb-4">
-                <form method="GET" action="{{ url_for('ver_funcionarios') }}" class="row g-2">
+                <form method="GET" action="{{ url_for('funcionarios.ver_funcionarios') }}" class="row g-2">
                     <div class="col-md-9">
                         <input type="text" name="q" id="q" value="{{ query }}" class="form-control" placeholder="Buscar por nombre, apellido o cédula...">
                     </div>
                     <div class="col-md-3 d-flex">
                         <button type="submit" class="btn btn-primary w-100 me-2"><i class="bi bi-search"></i> Buscar</button>
-                        <a href="{{ url_for('ver_funcionarios') }}" class="btn btn-secondary" title="Limpiar búsqueda"><i class="bi bi-x-lg"></i></a>
+                        <a href="{{ url_for('funcionarios.ver_funcionarios') }}" class="btn btn-secondary" title="Limpiar búsqueda"><i class="bi bi-x-lg"></i></a>
                     </div>
                 </form>
             </div>
@@ -44,10 +51,10 @@
                             <td>{{ f.cargo }}</td>
                             <td>{{ f.area }}</td>
                             <td class="text-center">
-                                <a href="{{ url_for('edit_funcionario', funcionario_id=f.id) }}" class="btn btn-secondary btn-sm" title="Editar Funcionario">
+                                <a href="{{ url_for('funcionarios.edit_funcionario', funcionario_id=f.id) }}" class="btn btn-secondary btn-sm" title="Editar Funcionario">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <form action="#" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar a este funcionario?');">
+                                <form action="{{ url_for('funcionarios.delete_funcionario', funcionario_id=f.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar a este funcionario?');">
                                     <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar Funcionario">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>

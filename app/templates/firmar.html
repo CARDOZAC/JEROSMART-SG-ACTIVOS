@@ -2,46 +2,71 @@
 {% block title %}Asistente de Firmas - Movimiento #{{ movimiento.id }}{% endblock %}
 
 {% block head_extra %}
-<style>
-    /* Estilos del asistente de firmas */
-    .wizard-progress-bar {display:flex;list-style:none;padding:0;margin:0 0 2rem 0}
-    .wizard-progress-bar .step{flex:1;text-align:center;position:relative;font-weight:600;color:var(--text-secondary)}
-    .wizard-progress-bar .step .icon{display:block;width:40px;height:40px;line-height:38px;border-radius:50%;background:var(--color-surface);border:2px solid var(--color-border);margin:0 auto .5rem auto;transition: all 0.3s ease;}
-    .wizard-progress-bar .step.active{color:var(--accent-blue-dark)}
-    .wizard-progress-bar .step.active .icon{background:var(--accent-blue-dark);border-color:var(--accent-blue-dark);color:var(--text-on-accent)}
-    .wizard-progress-bar .step.completed{color:var(--color-success)}
-    .wizard-progress-bar .step.completed .icon{background:var(--color-success);border-color:var(--color-success);color:var(--text-on-accent)}
-    .wizard-progress-bar .step:not(:last-child)::after{content:'';position:absolute;top:20px;left:50%;width:100%;height:2px;background:var(--color-border);transform:translateX(1.25rem);z-index:-1;transition: background 0.3s ease;}
-    .wizard-progress-bar .step.completed:not(:last-child)::after{background:var(--color-success)}
-
-    .wizard-content .wizard-pane{display:none}
-    .wizard-content .wizard-pane.active{display:block;animation:fadeIn .4s ease-out}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-    /* Contenedor del pad de firma */
-    .signature-pad-container{border:2px dashed var(--color-border);border-radius:.5rem;height:250px;background:var(--color-background);cursor:crosshair;position:relative}
-    .signature-pad-container.is-invalid{border-color:var(--color-danger)}
-    .signature-pad-container canvas{position:absolute;inset:0;width:100%;height:100%}
-    .signature-image-container{display:flex;flex-direction:column;justify-content:center;align-items:center;height:250px;padding:.5rem;gap:.5rem}
-    .signature-image{max-height:200px;max-width:100%;border:1px solid var(--color-border);border-radius:.5rem}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/signature_wizard.css') }}">
 {% endblock %}
 
 {% block content %}
-<div id="signature-data"
-      data-post-url="{{ url_for('main.firmar_movimiento', movimiento_id=movimiento.id) }}"
-      data-delete-base="{{ url_for('main.firmar_movimiento', movimiento_id=movimiento.id) }}"
-      data-roles='{{ roles_requeridos | tojson | safe }}'
-      data-firmas='{{ firmas_guardadas | tojson | safe }}'
-      style="display:none"></div>
-
 <div class="container my-4">
+
+    <!-- Details Section -->
+    <div class="card p-4 mb-4 shadow-sm">
+        <h3 class="h5">
+            <i class="bi bi-file-text me-2"></i>
+            Detalles del Movimiento de {{ movimiento.tipo_movimiento }} #{{ movimiento.id }}
+        </h3>
+        <p class="text-muted">Fecha: {{ movimiento.fecha.strftime('%d/%m/%Y %H:%M') if movimiento.fecha else 'N/A' }}</p>
+        
+        {% if activos_con_accesorios %}
+            <h4 class="h6 mt-3">Activos Involucrados</h4>
+            <ul class="list-group mb-3">
+                {% for item in activos_con_accesorios %}
+                <li class="list-group-item">
+                    <strong>{{ item.activo.nombre_activo }}</strong> (Placa: {{ item.activo.placa_codigo_interno or 'N/A' }})
+                    {% if item.accesorios %}
+                        <ul class="small mt-2" style="list-style-type: disc; padding-left: 20px;">
+                        {% for acc in item.accesorios %}
+                            <li>{{ acc.descripcion }} (Cantidad: {{ acc.cantidad }})</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    
+        {% if detalles %}
+            <h4 class="h6 mt-3">Información Adicional</h4>
+            <div class="p-3 bg-light rounded">
+            {% if movimiento.tipo_movimiento == 'Traslado' %}
+                <p class="mb-1"><strong>Ubicación Origen:</strong> {{ detalles.ubicacion_inicial or 'N/A' }}</p>
+                <p class="mb-1"><strong>Ubicación Destino:</strong> {{ detalles.ubicacion_final or 'N/A' }}</p>
+                <p class="mb-1"><strong>Responsable Origen:</strong> {{ detalles.origen_responsable_nombre or 'N/A' }}</p>
+                <p class="mb-0"><strong>Nuevo Responsable:</strong> {{ detalles.nuevo_responsable_nombre or 'N/A' }}</p>
+            {% elif movimiento.tipo_movimiento == 'Entrega' %}
+                 <p class="mb-1"><strong>Proveedor:</strong> {{ detalles.proveedor.razon_social if detalles.proveedor else 'N/A' }}</p>
+                 <p class="mb-1"><strong>Factura:</strong> {{ detalles.factura or 'N/A' }}</p>
+                 <p class="mb-1"><strong>Quien Entrega:</strong> {{ detalles.quien_entrega_nombre or 'N/A' }}</p>
+                 <p class="mb-0"><strong>Quien Recibe:</strong> {{ detalles.quien_recibe_nombre or 'N/A' }}</p>
+            {% elif movimiento.tipo_movimiento == 'Entrada/Salida' %}
+                <p class="mb-1"><strong>Operación:</strong> {{ detalles.tipo_operacion or 'N/A' }}</p>
+                <p class="mb-1"><strong>Tercero:</strong> {{ detalles.tercero_entidad_persona or 'N/A' }} ({{ detalles.tercero_nit_cc or 'N/A' }})</p>
+                <p class="mb-1"><strong>Motivo:</strong> {{ detalles.motivo or 'N/A' }}</p>
+                {% if detalles.motivo_otro %}<p class="mb-0"><strong>Otro Motivo:</strong> {{ detalles.motivo_otro }}</p>{% endif %}
+            {% elif movimiento.tipo_movimiento == 'Paz y Salvo' and detalles.funcionario_desvinculado %}
+                <p class="mb-1"><strong>Funcionario:</strong> {{ detalles.funcionario_desvinculado.nombres }} {{ detalles.funcionario_desvinculado.apellidos }}</p>
+                <p class="mb-0"><strong>Cédula:</strong> {{ detalles.funcionario_desvinculado.cedula }}</p>
+            {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card p-4 p-md-5 shadow-sm">
+            <form id="form-firmas" class="card p-4 p-md-5 shadow-sm">
                 <div class="text-center mb-4">
                     <h2 class="h3">
-                        <i class="bi bi-pen-fill me-2" style="color:var(--accent-blue-dark)"></i>
+                        <i class="bi bi-pen-fill me-2"></i>
                         Asistente de Firmas: {{ movimiento.tipo_movimiento }}
                     </h2>
                     <p class="text-muted">Movimiento ID: #{{ movimiento.id }}</p>
@@ -51,12 +76,10 @@
                     <ol class="wizard-progress-bar">
                         {% for rol in roles_requeridos %}
                         <li class="step" data-step-id="{{ loop.index0 }}">
-                            <span class="icon"><i class="bi bi-pencil"></i></span>
                             {{ rol.replace('_', ' ') | title }}
                         </li>
                         {% endfor %}
                         <li class="step" data-step-id="{{ roles_requeridos|length }}">
-                            <span class="icon"><i class="bi bi-check2-all"></i></span>
                             Finalizado
                         </li>
                     </ol>
@@ -65,247 +88,210 @@
                 <div class="wizard-content mt-4">
                     {% for rol in roles_requeridos %}
                     <div class="wizard-pane" data-pane-id="{{ loop.index0 }}">
-                        <h4 class="text-center mb-3">Firma de: <strong>{{ rol.replace('_', ' ') | title }}</strong></h4>
-                        <div class="signature-content-container" id="content-{{ rol }}"></div>
+                        <div class="signature-wrapper">
+                            <h4 class="text-center mb-3">Firma de: <strong>{{ rol.replace('_', ' ') | title }}</strong></h4>
+                            <div class="mb-3">
+                                <label for="nombre-{{ rol }}" class="form-label">Nombre Completo</label>
+                                <input type="text" id="nombre-{{ rol }}" class="form-control" placeholder="Ingrese su nombre completo" required>
+                            </div>
+                            <div class="signature-pad-container">
+                                <canvas id="canvas-{{ rol }}"></canvas>
+                                <div class="signature-placeholder">
+                                    <i class="bi bi-pencil-fill"></i>
+                                    <span>Firme aquí</span>
+                                </div>
+                            </div>
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="consent-{{ rol }}" required>
+                                <label class="form-check-label" for="consent-{{ rol }}">
+                                    Acepto los términos y condiciones.
+                                </label>
+                            </div>
+                            <div class="signature-actions mt-3">
+                                <button type="button" class="btn btn-outline-secondary clear-button" data-canvas-id="canvas-{{ rol }}">Limpiar</button>
+                                <button type="button" class="btn btn-primary save-button" data-rol="{{ rol }}">
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                    Guardar
+                                </button>
+                                <div class="saved-state" style="display: none;">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span>Guardado</span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="firma_{{ rol }}" id="data-{{ rol }}">
+                        </div>
                     </div>
                     {% endfor %}
                     <div class="wizard-pane text-center" data-pane-id="{{ roles_requeridos|length }}">
                         <div class="p-4 bg-light rounded">
-                            <i class="bi bi-check-circle-fill text-success" style="font-size:4rem"></i>
-                            <h3 class="mt-3">¡Proceso Completado!</h3>
-                            <p class="text-muted">Todas las firmas han sido recolectadas. Ahora puedes generar el documento final o volver al listado.</p>
-                            <a href="{{ url_for('movimientos.generar_acta_pdf', movimiento_id=movimiento.id) }}" target="_blank" id="generate-pdf-btn" class="btn btn-success btn-lg mt-3">
-                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Generar PDF
-                            </a>
+                            <h3>¡Proceso Completado!</h3>
+                            <p>Todas las firmas han sido recolectadas.</p>
+                            <button type="submit" class="btn btn-success btn-lg">Finalizar</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="d-flex justify-content-between mt-4 pt-4 border-top">
-                    <button id="wizard-prev-btn" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Anterior</button>
-                    <button id="wizard-next-btn" class="btn btn-primary">Siguiente<i class="bi bi-arrow-right ms-1"></i></button>
+                    <button type="button" id="wizard-prev-btn" class="btn btn-outline-secondary">Anterior</button>
+                    <button type="button" id="wizard-next-btn" class="btn btn-primary">Siguiente</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/signature_handler.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-    const dataEl = document.getElementById('signature-data');
-    if (!dataEl) return;
-
-    const rolesRequeridos = JSON.parse(dataEl.dataset.roles || '[]');
-    const firmasGuardadas = JSON.parse(dataEl.dataset.firmas || '{}');
-    const postUrl = dataEl.dataset.postUrl;
-    const deleteBase = dataEl.dataset.deleteBase;
+document.addEventListener('DOMContentLoaded', function() {
+    const rolesRequeridos = {{ roles_requeridos | tojson | safe }};
     const totalSteps = rolesRequeridos.length;
-
     let currentStep = 0;
+    const pads = {};
+    const firmasGuardadas = {};
 
     const prevBtn = document.getElementById('wizard-prev-btn');
     const nextBtn = document.getElementById('wizard-next-btn');
-
-    function qsAll(sel){return Array.from(document.querySelectorAll(sel));}
-    function paneByIndex(idx){return document.querySelector(`.wizard-pane[data-pane-id="${idx}"]`);}
+    const form = document.getElementById('form-firmas');
 
     function showStep(stepIndex) {
         currentStep = stepIndex;
 
-        // Paneles
-        qsAll('.wizard-pane').forEach(p => p.classList.remove('active'));
-        const activePane = paneByIndex(stepIndex);
+        document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
+        const activePane = document.querySelector(`.wizard-pane[data-pane-id="${stepIndex}"]`);
         if (activePane) activePane.classList.add('active');
 
-        // Lógica para montar el pad o la imagen
-        if (stepIndex < totalSteps) {
-            const rol = rolesRequeridos[stepIndex];
-            const contentContainer = document.getElementById(`content-${rol}`);
-            if (contentContainer && contentContainer.innerHTML.trim() === '') {
-                initializeStepContent(rol);
-            }
-            // Redimensionar canvas tras volver visible el pane
-            if (contentContainer && typeof contentContainer.resizeCanvas === 'function') {
-                requestAnimationFrame(() => contentContainer.resizeCanvas());
-            }
-        }
-
-        // Barra de progreso
-        const stepsEls = qsAll('.wizard-progress-bar .step');
-        stepsEls.forEach((stepEl, i) => {
-            stepEl.classList.remove('active', 'completed');
-            const icon = stepEl.querySelector('.icon');
-            const isLastFinalStep = i === totalSteps;
-
-            if (i < stepIndex) {
-                stepEl.classList.add('completed');
-                if (icon) icon.innerHTML = '<i class="bi bi-check"></i>';
-            } else if (i === stepIndex) {
-                stepEl.classList.add('active');
-                if (icon) icon.innerHTML = isLastFinalStep ? '<i class="bi bi-check2-all"></i>' : '<i class="bi bi-pencil"></i>';
-            } else {
-                if (icon) icon.innerHTML = isLastFinalStep ? '<i class="bi bi-check2-all"></i>' : '<i class="bi bi-pencil"></i>';
-            }
+        document.querySelectorAll('.wizard-progress-bar .step').forEach((stepEl, i) => {
+            stepEl.classList.toggle('active', i === stepIndex);
         });
-        
-        // Manejo de botones de navegación
+
         prevBtn.disabled = stepIndex === 0;
         nextBtn.style.display = stepIndex >= totalSteps ? 'none' : 'inline-flex';
-    }
-
-    function initializeStepContent(rol) {
-        if (firmasGuardadas && firmasGuardadas[rol]) {
-            renderSignedView(rol, firmasGuardadas[rol]);
-        } else {
-            renderSignaturePad(rol);
-        }
-    }
-
-    function renderSignaturePad(rol) {
-        const content = document.getElementById(`content-${rol}`);
-        if (!content) return;
-
-        content.innerHTML = `
-            <div class="signature-pad-container mb-2"><canvas></canvas></div>
-            <div class="text-end">
-                <button type="button" class="btn btn-sm btn-link text-muted clear-signature">Limpiar</button>
-            </div>
-        `;
-
-        const canvas = content.querySelector('canvas');
-        const pad = new SignaturePad(canvas, { backgroundColor: 'rgb(248, 249, 250)' });
-
-        // Fix de DPI y tamaño real del contenedor
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            const container = canvas.parentElement;
-            const w = container.offsetWidth;
-            const h = container.offsetHeight;
-            if (w > 0 && h > 0) {
-                canvas.width = w * ratio;
-                canvas.height = h * ratio;
-                const ctx = canvas.getContext('2d');
-                ctx.scale(ratio, ratio);
-                pad.clear();
+        
+        if (stepIndex < totalSteps) {
+            const rol = rolesRequeridos[stepIndex];
+            if (!pads[rol]) {
+                const canvas = document.getElementById(`canvas-${rol}`);
+                pads[rol] = initializeSignaturePad(canvas.id);
+                
+                pads[rol].addEventListener("beginStroke", () => {
+                    canvas.parentElement.classList.add('signed');
+                });
             }
         }
-        
-        // Redimensionar al cargar y al cambiar tamaño de la ventana
-        window.addEventListener('resize', resizeCanvas);
-        requestAnimationFrame(resizeCanvas);
-
-        content.querySelector('.clear-signature').addEventListener('click', () => pad.clear());
-        content.signaturePadInstance = pad;
-        content.resizeCanvas = resizeCanvas;
     }
 
-    function renderSignedView(rol, imageUrl) {
-        const content = document.getElementById(`content-${rol}`);
-        if (!content) return;
-
-        content.innerHTML = `
-            <div class="signature-image-container">
-                <img src="${imageUrl}" alt="Firma de ${rol}" class="signature-image">
-                <button class="btn btn-sm btn-outline-danger mt-2 resign-btn" data-rol="${rol}">
-                    <i class="bi bi-trash3 me-1"></i>Re-firmar
-                </button>
-            </div>
-        `;
-        content.querySelector('.resign-btn').addEventListener('click', handleResign);
-    }
-
-    function handleNext() {
-        if (currentStep >= totalSteps) return;
-
-        const rol = rolesRequeridos[currentStep];
-        const content = document.getElementById(`content-${rol}`);
-        
-        // Si ya está firmada, simplemente pasa al siguiente paso
-        if (firmasGuardadas[rol]) {
-            showStep(currentStep + 1);
-            return;
-        }
-
-        const pad = content.signaturePadInstance;
-        if (!pad || pad.isEmpty()) {
-            content.querySelector('.signature-pad-container')?.classList.add('is-invalid');
-            return;
-        }
-
-        // Deshabilita los botones mientras se guarda
-        nextBtn.disabled = true;
-        prevBtn.disabled = true;
-        nextBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
-
-        const dataURL = pad.toDataURL('image/png');
-        fetch(postUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ rol_firma: rol, signature: dataURL })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.success) {
-                firmasGuardadas[rol] = data.image_url;
-                renderSignedView(rol, data.image_url);
-                showStep(currentStep + 1);
-            } else {
-                flashMessage(data && data.message ? data.message : 'Error al guardar la firma.', 'danger');
+    document.querySelectorAll('.clear-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const canvasId = button.getAttribute('data-canvas-id');
+            const rol = canvasId.split('-')[1];
+            if (pads[rol]) {
+                pads[rol].clear();
+                canvas.parentElement.classList.remove('signed');
             }
-        })
-        .catch(err => {
-            console.error('Error fetch firma:', err);
-            flashMessage('No se pudo contactar el servidor.', 'danger');
-        })
-        .finally(() => {
-            nextBtn.disabled = false;
-            prevBtn.disabled = currentStep === 0;
-            nextBtn.innerHTML = 'Siguiente<i class="bi bi-arrow-right ms-1"></i>';
         });
-    }
+    });
 
-    function handleResign(e) {
-        const btn = e.currentTarget;
-        const rol = btn.dataset.rol;
+    document.querySelectorAll('.save-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const rol = button.getAttribute('data-rol');
+            const pad = pads[rol];
+            const nombreInput = document.getElementById(`nombre-${rol}`);
+            const consentCheckbox = document.getElementById(`consent-${rol}`);
+            const spinner = button.querySelector('.spinner-border');
+            const savedState = button.nextElementSibling;
+
+            if (!nombreInput.value.trim()) {
+                alert('Por favor, ingrese su nombre completo.');
+                return;
+            }
+
+            if (pad.isEmpty()) {
+                alert('Por favor, realice la firma.');
+                return;
+            }
+
+            if (!consentCheckbox.checked) {
+                alert('Debe aceptar los términos y condiciones.');
+                return;
+            }
+
+            spinner.style.display = 'inline-block';
+            button.disabled = true;
+
+            // Simulate saving
+            setTimeout(() => {
+                firmasGuardadas[rol] = pad.toDataURL('image/svg+xml');
+                spinner.style.display = 'none';
+                button.style.display = 'none';
+                savedState.style.display = 'flex';
+                pad.off();
+                nombreInput.disabled = true;
+                consentCheckbox.disabled = true;
+                button.closest('.signature-wrapper').querySelector('.clear-button').style.display = 'none';
+                button.closest('.signature-pad-container').classList.add('saved');
+            }, 1000);
+        });
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 0) {
+            showStep(currentStep - 1);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < totalSteps) {
+            const rol = rolesRequeridos[currentStep];
+            if (!firmasGuardadas[rol]) {
+                alert(`Debe guardar la firma de ${rol.replace(/_/g, ' ')} para continuar.`);
+                return;
+            }
+            showStep(currentStep + 1);
+        }
+    });
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
         
-        if (!confirm(`¿Borrar la firma de '${rol.replaceAll('_',' ')}' y re-firmar?`)) return;
+        const firmasData = {
+            movimiento_id: {{ movimiento.id }}
+        };
 
-        fetch(`${deleteBase}/${encodeURIComponent(rol)}`, { method: 'DELETE' })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success) {
-                    delete firmasGuardadas[rol];
-                    const content = document.getElementById(`content-${rol}`);
-                    content.innerHTML = '';
-                    initializeStepContent(rol);
-                    flashMessage(data.message, 'success');
-                } else {
-                    flashMessage('No se pudo borrar la firma.', 'danger');
-                }
-            })
-            .catch(() => flashMessage('No se pudo contactar el servidor.', 'danger'));
-    }
-    
-    function flashMessage(message, category) {
-        const alertHtml = `
-            <div class="alert alert-${category} alert-dismissible fade show flash-message custom-alert rounded-3 shadow-sm" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        const container = document.querySelector('.container');
-        container.insertAdjacentHTML('afterbegin', alertHtml);
-    }
-    
-    // Asignar eventos de navegación
-    prevBtn.addEventListener('click', () => { if (currentStep > 0) showStep(currentStep - 1); });
-    nextBtn.addEventListener('click', handleNext);
+        for (const rol in firmasGuardadas) {
+            firmasData[`firma_${rol}`] = firmasGuardadas[rol];
+        }
 
-    // Inicializar el asistente
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Finalizando...';
+
+        fetch("{{ url_for('movimientos.firmar_movimiento', movimiento_id=movimiento.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(firmasData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Firmas guardadas correctamente');
+                window.location.href = "{{ url_for('movimientos.ver_movimiento', movimiento_id=movimiento.id) }}";
+            } else {
+                throw new Error(data.message || 'Error al guardar firmas');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Finalizar';
+        });
+    });
+
     showStep(0);
 });
 </script>
 {% endblock %}
+

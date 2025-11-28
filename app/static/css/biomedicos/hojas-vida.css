@@ -1,0 +1,272 @@
+/**
+ * Estilos para Módulo de Hojas de Vida - Sistema iOS
+ * JeroSmart Activos Fijos - Gestión Biomédica
+ */
+
+/* ==========================================================================
+   Cards iOS
+   ========================================================================== */
+
+.ios-card {
+    background: var(--ios-bg-secondary);
+    border-radius: var(--ios-radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: var(--ios-space-md);
+    border: 0.5px solid var(--ios-separator);
+}
+
+.ios-card-header {
+    padding: var(--ios-space-md);
+    border-bottom: 0.5px solid var(--ios-separator);
+    background: var(--ios-bg-tertiary);
+}
+
+.ios-card-title {
+    font-size: var(--ios-font-size-headline);
+    font-weight: 600;
+    margin: 0;
+    color: var(--ios-label-primary);
+}
+
+.ios-card-body {
+    padding: var(--ios-space-md);
+}
+
+/* ==========================================================================
+   Lista iOS Grouped (Estilo Settings)
+   ========================================================================== */
+
+.ios-list-grouped {
+    background: transparent;
+    margin: var(--ios-space-md) 0;
+}
+
+.ios-list-header {
+    font-size: var(--ios-font-size-footnote);
+    text-transform: uppercase;
+    color: var(--ios-label-secondary);
+    padding: var(--ios-space-sm) var(--ios-space-md);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.ios-list-item {
+    background: var(--ios-bg-secondary);
+    padding: var(--ios-space-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--ios-separator);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    position: relative;
+}
+
+.ios-list-item:first-of-type {
+    border-top-left-radius: var(--ios-radius-sm);
+    border-top-right-radius: var(--ios-radius-sm);
+}
+
+.ios-list-item:last-of-type {
+    border-bottom: none;
+    border-bottom-left-radius: var(--ios-radius-sm);
+    border-bottom-right-radius: var(--ios-radius-sm);
+}
+
+.ios-list-item:hover {
+    background: var(--ios-bg-tertiary);
+}
+
+.ios-list-item:active {
+    background: var(--ios-gray-6);
+    transform: scale(0.99);
+}
+
+.ios-list-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ios-list-title {
+    font-size: var(--ios-font-size-body);
+    font-weight: 400;
+    color: var(--ios-label-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ios-list-subtitle {
+    font-size: var(--ios-font-size-footnote);
+    color: var(--ios-label-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ios-list-chevron {
+    color: var(--ios-gray-3);
+    font-size: 14px;
+    margin-left: var(--ios-space-sm);
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Botones iOS
+   ========================================================================== */
+
+.ios-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--ios-radius-sm);
+    font-size: var(--ios-font-size-body);
+    font-weight: 400;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.ios-btn-primary {
+    background: var(--ios-blue);
+    color: white;
+}
+
+.ios-btn-primary:hover {
+    background: var(--ios-blue-dark);
+    color: white;
+}
+
+.ios-btn-primary:active {
+    transform: scale(0.98);
+}
+
+.ios-btn-secondary {
+    background: var(--ios-gray-5);
+    color: var(--ios-label-primary);
+}
+
+.ios-btn-secondary:hover {
+    background: var(--ios-gray-4);
+}
+
+/* ==========================================================================
+   Inputs iOS
+   ========================================================================== */
+
+.form-control,
+.form-select {
+    font-family: var(--font-family-system);
+    font-size: var(--ios-font-size-body);
+    color: var(--ios-label-primary);
+    background: var(--ios-bg-secondary);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* ==========================================================================
+   Badges iOS
+   ========================================================================== */
+
+.badge {
+    font-family: var(--font-family-system);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   Paginación iOS
+   ========================================================================== */
+
+.pagination {
+    gap: 8px;
+}
+
+.page-link {
+    border-radius: var(--ios-radius-xs);
+    border: 1px solid var(--ios-separator);
+    color: var(--ios-blue);
+    padding: 8px 12px;
+    font-size: var(--ios-font-size-subhead);
+    font-weight: 400;
+}
+
+.page-link:hover {
+    background: var(--ios-bg-tertiary);
+    border-color: var(--ios-separator);
+    color: var(--ios-blue);
+}
+
+.page-item.active .page-link {
+    background: var(--ios-blue);
+    border-color: var(--ios-blue);
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    color: var(--ios-gray-3);
+    background: transparent;
+    border-color: var(--ios-separator);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .ios-list-item {
+        padding: var(--ios-space-sm);
+    }
+
+    .ios-list-title {
+        font-size: var(--ios-font-size-subhead);
+    }
+
+    .ios-list-subtitle {
+        font-size: 12px;
+    }
+
+    .ios-btn {
+        padding: 8px 16px;
+        font-size: var(--ios-font-size-subhead);
+    }
+}
+
+/* ==========================================================================
+   Animaciones suaves iOS
+   ========================================================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ios-list-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ==========================================================================
+   Estados de carga
+   ========================================================================== */
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 3px;
+}
