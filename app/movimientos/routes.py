@@ -25,11 +25,8 @@ from ..models import (
     Proveedor
 )
 
-movimientos_bp = Blueprint(
-    'movimientos',
-    __name__,
-    template_folder='templates',
-)
+# Importar el blueprint desde __init__.py (evitar duplicación)
+from . import movimientos_bp
 
 # =====================================================================
 # VISTAS PRINCIPALES (Renderizado de plantillas)
@@ -72,12 +69,15 @@ def ver_movimientos():
     if filtros['tipo']:
         stmt = stmt.where(Movimiento.tipo_movimiento == filtros['tipo'])
     if filtros['q']:
-        # Sanitizar entrada para prevenir SQL injection / DoS
-        safe_term = filtros['q'].replace('%', '').replace('_', '').strip()[:100]
-        if len(safe_term) < 2:
-            flash('La búsqueda debe tener al menos 2 caracteres', 'warning')
+        # Sanitizar entrada para prevenir SQL injection / DoS usando función helper
+        from .forms import sanitize_search_term
+        safe_term, is_valid = sanitize_search_term(filtros['q'], min_length=2, max_length=100)
+
+        if not is_valid:
+            flash('La búsqueda debe tener entre 2 y 100 caracteres válidos', 'warning')
             return render_template('ver_movimientos.html', movimientos=[], filtros=filtros)
 
+        # Usar parámetros preparados de SQLAlchemy (previene SQL injection)
         search_term = f"%{safe_term}%"
         stmt = stmt.where(Movimiento.observaciones_generales.ilike(search_term))
 
@@ -100,8 +100,23 @@ def ver_movimiento(movimiento_id):
         flash(f"El movimiento con ID {movimiento_id} no fue encontrado.", 'warning')
         return redirect(url_for('movimientos.ver_movimientos'))
 
-    # Cargar detalles específicos usando la relación del modelo
-    detalles = getattr(movimiento, f"detalle_{movimiento.tipo_movimiento.lower().replace('/', '_')}", None) # noqa
+    # Cargar detalles específicos usando mapeo explícito (más seguro que getattr dinámico)
+    DETALLE_ATTR_MAP = {
+        'Entrega': 'detalle_entrega',
+        'Traslado': 'detalle_traslado',
+        'Entrada/Salida': 'detalle_entrada_salida',
+        'Paz y Salvo': 'detalle_paz_salvo',
+        'Reporte de Daño o Pérdida': 'detalle_reporte_dano_perdida'
+    }
+
+    attr_name = DETALLE_ATTR_MAP.get(movimiento.tipo_movimiento)
+    detalles = getattr(movimiento, attr_name, None) if attr_name else None
+
+    if not detalles:
+        current_app.logger.warning(
+            f"No se encontraron detalles para movimiento #{movimiento_id} "
+            f"tipo '{movimiento.tipo_movimiento}'"
+        )
 
     # Cargar activos y sus accesorios
     activos_con_accesorios = []
@@ -183,8 +198,22 @@ def add_movimiento():
             # DEBUG: Log de firmas recibidas
             current_app.logger.info(f"[CREATE MOVIMIENTO] firmas_json recibido: {firmas_json[:200] if firmas_json else 'VACIO'}")
 
-            activos_data = json.loads(activos_json)
-            accesorios_data = json.loads(accesorios_json)
+            # Parsear JSON con manejo de errores robusto
+            try:
+                activos_data = json.loads(activos_json) if activos_json else []
+                if not isinstance(activos_data, list):
+                    raise ValueError("activos_data debe ser una lista")
+            except (json.JSONDecodeError, ValueError) as e:
+                current_app.logger.error(f"Error parseando activos_data: {e}")
+                raise ValueError(f"Datos de activos inválidos: {str(e)}")
+
+            try:
+                accesorios_data = json.loads(accesorios_json) if accesorios_json else {}
+                if not isinstance(accesorios_data, dict):
+                    raise ValueError("accesorios_data debe ser un diccionario")
+            except (json.JSONDecodeError, ValueError) as e:
+                current_app.logger.error(f"Error parseando accesorios_data: {e}")
+                raise ValueError(f"Datos de accesorios inválidos: {str(e)}")
 
             # NIIF/NIC: Calcular valor total para determinar si requiere aprobación
             valor_total_movimiento = 0.0
@@ -465,7 +494,15 @@ def add_movimiento():
                 db.session.add(detalle)
 
             # 4. Procesar y guardar firmas (NUEVO)
-            firmas_data = json.loads(firmas_json)
+            try:
+                firmas_data = json.loads(firmas_json) if firmas_json else {}
+                if not isinstance(firmas_data, dict):
+                    raise ValueError("firmas_data debe ser un diccionario")
+            except (json.JSONDecodeError, ValueError) as e:
+                current_app.logger.error(f"Error parseando firmas_data: {e}")
+                # No es crítico, continuar sin firmas
+                firmas_data = {}
+
             if firmas_data:
                 current_app.logger.info(f"Procesando {len(firmas_data)} firmas digitales para movimiento #{movimiento_id}")
                 for rol, firma_b64 in firmas_data.items():
@@ -1264,18 +1301,11 @@ def firmar_movimiento(movimiento_id):
                 current_app.logger.warning(f"⚠️ Firma sin SVG vectorial: mov={movimiento_id}, rol={rol_firma}")
                 # No es crítico, pero se registra
 
-            # ✅ Extraer IP real del request (considera proxies y load balancers)
-            if request.headers.get('X-Forwarded-For'):
-                # Si hay múltiples IPs, tomar la primera (cliente real)
-                ip_address = request.headers.get('X-Forwarded-For').split(',')[0].strip()
-            elif request.headers.get('X-Real-IP'):
-                ip_address = request.headers.get('X-Real-IP')
-            else:
-                ip_address = request.remote_addr or 'desconocida'
-
-            # Validar que la IP sea válida (básico)
-            if ip_address and len(ip_address) > 45:
-                ip_address = ip_address[:45]  # Truncar si es muy larga
+            # ✅ Extraer IP real del request de forma segura
+            # NOTA: trust_proxy=True solo si la aplicación está detrás de nginx/Apache/AWS ELB
+            # Si no está seguro, usar trust_proxy=False para evitar IP spoofing
+            from .forms import get_client_ip
+            ip_address = get_client_ip(request)
 
             # ✅ Extraer User Agent
             user_agent = request.headers.get('User-Agent', '')[:500]

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Subir Documento - Mantenimiento #{{ mantenimiento.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        <i class="fas fa-file-upload me-2"></i>
+        Subir Documento Escaneado
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}">Mantenimiento #{{ mantenimiento.id }}</a></li>
+        <li class="breadcrumb-item active">Subir Documento</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <!-- Información del Mantenimiento -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Mantenimiento
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Activo:</strong><br>
+                                <i class="fas fa-desktop text-muted me-1"></i>
+                                {{ mantenimiento.activo.nombre_activo }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Placa:</strong> {{ mantenimiento.activo.placa_codigo_interno }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Tipo:</strong> {{ mantenimiento.tipo.nombre }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Fecha:</strong> {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'N/A' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Subida -->
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-upload me-2"></i>
+                    Subir Documento
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Archivo -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-file-pdf me-1"></i>
+                                Archivo *
+                            </label>
+                            <input type="file" name="archivo" class="form-control" required
+                                   accept=".pdf,.jpg,.jpeg,.png,.gif,.xlsx,.xls,.doc,.docx">
+                            <small class="form-text text-muted">
+                                Formatos permitidos: PDF, Imágenes (JPG, PNG, GIF), Excel (XLSX, XLS), Word (DOC, DOCX)
+                                <br>Tamaño máximo recomendado: 10 MB
+                            </small>
+                        </div>
+
+                        <!-- Metadatos del Documento Escaneado -->
+                        <div class="card mb-4 bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title text-primary mb-3">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Información del Mantenimiento Físico Escaneado
+                                </h6>
+
+                                <div class="row">
+                                    <!-- Fecha del Documento -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-calendar-day me-1"></i>
+                                            Fecha del Mantenimiento Realizado
+                                        </label>
+                                        <input type="date" name="fecha_documento" class="form-control"
+                                               value="{{ mantenimiento.fecha_mantenimiento.strftime('%Y-%m-%d') if mantenimiento.fecha_mantenimiento else '' }}">
+                                        <small class="form-text text-muted">
+                                            Fecha en que se realizó físicamente el mantenimiento
+                                        </small>
+                                    </div>
+
+                                    <!-- Técnico Responsable -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-user-tie me-1"></i>
+                                            Técnico Responsable
+                                        </label>
+                                        <input type="text" name="tecnico_responsable" class="form-control"
+                                               placeholder="Nombre del técnico que realizó el mantenimiento">
+                                        <small class="form-text text-muted">
+                                            Técnico que aparece en el documento escaneado
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Descripción -->
+                                <div class="mb-0">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-comment-alt me-1"></i>
+                                        Descripción / Notas
+                                    </label>
+                                    <textarea name="descripcion" class="form-control" rows="3"
+                                              placeholder="Notas adicionales sobre el documento (opcional)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}"
+                               class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload me-1"></i> Subir Documento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral de Ayuda -->
+        <div class="col-xl-4">
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Información de Ayuda
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-check-circle text-success me-1"></i>
+                        ¿Qué documentos puedo subir?
+                    </h6>
+                    <ul class="small mb-3">
+                        <li>Reportes de mantenimiento escaneados (PDF)</li>
+                        <li>Fotografías del equipo después del mantenimiento</li>
+                        <li>Facturas o comprobantes de servicio</li>
+                        <li>Certificados o garantías</li>
+                        <li>Hojas de ruta o check-lists</li>
+                    </ul>
+
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-scanner text-primary me-1"></i>
+                        Consejos para escanear
+                    </h6>
+                    <ul class="small mb-3">
+                        <li>Use resolución de 200-300 DPI</li>
+                        <li>Asegúrese de que el texto sea legible</li>
+                        <li>Escanee en color o escala de grises</li>
+                        <li>Combine varias páginas en un solo PDF</li>
+                        <li>Comprima el archivo si es muy pesado</li>
+                    </ul>
+
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-shield-alt text-warning me-1"></i>
+                        Seguridad
+                    </h6>
+                    <p class="small mb-0">
+                        Los documentos se almacenan de forma segura y solo pueden ser eliminados por administradores.
+                        El sistema registra quién y cuándo subió cada documento.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Documentos Actuales -->
+            {% if mantenimiento.documentos %}
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-folder-open me-2"></i>
+                    Documentos Actuales ({{ mantenimiento.documentos | length }})
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for doc in mantenimiento.documentos %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="small">
+                                    <i class="fas {% if doc.es_pdf %}fa-file-pdf text-danger{% elif doc.es_imagen %}fa-image text-info{% else %}fa-file text-secondary{% endif %} me-1"></i>
+                                    <strong>{{ doc.nombre_archivo }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ doc.tamano_mb }} MB · {{ doc.uploaded_at.strftime('%d/%m/%Y') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

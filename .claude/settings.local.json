@@ -18,7 +18,9 @@
       "Bash(ipconfig:*)",
       "Bash(venvScriptspython.exe analizar_activos_faltantes.py)",
       "Bash(.venvScriptspython.exe analizar_activos_faltantes.py)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(if not exist \"app\\biomedicos\\templates\" mkdir \"app\\biomedicos\\templates\")",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []

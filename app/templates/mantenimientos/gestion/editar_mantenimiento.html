@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_submit_button, render_form_errors %}
+
+{% block title %}Editar Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        <i class="fas fa-edit me-2"></i>
+        Editar Mantenimiento
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}">Gestión</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}">Detalles #{{ mantenimiento.id }}</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-edit me-2"></i>
+                    Modificar Registro de Mantenimiento #{{ mantenimiento.id }}
+                </div>
+                <div class="card-body">
+                    {{ render_form_errors(form) }}
+
+                    <form method="POST" action="{{ url_for('mantenimientos.editar_mantenimiento', id=mantenimiento.id) }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row">
+                            <!-- Activo Fijo -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.activo_id.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-desktop text-muted ms-1"></i>
+                                    {{ form.activo_id(class="form-select form-select-lg") }}
+                                    {% if form.activo_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.activo_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Activo actual: {{ mantenimiento.activo.nombre_activo }} ({{ mantenimiento.activo.placa_codigo_interno }})
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Tipo de Mantenimiento -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.tipo_id.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-list-alt text-muted ms-1"></i>
+                                    {{ form.tipo_id(class="form-select") }}
+                                    {% if form.tipo_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.tipo_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Fecha Programada -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.fecha_mantenimiento.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-calendar-alt text-muted ms-1"></i>
+                                    {{ form.fecha_mantenimiento(class="form-control", type="date", value=mantenimiento.fecha_mantenimiento.strftime('%Y-%m-%d') if mantenimiento.fecha_mantenimiento else '') }}
+                                    {% if form.fecha_mantenimiento.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.fecha_mantenimiento.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.estado.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-info-circle text-muted ms-1"></i>
+                                    {{ form.estado(class="form-select", value=mantenimiento.estado) }}
+                                    {% if form.estado.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.estado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Estado actual: <strong>{{ mantenimiento.estado }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.observaciones.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-clipboard text-muted ms-1"></i>
+                                    {{ form.observaciones(class="form-control", placeholder="Detalle las actividades realizadas, partes reemplazadas, hallazgos, etc.", value=mantenimiento.observaciones or '') }}
+                                    {% if form.observaciones.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.observaciones.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                            <div>
+                                {{ form.submit(class="btn btn-warning btn-lg px-5", value="Actualizar Mantenimiento") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-xl-4">
+            <div class="card mb-3 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Registro
+                </div>
+                <div class="card-body small">
+                    <p><strong>ID del Mantenimiento:</strong> #{{ mantenimiento.id }}</p>
+                    <p><strong>Creado por:</strong> {{ mantenimiento.creator.username if mantenimiento.creator else 'N/A' }}</p>
+                    <p><strong>Fecha de creación:</strong> {{ mantenimiento.created_at.strftime('%d/%m/%Y %H:%M') if mantenimiento.created_at else 'N/A' }}</p>
+                    {% if mantenimiento.updated_at %}
+                    <p><strong>Última actualización:</strong> {{ mantenimiento.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-3 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-desktop me-2"></i>
+                    Datos del Activo
+                </div>
+                <div class="card-body small">
+                    <p><strong>Nombre:</strong> {{ mantenimiento.activo.nombre_activo }}</p>
+                    <p><strong>Placa:</strong> <span class="badge bg-dark">{{ mantenimiento.activo.placa_codigo_interno }}</span></p>
+                    <p><strong>Categoría:</strong> {{ mantenimiento.activo.clase.nombre }}</p>
+                    <p><strong>Marca:</strong> {{ mantenimiento.activo.marca or 'N/A' }}</p>
+                    <p><strong>Modelo:</strong> {{ mantenimiento.activo.modelo or 'N/A' }}</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Consideraciones
+                </div>
+                <div class="card-body small">
+                    <ul class="mb-0">
+                        <li>Verifique la fecha del mantenimiento</li>
+                        <li>Actualice el estado según el progreso</li>
+                        <li>Documente cambios importantes</li>
+                        <li>Mantenga la trazabilidad de las actividades</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Marcar el estado actual en el select
+        const estadoSelect = document.querySelector('select[name="estado"]');
+        if (estadoSelect) {
+            estadoSelect.value = "{{ mantenimiento.estado }}";
+        }
+    });
+</script>
+{% endblock %}

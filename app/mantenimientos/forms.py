@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import SubmitField, TextAreaField, SelectField, DateField
 from wtforms.validators import DataRequired, Optional
 from wtforms_sqlalchemy.fields import QuerySelectField
@@ -49,3 +50,31 @@ class MantenimientoForm(FlaskForm):
         render_kw={"rows": 5}
     )
     submit = SubmitField('Guardar Mantenimiento')
+
+class CargarHistoricoForm(FlaskForm):
+    """Formulario para cargar un mantenimiento histórico en PDF."""
+    activo_id = QuerySelectField(
+        'Activo Fijo',
+        query_factory=activos_no_biomedicos,
+        get_label='nombre_activo',
+        allow_blank=False,
+        validators=[DataRequired(message="Debe seleccionar un activo.")]
+    )
+    documento = FileField(
+        'Documento PDF',
+        validators=[
+            DataRequired(message="Debe seleccionar un archivo."),
+            FileAllowed(['pdf'], '¡Solo se permiten archivos PDF!')
+        ]
+    )
+    fecha_mantenimiento = DateField(
+        'Fecha de Realización',
+        format='%Y-%m-%d',
+        validators=[DataRequired(message="La fecha es obligatoria.")]
+    )
+    observaciones = TextAreaField(
+        'Observaciones (Opcional)',
+        validators=[Optional()],
+        render_kw={"rows": 3}
+    )
+    submit = SubmitField('Cargar Mantenimiento')

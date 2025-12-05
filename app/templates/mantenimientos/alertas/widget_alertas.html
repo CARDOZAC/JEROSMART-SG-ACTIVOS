@@ -1,0 +1,178 @@
+<!-- Widget de Alertas de Mantenimientos -->
+<div class="card shadow mb-4" id="widget-alertas-mantenimientos">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-bell me-2"></i>
+            Alertas de Mantenimientos
+        </h6>
+        <a href="{{ url_for('mantenimientos.alertas_mantenimientos') }}" class="btn btn-sm btn-outline-primary">
+            Ver Todas <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Loader -->
+        <div id="alertas-loader" class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+
+        <!-- Contenido de Alertas -->
+        <div id="alertas-content" style="display: none;">
+            <!-- Resumen -->
+            <div class="row mb-3">
+                <div class="col-6">
+                    <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                        <div class="h4 mb-1 text-danger" id="total-vencidos">0</div>
+                        <div class="small text-muted">Vencidos</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                        <div class="h4 mb-1 text-warning" id="total-proximos">0</div>
+                        <div class="small text-muted">Próximos (15d)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Vencidos -->
+            <div id="lista-vencidos-container" style="display: none;">
+                <h6 class="text-danger mb-2">
+                    <i class="fas fa-exclamation-triangle"></i> Vencidos
+                </h6>
+                <div id="lista-vencidos" class="mb-3">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Lista de Próximos (top 5) -->
+            <div id="lista-proximos-container" style="display: none;">
+                <h6 class="text-warning mb-2">
+                    <i class="fas fa-calendar-alt"></i> Próximos
+                </h6>
+                <div id="lista-proximos">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Sin alertas -->
+            <div id="sin-alertas" style="display: none;" class="text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-2"></i>
+                <p class="text-muted mb-0">No hay alertas pendientes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Cargar alertas al cargar la página
+    cargarAlertasMantenimientos();
+
+    // Recargar cada 5 minutos
+    setInterval(cargarAlertasMantenimientos, 300000);
+
+    function cargarAlertasMantenimientos() {
+        fetch('{{ url_for("mantenimientos.obtener_alertas_mantenimientos") }}')
+            .then(response => response.json())
+            .then(data => {
+                mostrarAlertas(data);
+            })
+            .catch(error => {
+                console.error('Error al cargar alertas:', error);
+                document.getElementById('alertas-loader').innerHTML =
+                    '<p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Error al cargar alertas</p>';
+            });
+    }
+
+    function mostrarAlertas(data) {
+        // Ocultar loader y mostrar contenido
+        document.getElementById('alertas-loader').style.display = 'none';
+        document.getElementById('alertas-content').style.display = 'block';
+
+        // Actualizar contadores
+        document.getElementById('total-vencidos').textContent = data.total_vencidos;
+        document.getElementById('total-proximos').textContent = data.total_proximos;
+
+        // Verificar si hay alertas
+        if (data.total_vencidos === 0 && data.total_proximos === 0) {
+            document.getElementById('sin-alertas').style.display = 'block';
+            document.getElementById('lista-vencidos-container').style.display = 'none';
+            document.getElementById('lista-proximos-container').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('sin-alertas').style.display = 'none';
+
+        // Mostrar vencidos
+        if (data.total_vencidos > 0) {
+            document.getElementById('lista-vencidos-container').style.display = 'block';
+            const listaVencidos = document.getElementById('lista-vencidos');
+            listaVencidos.innerHTML = '';
+
+            // Mostrar máximo 3 vencidos
+            data.vencidos.slice(0, 3).forEach(mant => {
+                listaVencidos.innerHTML += `
+                    <div class="alert alert-danger alert-dismissible fade show py-2 mb-2" role="alert">
+                        <small>
+                            <strong>${mant.activo}</strong><br>
+                            <span class="text-muted">${mant.tipo}</span><br>
+                            <i class="fas fa-calendar-times"></i> ${mant.fecha}
+                            <span class="badge bg-danger ms-1">${mant.dias_vencido}d vencido</span>
+                        </small>
+                        <a href="${mant.url}" class="btn btn-sm btn-outline-danger mt-1 w-100">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                    </div>
+                `;
+            });
+
+            if (data.total_vencidos > 3) {
+                listaVencidos.innerHTML += `
+                    <a href="{{ url_for('mantenimientos.alertas_mantenimientos') }}"
+                       class="btn btn-sm btn-danger w-100">
+                        Ver todos los ${data.total_vencidos} vencidos
+                    </a>
+                `;
+            }
+        } else {
+            document.getElementById('lista-vencidos-container').style.display = 'none';
+        }
+
+        // Mostrar próximos
+        if (data.total_proximos > 0) {
+            document.getElementById('lista-proximos-container').style.display = 'block';
+            const listaProximos = document.getElementById('lista-proximos');
+            listaProximos.innerHTML = '';
+
+            // Mostrar máximo 5 próximos
+            data.proximos.slice(0, 5).forEach(mant => {
+                const badgeClass = mant.prioridad === 'alta' ? 'bg-danger' :
+                                  mant.prioridad === 'media' ? 'bg-warning' : 'bg-success';
+
+                listaProximos.innerHTML += `
+                    <div class="border-start border-3 border-${mant.prioridad === 'alta' ? 'danger' : mant.prioridad === 'media' ? 'warning' : 'success'} ps-3 py-2 mb-2">
+                        <small>
+                            <strong>${mant.activo}</strong><br>
+                            <span class="text-muted">${mant.tipo}</span><br>
+                            <i class="fas fa-calendar-day"></i> ${mant.fecha}
+                            <span class="badge ${badgeClass} ms-1">${mant.dias_restantes}d</span>
+                        </small>
+                    </div>
+                `;
+            });
+
+            if (data.total_proximos > 5) {
+                listaProximos.innerHTML += `
+                    <a href="{{ url_for('mantenimientos.alertas_mantenimientos') }}"
+                       class="btn btn-sm btn-warning w-100 mt-2">
+                        Ver todos los ${data.total_proximos} próximos
+                    </a>
+                `;
+            }
+        } else {
+            document.getElementById('lista-proximos-container').style.display = 'none';
+        }
+    }
+})();
+</script>

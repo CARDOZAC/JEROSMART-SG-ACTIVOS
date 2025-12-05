@@ -24,9 +24,9 @@ proveedores_bp = Blueprint(
 )
 
 
-# ============================================================================
+
 # LISTAR PROVEEDORES
-# ============================================================================
+
 @proveedores_bp.route('/')
 @login_required
 def listar_proveedores():

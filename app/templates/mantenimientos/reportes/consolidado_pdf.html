@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Consolidado de Mantenimientos</title>
+    <style>
+        @page {
+            size: Letter landscape;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #0066cc;
+            font-size: 20pt;
+            margin-bottom: 3px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 10pt;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            text-align: center;
+            border: 2px solid #0066cc;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .stat-number {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            font-size: 8pt;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 8pt;
+        }
+
+        thead {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        th {
+            padding: 8px 5px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 6px 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-proceso {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge-completado {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .badge-cancelado {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .footer {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #0066cc;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <div class="header">
+        <h1>REPORTE CONSOLIDADO DE MANTENIMIENTOS</h1>
+        <p>Equipos No Biomédicos | TICs, Mobiliario, Equipos Industriales</p>
+        <p style="margin-top: 8px; font-size: 8pt;">
+            <strong>Fecha de Generación:</strong> {{ fecha_generacion.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-number">{{ total }}</div>
+            <div class="stat-label">Total Mantenimientos</div>
+        </div>
+        <div class="stat-box" style="border-color: #ffc107;">
+            <div class="stat-number" style="color: #ffc107;">{{ pendientes }}</div>
+            <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-box" style="border-color: #17a2b8;">
+            <div class="stat-number" style="color: #17a2b8;">{{ en_proceso }}</div>
+            <div class="stat-label">En Proceso</div>
+        </div>
+        <div class="stat-box" style="border-color: #28a745;">
+            <div class="stat-number" style="color: #28a745;">{{ completados }}</div>
+            <div class="stat-label">Completados</div>
+        </div>
+    </div>
+
+    <!-- Tabla de Mantenimientos -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40px;">ID</th>
+                <th style="width: 150px;">Activo</th>
+                <th style="width: 80px;">Placa</th>
+                <th style="width: 120px;">Categoría</th>
+                <th style="width: 100px;">Tipo Mtto.</th>
+                <th style="width: 70px;">Fecha</th>
+                <th style="width: 80px;">Estado</th>
+                <th>Observaciones</th>
+                <th style="width: 80px;">Registrado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mant in mantenimientos %}
+            <tr>
+                <td style="text-align: center;"><strong>#{{ mant.id }}</strong></td>
+                <td>{{ mant.activo.nombre_activo }}</td>
+                <td>{{ mant.activo.placa_codigo_interno }}</td>
+                <td style="font-size: 7pt;">{{ mant.activo.clase.nombre }}</td>
+                <td style="font-size: 7pt;">{{ mant.tipo.nombre }}</td>
+                <td style="text-align: center;">
+                    {{ mant.fecha_mantenimiento.strftime('%d/%m/%Y') if mant.fecha_mantenimiento else 'N/A' }}
+                </td>
+                <td style="text-align: center;">
+                    <span class="badge {% if mant.estado == 'Pendiente' %}badge-pendiente{% elif mant.estado == 'En Proceso' %}badge-proceso{% elif mant.estado == 'Completado' %}badge-completado{% else %}badge-cancelado{% endif %}">
+                        {{ mant.estado }}
+                    </span>
+                </td>
+                <td>
+                    <div class="truncate">
+                        {{ mant.observaciones if mant.observaciones else '-' }}
+                    </div>
+                </td>
+                <td style="font-size: 7pt;">
+                    {{ mant.creator.username if mant.creator else 'N/A' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pie de Página -->
+    <div class="footer">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <strong>JeroSmart Activos</strong><br>
+                Sistema de Gestión de Activos Fijos Clínicos
+            </div>
+            <div style="text-align: right;">
+                Documento generado automáticamente<br>
+                Total de registros: {{ total }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

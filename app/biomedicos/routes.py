@@ -4,24 +4,20 @@ import hashlib
 from datetime import datetime
 from flask import (
     Blueprint, render_template, request, jsonify, flash,
-    session, current_app, make_response, redirect, url_for, send_file
+    session, current_app, make_response, redirect, url_for, send_file, send_from_directory
 )
+from flask_login import current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import select, or_, and_
 import weasyprint
 from ..extensions import db
 from app.models import (
     Activo, MantenimientoTipo, HojaVidaBiomedico,
-    MantenimientoFoto, Mantenimiento, DocumentoAdjunto
+    MantenimientoFoto, Mantenimiento, DocumentoAdjunto, MantenimientoDocumento
 )
 from .context_builders import build_hoja_vida_pdf_context, build_mantenimiento_pdf_context
-
-biomedicos_bp = Blueprint(
-    "biomedicos",
-    __name__,
-    template_folder="templates",
-    url_prefix="/biomedicos"
-)
+from .forms import CargarHistoricoBiomedicoForm
+from . import biomedicos_bp
 
 def _convert_to_date(date_str):
     """
@@ -51,12 +47,130 @@ def index():
 @biomedicos_bp.route('/mantenimientos')
 def mantenimientos():
     """Página de gestión de mantenimientos de equipos biomédicos."""
-    return render_template("biomedicos/mantenimientos.html", active_page='mantenimientos')
+    # Estados para mantenimientos pendientes y en proceso
+    estados_pendientes = ['Programado', 'En Proceso']
+    # Estados para mantenimientos históricos
+    estados_historicos = ['Completado', 'Cancelado']
+
+    # Consulta para mantenimientos pendientes
+    mantenimientos_pendientes = db.session.scalars(
+        select(Mantenimiento).join(Mantenimiento.activo)
+        .where(Activo.clase_id == 1, Mantenimiento.estado.in_(estados_pendientes))
+        .order_by(Mantenimiento.fecha_mantenimiento.asc())
+    ).all()
+
+    # Consulta para mantenimientos históricos
+    mantenimientos_historicos = db.session.scalars(
+        select(Mantenimiento).join(Mantenimiento.activo)
+        .where(Activo.clase_id == 1, Mantenimiento.estado.in_(estados_historicos))
+        .order_by(Mantenimiento.fecha_mantenimiento.desc())
+    ).all()
+
+    return render_template("biomedicos/mantenimientos.html", active_page='mantenimientos', mantenimientos_pendientes=mantenimientos_pendientes, mantenimientos_historicos=mantenimientos_historicos)
 
 @biomedicos_bp.route('/mantenimiento/wizard')
 def wizard_mantenimiento():
     """Wizard para crear nuevo mantenimiento."""
     return render_template("biomedicos/mantenimientos/wizard_mantenimiento.html", active_page='mantenimientos')
+
+
+@biomedicos_bp.route('/cargar_historico', methods=['GET', 'POST'])
+def cargar_historico_biomedico():
+    """Carga un PDF de un mantenimiento histórico para un equipo biomédico."""
+    form = CargarHistoricoBiomedicoForm()
+
+    if form.validate_on_submit():
+        try:
+            # 1. Obtener o crear el tipo de mantenimiento 'Histórico'
+            tipo_historico = MantenimientoTipo.query.filter_by(nombre='Histórico').first()
+            if not tipo_historico:
+                tipo_historico = MantenimientoTipo(
+                    nombre='Histórico',
+                    descripcion='Mantenimiento cargado desde un documento histórico.'
+                )
+                db.session.add(tipo_historico)
+                db.session.flush()
+
+            # 2. Crear el registro de mantenimiento
+            mantenimiento = Mantenimiento(
+                activo_id=form.activo_id.data.id,
+                tipo_id=tipo_historico.id,
+                fecha_mantenimiento=form.fecha_mantenimiento.data,
+                estado='Completado',
+                observaciones=form.observaciones.data or "Mantenimiento histórico biomédico cargado desde PDF.",
+                created_by=current_user.id,
+                updated_by=current_user.id
+            )
+            db.session.add(mantenimiento)
+            db.session.flush()
+
+            # 3. Validar y guardar el archivo PDF
+            archivo = form.documento.data
+
+            # --- Validación de contenido de archivo ---
+            import magic
+            archivo.seek(0)
+            mime_type = magic.from_buffer(archivo.read(2048), mime=True)
+            archivo.seek(0)
+
+            if mime_type != 'application/pdf':
+                flash(f'El contenido del archivo no es un PDF válido (detectado: {mime_type}).', 'error')
+                # Recargar el formulario para que el usuario pueda corregir
+                return render_template(
+                    'biomedicos/cargar_historico.html',
+                    form=form,
+                    active_page='mantenimientos'
+                )
+
+            extension = archivo.filename.rsplit('.', 1)[-1].lower()
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            placa = mantenimiento.activo.placa_codigo_interno or 'SIN_PLACA'
+            nombre_seguro = secure_filename(
+                f"mant_bio_hist_{mantenimiento.id}_{placa}_{timestamp}.{extension}"
+            )
+
+            upload_folder = os.path.join(
+                current_app.root_path,
+                'static',
+                'uploads',
+                'mantenimientos_documentos'
+            )
+            os.makedirs(upload_folder, exist_ok=True)
+
+            ruta_completa = os.path.join(upload_folder, nombre_seguro)
+            archivo.save(ruta_completa)
+            tamano = os.path.getsize(ruta_completa)
+
+            # 4. Crear el registro del documento
+            documento = MantenimientoDocumento(
+                mantenimiento_id=mantenimiento.id,
+                nombre_archivo=archivo.filename,
+                ruta_archivo=f'uploads/mantenimientos_documentos/{nombre_seguro}',
+                tipo_documento='pdf',
+                tamano_archivo=tamano,
+                fecha_documento=form.fecha_mantenimiento.data,
+                descripcion="Documento de mantenimiento histórico biomédico.",
+                uploaded_by=current_user.id
+            )
+            db.session.add(documento)
+            db.session.commit()
+
+            flash(
+                f'Mantenimiento histórico biomédico para "{form.activo_id.data.nombre_activo}" cargado exitosamente.',
+                'success'
+            )
+            return redirect(url_for('biomedicos.mantenimientos'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al cargar el mantenimiento histórico: {str(e)}', 'error')
+
+    return render_template(
+        'biomedicos/cargar_historico.html',
+        form=form,
+        active_page='mantenimientos'
+    )
+
 
 @biomedicos_bp.route('/mantenimiento/detalle/<int:mantenimiento_id>')
 def detalle_mantenimiento(mantenimiento_id):
@@ -362,6 +476,20 @@ def api_mantenimientos():
                 fotos = request.files.getlist('fotos_evidencia')
                 for foto in fotos:
                     if foto and foto.filename:
+                        # --- Validación de contenido de archivo ---
+                        import magic
+                        allowed_mimes = ['image/jpeg', 'image/png', 'image/gif']
+                        
+                        foto.seek(0)
+                        mime_type = magic.from_buffer(foto.read(2048), mime=True)
+                        foto.seek(0)
+
+                        if mime_type not in allowed_mimes:
+                            # Esto es un endpoint de API, así que se lanza un error que se capturará
+                            # y se devolverá como JSON.
+                            raise ValueError(f"El archivo '{foto.filename}' no es una imagen válida (detectado: {mime_type}).")
+                        # --- Fin de la validación ---
+
                         filename = secure_filename(f"maint_{mantenimiento_id}_{foto.filename}")
                         filepath = os.path.join(current_app.config['MAINTENANCE_PHOTOS_FOLDER'], filename)
                         foto.save(filepath)
@@ -771,6 +899,20 @@ def api_manage_hoja_vida(activo_id):
             for form_field, (doc_type, config_key) in files_to_process.items():
                 file = request.files.get(form_field)
                 if file and file.filename:
+                    # --- Validación de contenido de archivo ---
+                    import magic
+                    is_image = (doc_type == 'foto_activo')
+                    allowed_mimes = ['image/jpeg', 'image/png', 'image/gif'] if is_image else ['application/pdf']
+                    
+                    file.seek(0)
+                    mime_type = magic.from_buffer(file.read(2048), mime=True)
+                    file.seek(0)
+
+                    if mime_type not in allowed_mimes:
+                        expected_type = "una imagen (JPG, PNG, GIF)" if is_image else "un PDF"
+                        raise ValueError(f"El archivo para '{doc_type}' no es {expected_type} (detectado: {mime_type}).")
+                    # --- Fin de la validación ---
+
                     # Borrar documento anterior si existe
                     if doc_type != 'foto_activo':
                         doc_anterior = db.session.scalar(
@@ -1053,6 +1195,20 @@ def wizard_hdv_finish():
         for form_field, (doc_type, config_key) in files_to_process.items():
             file = request.files.get(form_field)
             if file and file.filename:
+                # --- Validación de contenido de archivo ---
+                import magic
+                is_image = (doc_type == 'foto_activo')
+                allowed_mimes = ['image/jpeg', 'image/png', 'image/gif'] if is_image else ['application/pdf']
+                
+                file.seek(0)
+                mime_type = magic.from_buffer(file.read(2048), mime=True)
+                file.seek(0)
+
+                if mime_type not in allowed_mimes:
+                    expected_type = "una imagen (JPG, PNG, GIF)" if is_image else "un PDF"
+                    raise ValueError(f"El archivo para '{doc_type}' no es {expected_type} (detectado: {mime_type}).")
+                # --- Fin de la validación ---
+
                 filename = secure_filename(f"hdv_{nueva_hdv.id}_{doc_type}_{file.filename}")
                 subfolder = current_app.config[config_key]
                 os.makedirs(subfolder, exist_ok=True)
@@ -1067,7 +1223,11 @@ def wizard_hdv_finish():
                     doc_adjunto = DocumentoAdjunto(
                         hoja_vida_id=nueva_hdv.id,
                         tipo_documento=doc_type,
-                        ruta_archivo=relative_path
+                        ruta_archivo=relative_path,
+                        # Adicional: guardar metadata del archivo
+                        nombre_archivo_original=file.filename,
+                        mime_type=file.content_type,
+                        tamano_bytes=os.path.getsize(filepath)
                     )
                     db.session.add(doc_adjunto)
 
@@ -1121,6 +1281,15 @@ def upload_temp_file():
         if not file.filename.lower().endswith('.pdf'):
             return jsonify({"success": False, "message": "Solo se permiten archivos PDF"}), 400
 
+        # Validar tipo MIME real para mitigar carga de archivos maliciosos renombrados
+        import magic
+        file.seek(0)
+        mime_type = magic.from_buffer(file.read(2048), mime=True)
+        file.seek(0)
+
+        if mime_type != 'application/pdf':
+            return jsonify({"success": False, "message": "El contenido del archivo no corresponde a un PDF válido."}), 400
+
         # Crear carpeta temporal si no existe
         temp_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), 'temp')
         os.makedirs(temp_folder, exist_ok=True)
@@ -1151,3 +1320,177 @@ def upload_temp_file():
     except Exception as e:
         current_app.logger.error(f"Error al subir archivo temporal: {e}", exc_info=True)
         return jsonify({"success": False, "message": f"Error al subir archivo: {str(e)}"}), 500
+
+
+# =====================================================================
+# GESTIÓN DE DOCUMENTOS ESCANEADOS DE MANTENIMIENTOS
+# =====================================================================
+
+@biomedicos_bp.route('/mantenimientos/<int:mantenimiento_id>/documentos/subir', methods=['GET', 'POST'])
+def subir_documento_mantenimiento(mantenimiento_id):
+    """Sube un documento escaneado a un mantenimiento biomédico."""
+    mantenimiento = db.session.get(Mantenimiento, mantenimiento_id)
+    if not mantenimiento:
+        flash('Mantenimiento no encontrado', 'error')
+        return redirect(url_for('biomedicos.mantenimientos'))
+
+    if request.method == 'POST':
+        # Validar archivo
+        if 'archivo' not in request.files:
+            flash('No se seleccionó ningún archivo', 'error')
+            return redirect(request.url)
+
+        archivo = request.files['archivo']
+        if archivo.filename == '':
+            flash('No se seleccionó ningún archivo', 'error')
+            return redirect(request.url)
+
+        # Validar contenido y extensión del archivo
+        import magic
+        MIME_TYPE_MAP = {
+            'pdf': ['application/pdf'],
+            'jpg': ['image/jpeg'],
+            'jpeg': ['image/jpeg'],
+            'png': ['image/png'],
+            'gif': ['image/gif'],
+            'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+            'xls': ['application/vnd.ms-excel', 'application/x-cfb'],
+            'docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            'doc': ['application/msword', 'application/x-cfb'],
+        }
+        extension = archivo.filename.rsplit('.', 1)[1].lower() if '.' in archivo.filename else ''
+        allowed_mimes = MIME_TYPE_MAP.get(extension)
+
+        if not allowed_mimes:
+            flash(f'Formato de archivo con extensión ".{extension}" no es soportado.', 'error')
+            return redirect(request.url)
+
+        # Validar tipo MIME real
+        archivo.seek(0)
+        mime_type = magic.from_buffer(archivo.read(2048), mime=True)
+        archivo.seek(0)
+
+        if mime_type not in allowed_mimes:
+            flash(f'El contenido del archivo no corresponde a un archivo .{extension} válido (detectado: {mime_type}).', 'error')
+            return redirect(request.url)
+
+        # Crear directorio si no existe
+        upload_dir = os.path.join(current_app.static_folder, 'uploads', 'mantenimientos_documentos')
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Generar nombre de archivo seguro
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        placa = mantenimiento.activo.placa_codigo_interno.replace('/', '_').replace('\\', '_')
+        nombre_seguro = secure_filename(f"mant_{mantenimiento_id}_{placa}_{timestamp}.{extension}")
+        ruta_completa = os.path.join(upload_dir, nombre_seguro)
+
+        # Guardar archivo
+        archivo.save(ruta_completa)
+
+        # Obtener tamaño del archivo
+        tamano_bytes = os.path.getsize(ruta_completa)
+
+        # Determinar tipo de documento
+        tipo_doc = 'pdf' if extension == 'pdf' else \
+                   'imagen' if extension in {'jpg', 'jpeg', 'png', 'gif'} else \
+                   'excel' if extension in {'xlsx', 'xls'} else \
+                   'word' if extension in {'doc', 'docx'} else 'otro'
+
+        # Parsear fecha del documento
+        fecha_documento = None
+        if request.form.get('fecha_documento'):
+            try:
+                fecha_documento = datetime.strptime(request.form.get('fecha_documento'), '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
+        # Crear registro en BD
+        documento = MantenimientoDocumento(
+            mantenimiento_id=mantenimiento_id,
+            nombre_archivo=archivo.filename,
+            ruta_archivo=f'uploads/mantenimientos_documentos/{nombre_seguro}',
+            tipo_documento=tipo_doc,
+            tamano_archivo=tamano_bytes,
+            fecha_documento=fecha_documento,
+            tecnico_responsable=request.form.get('tecnico_responsable'),
+            descripcion=request.form.get('descripcion'),
+            uploaded_by=current_user.id if current_user.is_authenticated else None
+        )
+
+        db.session.add(documento)
+        db.session.commit()
+
+        flash(f'Documento "{archivo.filename}" subido exitosamente', 'success')
+        return redirect(url_for('biomedicos.detalle_mantenimiento', mantenimiento_id=mantenimiento_id))
+
+    # GET: Mostrar formulario
+    return render_template(
+        'mantenimientos/documentos/subir_documento.html',
+        mantenimiento=mantenimiento
+    )
+
+
+@biomedicos_bp.route('/mantenimientos/documentos/<int:doc_id>/ver')
+def ver_documento_mantenimiento(doc_id):
+    """Visualiza un documento en el navegador."""
+    documento = db.session.get(MantenimientoDocumento, doc_id)
+    if not documento:
+        flash('Documento no encontrado', 'error')
+        return redirect(url_for('biomedicos.mantenimientos'))
+
+    return render_template(
+        'mantenimientos/documentos/visor_pdf.html',
+        documento=documento
+    )
+
+
+@biomedicos_bp.route('/mantenimientos/documentos/<int:doc_id>/descargar')
+def descargar_documento_mantenimiento(doc_id):
+    """Descarga un documento."""
+    documento = db.session.get(MantenimientoDocumento, doc_id)
+    if not documento:
+        flash('Documento no encontrado', 'error')
+        return redirect(url_for('biomedicos.mantenimientos'))
+
+    # Extraer directorio y nombre de archivo
+    directorio = os.path.dirname(documento.ruta_archivo)
+    nombre_archivo = os.path.basename(documento.ruta_archivo)
+    ruta_completa = os.path.join(current_app.static_folder, directorio)
+
+    return send_from_directory(
+        ruta_completa,
+        nombre_archivo,
+        as_attachment=True,
+        download_name=documento.nombre_archivo
+    )
+
+
+@biomedicos_bp.route('/mantenimientos/documentos/<int:doc_id>/eliminar', methods=['POST'])
+def eliminar_documento_mantenimiento(doc_id):
+    """Elimina un documento (solo administradores)."""
+    documento = db.session.get(MantenimientoDocumento, doc_id)
+    if not documento:
+        flash('Documento no encontrado', 'error')
+        return redirect(url_for('biomedicos.mantenimientos'))
+
+    # Verificar permisos (solo admin)
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        flash('No tiene permisos para eliminar documentos', 'error')
+        return redirect(url_for('biomedicos.detalle_mantenimiento', mantenimiento_id=documento.mantenimiento_id))
+
+    mantenimiento_id = documento.mantenimiento_id
+
+    # Eliminar archivo físico
+    try:
+        ruta_completa = os.path.join(current_app.static_folder, documento.ruta_archivo)
+        if os.path.exists(ruta_completa):
+            os.remove(ruta_completa)
+    except Exception as e:
+        current_app.logger.error(f"Error al eliminar archivo físico: {e}")
+
+    # Eliminar registro de BD
+    db.session.delete(documento)
+    db.session.commit()
+
+    flash('Documento eliminado exitosamente', 'success')
+    return redirect(url_for('biomedicos.detalle_mantenimiento', mantenimiento_id=mantenimiento_id))

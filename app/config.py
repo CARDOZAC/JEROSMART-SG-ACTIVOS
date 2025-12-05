@@ -20,6 +20,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'una-clave-secreta-muy-dificil-de-adivinar-para-desarrollo')
     WTF_CSRF_ENABLED = True
 
+    # --- Configuración de Red y Proxy ---
+    # Poner en 'True' SOLO si la aplicación se ejecuta detrás de un proxy inverso confiable (nginx, AWS ELB).
+    TRUST_X_FORWARDED_FOR = os.environ.get('TRUST_X_FORWARDED_FOR', 'False').lower() in ('true', '1', 't')
+
     # --- Configuración de la Base de Datos ---
     # URI de la base de datos - Ahora con soporte para MySQL y SQLite
     # Formato MySQL: mysql+pymysql://usuario:password@host:puerto/nombre_db

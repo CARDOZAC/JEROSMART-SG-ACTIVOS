@@ -1,231 +1,379 @@
 {% extends "base.html" %}
 
-{% block title %}Hojas de Vida - Equipos{% endblock %}
-
-{% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
-<style>
-    .ios-card {
-        background: var(--ios-secondary-background);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .hoja-card {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        cursor: pointer;
-    }
-
-    .hoja-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .badge-clase {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-electro { background: rgba(88, 86, 214, 0.1); color: #5856D6; }
-    .badge-tic { background: rgba(52, 199, 89, 0.1); color: #34C759; }
-    .badge-mueble { background: rgba(255, 149, 0, 0.1); color: #FF9500; }
-</style>
-{% endblock %}
+{% block title %}Hojas de Vida de Equipos{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        <i class="fas fa-file-medical me-2"></i>
+        Hojas de Vida de Equipos
+        <small class="text-muted fs-6">TICs | Mobiliario | Equipos Industriales</small>
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item active">Hojas de Vida</li>
+    </ol>
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 mb-2">
-                <i class="bi bi-file-earmark-text-fill" style="color: var(--ios-blue);"></i>
-                Hojas de Vida
-            </h1>
-            <p class="text-secondary mb-0">Gestión de hojas de vida de equipos no biomédicos</p>
-        </div>
-        <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Hoja de Vida
-        </a>
-    </div>
-
-    <!-- Estadísticas -->
+    <!-- Estadísticas Rápidas -->
+    {% if hojas %}
     <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="ios-card text-center">
-                <div style="font-size: 2rem; color: var(--ios-blue);">
-                    <i class="bi bi-file-earmark-text"></i>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Hojas de Vida
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ hojas | length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="mb-0">{{ hojas|length }}</h3>
-                <p class="text-secondary mb-0">Total Hojas de Vida</p>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="ios-card text-center">
-                <div style="font-size: 2rem; color: var(--ios-green);">
-                    <i class="bi bi-check-circle-fill"></i>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Equipos TICs
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ hojas | selectattr('activo.clase_id', 'equalto', 3) | list | length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-desktop fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="mb-0">{{ hojas|selectattr('activo.estado', 'equalto', 'Operativo')|list|length }}</h3>
-                <p class="text-secondary mb-0">Equipos Operativos</p>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="ios-card text-center">
-                <div style="font-size: 2rem; color: var(--ios-orange);">
-                    <i class="bi bi-tools"></i>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Equipos Industriales
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ hojas | selectattr('activo.clase_id', 'equalto', 2) | list | length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-industry fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="mb-0">{{ hojas|selectattr('activo.estado', 'equalto', 'En Mantenimiento')|list|length }}</h3>
-                <p class="text-secondary mb-0">En Mantenimiento</p>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Mobiliario
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ hojas | selectattr('activo.clase_id', 'equalto', 4) | list | length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-couch fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Filtros -->
-    <div class="ios-card mb-4">
-        <div class="row">
-            <div class="col-md-4">
-                <input type="text" class="form-control" id="filtro-buscar" placeholder="Buscar por placa, nombre...">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="filtro-clase">
-                    <option value="">Todas las clases</option>
-                    <option value="2">Equipo Electro-Industrial</option>
-                    <option value="3">TICs</option>
-                    <option value="4">Muebles y Enseres</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" id="filtro-estado">
-                    <option value="">Todos los estados</option>
-                    <option value="Operativo">Operativo</option>
-                    <option value="En Mantenimiento">En Mantenimiento</option>
-                    <option value="Fuera de Servicio">Fuera de Servicio</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
-                    <i class="bi bi-x-circle"></i> Limpiar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lista de Hojas de Vida -->
-    <div class="ios-card">
-        <h5 class="mb-3">
-            <i class="bi bi-list-ul"></i> Hojas de Vida Registradas
-        </h5>
-
-        {% if hojas|length == 0 %}
-        <div class="text-center py-5">
-            <i class="bi bi-inbox" style="font-size: 4rem; color: var(--ios-label-tertiary);"></i>
-            <p class="text-secondary mt-3">No hay hojas de vida registradas.</p>
-            <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Crear Primera Hoja de Vida
+    <!-- Tarjeta Principal -->
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span>
+                <i class="fas fa-list me-2"></i>
+                Listado de Hojas de Vida Registradas
+            </span>
+            <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i> Nueva Hoja de Vida
             </a>
         </div>
-        {% else %}
-        <div id="lista-hojas">
-            {% for hoja in hojas %}
-            <div class="hoja-card" data-clase="{{ hoja.activo.clase_id }}" data-estado="{{ hoja.activo.estado }}"
-                 onclick="window.location.href='{{ url_for('mantenimientos.ver_hoja_vida', id=hoja.id) }}'">
-                <div class="row align-items-center">
-                    <div class="col-md-2">
-                        {% if hoja.foto_url %}
-                        <img src="{{ url_for('static', filename=hoja.foto_url) }}"
-                             alt="Foto equipo"
-                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-                        {% else %}
-                        <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-image" style="font-size: 2rem; color: #999;"></i>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <div>
-                            <strong>{{ hoja.activo.placa_codigo_interno }}</strong>
-                            {% if hoja.activo.clase_id == 2 %}
-                            <span class="badge badge-electro ms-2">Electro-Industrial</span>
-                            {% elif hoja.activo.clase_id == 3 %}
-                            <span class="badge badge-tic ms-2">TICs</span>
-                            {% elif hoja.activo.clase_id == 4 %}
-                            <span class="badge badge-mueble ms-2">Muebles</span>
-                            {% endif %}
-                        </div>
-                        <div class="text-secondary" style="font-size: 0.9rem;">
-                            {{ hoja.activo.nombre_activo }}
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <small class="text-secondary">Marca</small><br>
-                        <strong>{{ hoja.activo.marca or 'N/A' }}</strong>
-                    </div>
-                    <div class="col-md-2">
-                        <small class="text-secondary">Ubicación</small><br>
-                        <strong>{{ hoja.activo.ubicacion or 'N/A' }}</strong>
-                    </div>
-                    <div class="col-md-2">
-                        <small class="text-secondary">Estado</small><br>
-                        <span class="badge bg-{{ 'success' if hoja.activo.estado == 'Operativo' else 'warning' }}">
-                            {{ hoja.activo.estado }}
-                        </span>
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <i class="bi bi-chevron-right"></i>
-                    </div>
+
+        <div class="card-body">
+            {% if hojas %}
+
+            <!-- Filtros de Búsqueda -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Buscar:</label>
+                    <input type="text" id="searchInput" class="form-control form-control-sm"
+                           placeholder="Buscar por activo, placa, marca...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Categoría:</label>
+                    <select id="filterCategoria" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="TICs">TICs</option>
+                        <option value="Equipos Electro-Industriales">Equipos Industriales</option>
+                        <option value="Muebles y Enseres">Mobiliario</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Garantía:</label>
+                    <select id="filterGarantia" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="vigente">Vigente</option>
+                        <option value="vencida">Vencida</option>
+                        <option value="sin_datos">Sin datos</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="btnLimpiarFiltros" class="btn btn-secondary btn-sm w-100">
+                        <i class="fas fa-redo me-1"></i> Limpiar
+                    </button>
                 </div>
             </div>
-            {% endfor %}
+
+            <!-- Tabla de Datos -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped" id="tablaHojasVida">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 60px;" class="text-center">ID</th>
+                            <th>Activo</th>
+                            <th style="width: 120px;">Placa</th>
+                            <th>Categoría</th>
+                            <th>Marca/Modelo</th>
+                            <th style="width: 120px;">Fecha Adquisición</th>
+                            <th class="text-center">Garantía</th>
+                            <th style="width: 80px;" class="text-center">Fotos</th>
+                            <th style="width: 150px;" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hoja in hojas %}
+                        {% set hoy = None %}
+                        {% if hoja.fecha_vencimiento_garantia %}
+                            {% set hoy = now %}
+                            {% set garantia_vigente = hoja.fecha_vencimiento_garantia > hoy %}
+                        {% else %}
+                            {% set garantia_vigente = None %}
+                        {% endif %}
+
+                        <tr data-categoria="{{ hoja.activo.clase.nombre }}"
+                            data-garantia="{% if garantia_vigente == True %}vigente{% elif garantia_vigente == False %}vencida{% else %}sin_datos{% endif %}">
+                            <td class="text-center">
+                                <strong>#{{ hoja.id }}</strong>
+                            </td>
+                            <td>
+                                <i class="fas {% if hoja.activo.clase_id == 3 %}fa-desktop{% elif hoja.activo.clase_id == 2 %}fa-industry{% else %}fa-couch{% endif %} text-muted me-1"></i>
+                                {{ hoja.activo.nombre_activo }}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('activos.ver_activo', activo_id=hoja.activo.id) }}"
+                                   class="badge bg-dark text-decoration-none" target="_blank">
+                                    {{ hoja.activo.placa_codigo_interno }}
+                                </a>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ hoja.activo.clase.nombre }}</small>
+                            </td>
+                            <td>
+                                <small>
+                                    <strong>{{ hoja.activo.marca or 'N/A' }}</strong><br>
+                                    {{ hoja.activo.modelo or 'N/A' }}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <small>
+                                    {% if hoja.fecha_adquisicion %}
+                                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                        {{ hoja.fecha_adquisicion.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                {% if garantia_vigente == True %}
+                                    <span class="badge bg-success" title="Vence: {{ hoja.fecha_vencimiento_garantia.strftime('%d/%m/%Y') }}">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Vigente
+                                    </span>
+                                {% elif garantia_vigente == False %}
+                                    <span class="badge bg-danger" title="Venció: {{ hoja.fecha_vencimiento_garantia.strftime('%d/%m/%Y') }}">
+                                        <i class="fas fa-times-circle me-1"></i>
+                                        Vencida
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-question-circle me-1"></i>
+                                        Sin datos
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% set num_fotos = ([hoja.foto_url, hoja.foto_2_url, hoja.foto_3_url] | select | list | length) %}
+                                {% if num_fotos > 0 %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-images me-1"></i>
+                                        {{ num_fotos }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">
+                                        <i class="fas fa-image"></i>
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('mantenimientos.ver_hoja_vida', id=hoja.id) }}"
+                                       class="btn btn-info btn-sm" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('mantenimientos.editar_hoja_vida', id=hoja.id) }}"
+                                       class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if current_user.role == 'admin' %}
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal{{ hoja.id }}"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Modal de Eliminación -->
+                                {% if current_user.role == 'admin' %}
+                                <div class="modal fade" id="deleteModal{{ hoja.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Confirmar Eliminación
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>¿Está seguro de eliminar la hoja de vida #{{ hoja.id }}?</p>
+                                                <div class="alert alert-warning small">
+                                                    <strong>Activo:</strong> {{ hoja.activo.nombre_activo }}<br>
+                                                    <strong>Placa:</strong> {{ hoja.activo.placa_codigo_interno }}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{{ url_for('mantenimientos.eliminar_hoja_vida', id=hoja.id) }}" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="fas fa-trash me-1"></i>
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Información de Registros -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <p class="text-muted small">
+                        Mostrando <span id="rowCount">{{ hojas | length }}</span> registros
+                    </p>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Sin datos -->
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>No hay hojas de vida registradas</strong> para equipos no biomédicos.
+                <br>
+                <a href="{{ url_for('mantenimientos.nueva_hoja_vida') }}" class="alert-link">
+                    ¡Crea la primera ahora!
+                </a>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Filtros
-document.getElementById('filtro-buscar').addEventListener('input', aplicarFiltros);
-document.getElementById('filtro-clase').addEventListener('change', aplicarFiltros);
-document.getElementById('filtro-estado').addEventListener('change', aplicarFiltros);
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const filterCategoria = document.getElementById('filterCategoria');
+    const filterGarantia = document.getElementById('filterGarantia');
+    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+    const tabla = document.getElementById('tablaHojasVida');
 
-function aplicarFiltros() {
-    const buscar = document.getElementById('filtro-buscar').value.toLowerCase();
-    const clase = document.getElementById('filtro-clase').value;
-    const estado = document.getElementById('filtro-estado').value;
+    if (tabla) {
+        const tbody = tabla.querySelector('tbody');
+        const filas = Array.from(tbody.querySelectorAll('tr'));
 
-    const hojas = document.querySelectorAll('.hoja-card');
+        function filtrarTabla() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const categoriaSeleccionada = filterCategoria.value;
+            const garantiaSeleccionada = filterGarantia.value;
 
-    hojas.forEach(hoja => {
-        const texto = hoja.textContent.toLowerCase();
-        const claseActivo = hoja.getAttribute('data-clase');
-        const estadoActivo = hoja.getAttribute('data-estado');
+            let visibleCount = 0;
 
-        const cumpleBuscar = texto.includes(buscar);
-        const cumpleClase = !clase || claseActivo === clase;
-        const cumpleEstado = !estado || estadoActivo === estado;
+            filas.forEach(fila => {
+                const textoFila = fila.textContent.toLowerCase();
+                const categoria = fila.dataset.categoria;
+                const garantia = fila.dataset.garantia;
 
-        if (cumpleBuscar && cumpleClase && cumpleEstado) {
-            hoja.style.display = 'block';
-        } else {
-            hoja.style.display = 'none';
+                const coincideBusqueda = textoFila.includes(searchTerm);
+                const coincideCategoria = !categoriaSeleccionada || categoria === categoriaSeleccionada;
+                const coincideGarantia = !garantiaSeleccionada || garantia === garantiaSeleccionada;
+
+                if (coincideBusqueda && coincideCategoria && coincideGarantia) {
+                    fila.style.display = '';
+                    visibleCount++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            // Actualizar contador
+            document.getElementById('rowCount').textContent = visibleCount;
         }
-    });
-}
 
-function limpiarFiltros() {
-    document.getElementById('filtro-buscar').value = '';
-    document.getElementById('filtro-clase').value = '';
-    document.getElementById('filtro-estado').value = '';
-    aplicarFiltros();
-}
+        // Event listeners para los filtros
+        searchInput.addEventListener('keyup', filtrarTabla);
+        filterCategoria.addEventListener('change', filtrarTabla);
+        filterGarantia.addEventListener('change', filtrarTabla);
+
+        // Limpiar filtros
+        btnLimpiarFiltros.addEventListener('click', function() {
+            searchInput.value = '';
+            filterCategoria.value = '';
+            filterGarantia.value = '';
+            filtrarTabla();
+        });
+    }
+});
 </script>
 {% endblock %}

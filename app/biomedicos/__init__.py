@@ -4,8 +4,7 @@ biomedicos_bp = Blueprint(
     "biomedicos",
     __name__,
     template_folder="templates",
-    static_folder="static",
-    url_prefix="/biomedicos"
+    static_folder="static"
 )
 
 from . import routes

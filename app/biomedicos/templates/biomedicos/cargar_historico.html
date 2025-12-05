@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field, render_submit_button, render_form_errors %}
+
+{% block title %}Cargar Mantenimiento Histórico Biomédico{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        <i class="fas fa-upload me-2"></i>
+        Cargar Mantenimiento Histórico Biomédico
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('biomedicos.index') }}">Biomédicos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('biomedicos.mantenimientos') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item active">Cargar Histórico</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-file-import me-2"></i>
+                    Cargar PDF de Mantenimiento Realizado
+                    <small class="float-end">Equipos Biomédicos</small>
+                </div>
+                <div class="card-body">
+                    {{ render_form_errors(form) }}
+
+                    <form method="POST" action="{{ url_for('biomedicos.cargar_historico_biomedico') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row">
+                            <!-- Activo Biomédico -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.activo_id.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-heartbeat text-danger ms-1"></i>
+                                    {{ form.activo_id(class="form-select form-select-lg", id="activo_select") }}
+                                    {% if form.activo_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.activo_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Seleccione el activo biomédico al que pertenece el mantenimiento.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Documento PDF -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.documento.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-file-pdf text-danger ms-1"></i>
+                                    {{ form.documento(class="form-control") }}
+                                     {% if form.documento.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.documento.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Seleccione el archivo PDF del mantenimiento realizado.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Fecha Realizado -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.fecha_mantenimiento.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-calendar-alt text-muted ms-1"></i>
+                                    {{ form.fecha_mantenimiento(class="form-control", type="date") }}
+                                    {% if form.fecha_mantenimiento.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.fecha_mantenimiento.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                     <small class="form-text text-muted">
+                                        Indique la fecha en que se realizó el mantenimiento.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.observaciones.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-clipboard text-muted ms-1"></i>
+                                    {{ form.observaciones(class="form-control", placeholder="Opcional: Describa brevemente el mantenimiento realizado...") }}
+                                    {% if form.observaciones.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.observaciones.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('biomedicos.mantenimientos') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                            {{ form.submit(class="btn btn-primary btn-lg px-5") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Información -->
+        <div class="col-xl-4">
+            <div class="card mb-4 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Carga de Históricos Biomédicos
+                </div>
+                <div class="card-body">
+                    <p class="small">
+                        Esta sección le permite incorporar al sistema los registros de mantenimientos biomédicos que fueron realizados en el pasado y de los cuales posee un soporte en formato <strong>PDF</strong>.
+                    </p>
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> Asegúrese de que la fecha y el activo biomédico seleccionado sean correctos antes de subir el archivo.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const activoSelect = document.getElementById('activo_select');
+        if (activoSelect) {
+            activoSelect.addEventListener('change', function() {
+                if (this.value) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

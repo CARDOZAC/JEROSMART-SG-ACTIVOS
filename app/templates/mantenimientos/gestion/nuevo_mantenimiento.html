@@ -1,10 +1,14 @@
 {% extends "base.html" %}
+{% from "_macros.html" import render_field, render_submit_button, render_form_errors %}
 
 {% block title %}Nuevo Mantenimiento{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <h1 class="mt-4">Nuevo Mantenimiento</h1>
+    <h1 class="mt-4">
+        <i class="fas fa-wrench me-2"></i>
+        Nuevo Mantenimiento
+    </h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
         <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
@@ -12,23 +16,191 @@
         <li class="breadcrumb-item active">Nuevo Mantenimiento</li>
     </ol>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-plus me-1"></i>
-            Registrar Nuevo Mantenimiento
-        </div>
-        <div class="card-body">
-            <div class="alert alert-info text-center" role="alert">
-                <h4 class="alert-heading">Funcionalidad en Desarrollo</h4>
-                <p>La capacidad para crear nuevos registros de mantenimiento se está implementando y estará disponible próximamente.</p>
-                <hr>
-                <p class="mb-0">Gracias por su paciencia.</p>
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Registrar Nuevo Mantenimiento
+                    <small class="float-end">TICs | Mobiliario | Equipos Industriales</small>
+                </div>
+                <div class="card-body">
+                    {{ render_form_errors(form) }}
+
+                    <form method="POST" action="{{ url_for('mantenimientos.nuevo_mantenimiento') }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row">
+                            <!-- Activo Fijo -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.activo_id.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-desktop text-muted ms-1"></i>
+                                    {{ form.activo_id(class="form-select form-select-lg", id="activo_select") }}
+                                    {% if form.activo_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.activo_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Seleccione el activo fijo al que se le realizará el mantenimiento.
+                                        Solo se muestran activos de TICs, Mobiliario y Equipos Industriales.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Tipo de Mantenimiento -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.tipo_id.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-list-alt text-muted ms-1"></i>
+                                    {{ form.tipo_id(class="form-select") }}
+                                    {% if form.tipo_id.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.tipo_id.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Ej: Preventivo, Correctivo, Calibración, etc.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Fecha Programada -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.fecha_mantenimiento.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-calendar-alt text-muted ms-1"></i>
+                                    {{ form.fecha_mantenimiento(class="form-control", type="date") }}
+                                    {% if form.fecha_mantenimiento.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.fecha_mantenimiento.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form.estado.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-info-circle text-muted ms-1"></i>
+                                    {{ form.estado(class="form-select") }}
+                                    {% if form.estado.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.estado.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    {{ form.observaciones.label(class="form-label fw-bold") }}
+                                    <i class="fas fa-clipboard text-muted ms-1"></i>
+                                    {{ form.observaciones(class="form-control", placeholder="Detalle las actividades realizadas, partes reemplazadas, hallazgos, etc.") }}
+                                    {% if form.observaciones.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.observaciones.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Describa detalladamente las actividades realizadas durante el mantenimiento.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                            {{ form.submit(class="btn btn-primary btn-lg px-5") }}
+                        </div>
+                    </form>
+                </div>
             </div>
-            <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i>
-                Volver al Listado
-            </a>
+        </div>
+
+        <!-- Panel de Información -->
+        <div class="col-xl-4">
+            <div class="card mb-4 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Importante
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="fas fa-check-circle text-success me-2"></i>Tipos de Mantenimiento:</h6>
+                    <ul class="small mb-3">
+                        <li><strong>Preventivo:</strong> Mantenimiento programado regular</li>
+                        <li><strong>Correctivo:</strong> Reparación de fallos detectados</li>
+                        <li><strong>Calibración:</strong> Ajuste de precisión del equipo</li>
+                        <li><strong>Actualización:</strong> Mejoras o actualizaciones</li>
+                    </ul>
+
+                    <h6 class="fw-bold"><i class="fas fa-desktop text-primary me-2"></i>Categorías Gestionadas:</h6>
+                    <ul class="small mb-3">
+                        <li><strong>TICs:</strong> Computadores, servidores, redes</li>
+                        <li><strong>Mobiliario:</strong> Muebles y enseres</li>
+                        <li><strong>Equipos Industriales:</strong> Maquinaria electro-industrial</li>
+                    </ul>
+
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Nota:</strong> Los equipos biomédicos se gestionan en el módulo especializado de Biomédicos.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Recomendaciones
+                </div>
+                <div class="card-body small">
+                    <ul class="mb-0">
+                        <li>Registre el mantenimiento lo antes posible</li>
+                        <li>Sea detallado en las observaciones</li>
+                        <li>Documente partes reemplazadas</li>
+                        <li>Incluya hallazgos y recomendaciones</li>
+                        <li>Actualice el estado según el progreso</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mejorar la visualización del select de activos con información adicional
+    document.addEventListener('DOMContentLoaded', function() {
+        const activoSelect = document.getElementById('activo_select');
+        if (activoSelect) {
+            // Agregar clase para destacar cuando se seleccione
+            activoSelect.addEventListener('change', function() {
+                if (this.value) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

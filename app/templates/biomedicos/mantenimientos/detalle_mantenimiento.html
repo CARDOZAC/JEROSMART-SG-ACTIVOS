@@ -776,6 +776,141 @@
     </div>
     {% endif %}
 
+    <!-- Documentos Escaneados -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon" style="background: rgba(52, 199, 89, 0.1);">
+                <i class="bi bi-file-earmark-pdf" style="color: #34C759;"></i>
+            </div>
+            <div class="section-title">Documentos Escaneados ({{ mantenimiento.documentos | length }})</div>
+            <a href="{{ url_for('biomedicos.subir_documento_mantenimiento', mantenimiento_id=mantenimiento.id) }}"
+               class="btn-ios btn-ios-primary ms-auto"
+               style="padding: 8px 16px; font-size: 13px;">
+                <i class="bi bi-upload"></i>
+                Subir Documento
+            </a>
+        </div>
+
+        {% if mantenimiento.documentos %}
+            {% for doc in mantenimiento.documentos %}
+            <div style="padding: 16px; border-bottom: 1px solid #F2F2F7; {% if loop.last %}border-bottom: none;{% endif %}">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <!-- Icono según tipo de archivo -->
+                    <div class="section-icon" style="background: {% if doc.es_pdf %}rgba(255, 59, 48, 0.1){% elif doc.es_imagen %}rgba(0, 122, 255, 0.1){% elif doc.tipo_documento == 'excel' %}rgba(52, 199, 89, 0.1){% else %}rgba(142, 142, 147, 0.1){% endif %}; width: 48px; height: 48px; flex-shrink: 0;">
+                        <i class="bi {% if doc.es_pdf %}bi-file-pdf{% elif doc.es_imagen %}bi-image{% elif doc.tipo_documento == 'excel' %}bi-file-excel{% elif doc.tipo_documento == 'word' %}bi-file-word{% else %}bi-file-earmark{% endif %}"
+                           style="color: {% if doc.es_pdf %}#FF3B30{% elif doc.es_imagen %}#007AFF{% elif doc.tipo_documento == 'excel' %}#34C759{% else %}#8E8E93{% endif %}; font-size: 22px;"></i>
+                    </div>
+
+                    <!-- Información del documento -->
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 15px; font-weight: 600; color: #1C1C1E; margin-bottom: 6px; word-wrap: break-word;">
+                            {{ doc.nombre_archivo }}
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #8E8E93; margin-bottom: 8px;">
+                            <span>
+                                <i class="bi bi-hdd"></i> {{ doc.tamano_mb }} MB
+                            </span>
+                            {% if doc.fecha_documento %}
+                            <span>
+                                <i class="bi bi-calendar-event"></i> {{ doc.fecha_documento.strftime('%d/%m/%Y') }}
+                            </span>
+                            {% endif %}
+                            {% if doc.tecnico_responsable %}
+                            <span>
+                                <i class="bi bi-person-badge"></i> {{ doc.tecnico_responsable }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if doc.descripcion %}
+                        <div style="font-size: 13px; color: #3C3C43; font-style: italic; margin-bottom: 12px; padding: 8px 12px; background: #F2F2F7; border-radius: 8px;">
+                            {{ doc.descripcion }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Botones de acción -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="{{ url_for('biomedicos.ver_documento_mantenimiento', doc_id=doc.id) }}"
+                               target="_blank"
+                               class="btn-ios"
+                               style="background: rgba(0, 122, 255, 0.1); color: #007AFF; padding: 6px 14px; font-size: 13px;">
+                                <i class="bi bi-eye"></i>
+                                Ver
+                            </a>
+                            <a href="{{ url_for('biomedicos.descargar_documento_mantenimiento', doc_id=doc.id) }}"
+                               class="btn-ios"
+                               style="background: rgba(52, 199, 89, 0.1); color: #34C759; padding: 6px 14px; font-size: 13px;">
+                                <i class="bi bi-download"></i>
+                                Descargar
+                            </a>
+                            {% if current_user.role == 'admin' %}
+                            <button type="button"
+                                    class="btn-ios"
+                                    style="background: rgba(255, 59, 48, 0.1); color: #FF3B30; padding: 6px 14px; font-size: 13px;"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteDocModal{{ doc.id }}">
+                                <i class="bi bi-trash"></i>
+                                Eliminar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Eliminación -->
+            {% if current_user.role == 'admin' %}
+            <div class="modal fade" id="deleteDocModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #FF3B30 0%, #D70015 100%); color: white; border-radius: 16px 16px 0 0;">
+                            <h5 class="modal-title" style="font-weight: 600;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Confirmar Eliminación
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" style="padding: 24px;">
+                            <p style="font-size: 14px; color: #3C3C43;">
+                                ¿Está seguro que desea eliminar el documento <strong>{{ doc.nombre_archivo }}</strong>?
+                            </p>
+                            <div class="alert-box alert-warning">
+                                Esta acción no se puede deshacer.
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid #F2F2F7; padding: 16px 24px;">
+                            <button type="button" class="btn-ios" style="background: #F2F2F7; color: #1C1C1E; padding: 8px 16px;" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <form action="{{ url_for('biomedicos.eliminar_documento_mantenimiento', doc_id=doc.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-ios" style="background: #FF3B30; color: white; padding: 8px 16px;">
+                                    <i class="bi bi-trash me-1"></i>
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        {% else %}
+            <!-- Estado vacío -->
+            <div style="text-align: center; padding: 40px 20px;">
+                <i class="bi bi-folder2-open" style="font-size: 48px; color: #C7C7CC; margin-bottom: 12px;"></i>
+                <p style="font-size: 14px; color: #8E8E93; margin-bottom: 16px;">
+                    No hay documentos escaneados adjuntos a este mantenimiento
+                </p>
+                <a href="{{ url_for('biomedicos.subir_documento_mantenimiento', mantenimiento_id=mantenimiento.id) }}"
+                   class="btn-ios btn-ios-primary">
+                    <i class="bi bi-upload me-1"></i>
+                    Subir Primer Documento
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
     <!-- Firmas -->
     <div class="section-card">
         <div class="section-header">

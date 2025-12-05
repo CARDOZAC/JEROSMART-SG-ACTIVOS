@@ -69,9 +69,13 @@
         <p class="ios-text-body text-secondary">Gestión de mantenimientos para equipos de TICs, mobiliario y equipos electro-industriales.</p>
     </div>
 
-    <!-- Información sobre las clases gestionadas -->
+    <!-- Widget de Alertas -->
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-xl-4 col-lg-5 mb-4">
+            {% include 'mantenimientos/alertas/widget_alertas.html' %}
+        </div>
+        <div class="col-xl-8 col-lg-7">
+            <!-- Información sobre las clases gestionadas -->
             <div class="ios-card" style="background: rgba(88, 86, 214, 0.05); border-left: 4px solid #5856D6;">
                 <h4 style="color: #5856D6; margin-bottom: 1rem;">
                     <i class="bi bi-info-circle-fill"></i> Clases de Activos Gestionadas
@@ -113,7 +117,7 @@
     </div>
 
     <div class="row g-4 justify-content-center">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <a href="{{ url_for('mantenimientos.hojas_vida') }}" class="feature-card">
                 <div class="icon" style="color: var(--ios-blue);">
                     <i class="bi bi-file-earmark-text-fill"></i>
@@ -122,13 +126,22 @@
                 <p>Registrar y gestionar las hojas de vida de los equipos con sus características comerciales, técnicas y específicas.</p>
             </a>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-4">
             <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="feature-card">
                 <div class="icon" style="color: var(--ios-green);">
                     <i class="bi bi-wrench-adjustable-circle-fill"></i>
                 </div>
                 <h3>Gestionar Mantenimientos</h3>
                 <p>Crear, ver y administrar registros de mantenimientos preventivos y correctivos en tabla detallada.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('mantenimientos.alertas_mantenimientos') }}" class="feature-card">
+                <div class="icon" style="color: var(--ios-orange);">
+                    <i class="bi bi-bell-fill"></i>
+                </div>
+                <h3>Alertas y Notificaciones</h3>
+                <p>Monitorear mantenimientos vencidos y próximos a vencer para planificar las intervenciones.</p>
             </a>
         </div>
     </div>

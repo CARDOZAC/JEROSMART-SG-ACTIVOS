@@ -5,104 +5,601 @@
 {% block head_extra %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ios-design-system.css') }}">
 <style>
-    .mantenimiento-card {
-        background-color: var(--ios-secondary-background);
-        border-radius: 1rem;
-        padding: 1.5rem;
+    /* ===== DISEÑO MODERNO BIOMÉDICO OPTIMIZADO ===== */
+    :root {
+        --bio-primary: linear-gradient(135deg, #FF3B30 0%, #FF9500 100%);
+        --bio-success: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+        --bio-warning: linear-gradient(135deg, #FFCC00 0%, #FF9500 100%);
+        --bio-info: linear-gradient(135deg, #007AFF 0%, #5AC8FA 100%);
+        --shadow-ios: 0 10px 40px rgba(0, 0, 0, 0.06);
+        --shadow-ios-hover: 0 20px 50px rgba(0, 0, 0, 0.12);
+        --radius-ios: 16px;
+        --transition-ios: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    /* Header biomédico con gradiente */
+    .bio-header {
+        background: var(--bio-primary);
+        border-radius: var(--radius-ios);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: var(--shadow-ios);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bio-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 150%;
+        height: 150%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+        animation: bioFloat 8s ease-in-out infinite;
+    }
+
+    @keyframes bioFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-20px, 20px) scale(1.1); }
+    }
+
+    .bio-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .bio-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .bio-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.95;
+        font-size: 1rem;
+    }
+
+    /* Estadísticas biomédicas */
+    .bio-stat-card {
+        background: white;
+        border-radius: var(--radius-ios);
+        padding: 2rem;
+        box-shadow: var(--shadow-ios);
+        transition: var(--transition-ios);
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+    .bio-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+    }
+
+    .bio-stat-card.red::before { background: var(--bio-primary); }
+    .bio-stat-card.green::before { background: var(--bio-success); }
+    .bio-stat-card.yellow::before { background: var(--bio-warning); }
+    .bio-stat-card.blue::before { background: var(--bio-info); }
+
+    .bio-stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-ios-hover);
+    }
+
+    .bio-stat-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
         margin-bottom: 1rem;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        transition: box-shadow 0.2s ease;
+        animation: bioIconPulse 3s ease-in-out infinite;
     }
 
-    .mantenimiento-card:hover {
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    @keyframes bioIconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
 
-    .estado-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
+    .bio-stat-icon.red { background: rgba(255, 59, 48, 0.12); color: #FF3B30; }
+    .bio-stat-icon.green { background: rgba(52, 199, 89, 0.12); color: #34C759; }
+    .bio-stat-icon.yellow { background: rgba(255, 204, 0, 0.12); color: #FFCC00; }
+    .bio-stat-icon.blue { background: rgba(0, 122, 255, 0.12); color: #007AFF; }
+
+    .bio-stat-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #8E8E93;
+        margin-bottom: 0.5rem;
+    }
+
+    .bio-stat-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #1C1C1E;
+        line-height: 1;
+    }
+
+    /* Split Button Biomédico */
+    .bio-action-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .bio-btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        transition: var(--transition-ios);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .bio-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+    }
+
+    .bio-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .bio-btn.primary {
+        background: var(--bio-primary);
+        color: white;
+    }
+
+    .bio-btn.success {
+        background: var(--bio-success);
+        color: white;
+    }
+
+    .bio-btn.info {
+        background: var(--bio-info);
+        color: white;
+    }
+
+    /* Split Button Especial Biomédico */
+    .bio-split-group {
+        display: inline-flex;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        transition: var(--transition-ios);
+    }
+
+    .bio-split-group:hover {
+        box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+        transform: translateY(-3px);
+    }
+
+    .bio-split-main {
+        background: var(--bio-primary);
+        color: white;
+        border: none;
+        padding: 0.9rem 1.8rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        border-radius: 0;
+        transition: var(--transition-ios);
+        text-decoration: none;
+    }
+
+    .bio-split-toggle {
+        background: var(--bio-primary);
+        color: white;
+        border: none;
+        border-left: 1px solid rgba(255,255,255,0.3);
+        padding: 0.9rem 1.2rem;
+        transition: var(--transition-ios);
+        cursor: pointer;
+    }
+
+    .bio-split-main:hover,
+    .bio-split-toggle:hover {
+        filter: brightness(1.15);
+    }
+
+    .dropdown-menu-bio {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        min-width: 240px;
+        backdrop-filter: blur(20px);
+        background: rgba(255,255,255,0.95);
+    }
+
+    .dropdown-item-bio {
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        transition: var(--transition-ios);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         font-weight: 500;
+        color: #1C1C1E;
     }
 
-    .estado-pendiente {
-        background-color: rgba(255, 204, 0, 0.2);
+    .dropdown-item-bio:hover {
+        background: linear-gradient(135deg, rgba(255, 59, 48, 0.1) 0%, rgba(255, 149, 0, 0.1) 100%);
+        transform: translateX(8px);
+        color: #FF3B30;
+    }
+
+    .dropdown-item-bio i {
+        width: 28px;
+        text-align: center;
+        font-size: 1.2rem;
+    }
+
+    /* Tablas modernas */
+    .bio-table-container {
+        background: white;
+        border-radius: var(--radius-ios);
+        box-shadow: var(--shadow-ios);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .bio-table-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.8rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .bio-table-header h5 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #1C1C1E;
+    }
+
+    .bio-table {
+        width: 100%;
+        margin: 0;
+    }
+
+    .bio-table thead th {
+        background: var(--bio-primary);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.6px;
+        padding: 1.2rem;
+        border: none;
+    }
+
+    .bio-table tbody tr {
+        transition: var(--transition-ios);
+        border-bottom: 1px solid #F2F2F7;
+    }
+
+    .bio-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(255, 59, 48, 0.03) 0%, rgba(255, 149, 0, 0.03) 100%);
+        transform: scale(1.005);
+    }
+
+    .bio-table tbody td {
+        padding: 1.2rem;
+        vertical-align: middle;
+    }
+
+    /* Badges biomédicos */
+    .bio-badge {
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .bio-badge.pendiente {
+        background: rgba(255, 204, 0, 0.15);
         color: #CC8800;
     }
 
-    .estado-completado {
-        background-color: rgba(52, 199, 89, 0.2);
-        color: #2D8659;
+    .bio-badge.en-proceso {
+        background: rgba(0, 122, 255, 0.15);
+        color: #007AFF;
     }
 
-    .estado-en-proceso {
-        background-color: rgba(0, 122, 255, 0.2);
-        color: #0066CC;
+    .bio-badge.completado {
+        background: rgba(52, 199, 89, 0.15);
+        color: #34C759;
+    }
+
+    .bio-badge.cancelado {
+        background: rgba(255, 59, 48, 0.15);
+        color: #FF3B30;
+    }
+
+    /* Botones de acción */
+    .bio-action-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: var(--transition-ios);
+        cursor: pointer;
+    }
+
+    .bio-action-btn:hover {
+        transform: scale(1.15) rotate(5deg);
+    }
+
+    .bio-action-btn.view {
+        background: rgba(0, 122, 255, 0.12);
+        color: #007AFF;
+    }
+
+    .bio-action-btn.edit {
+        background: rgba(255, 204, 0, 0.12);
+        color: #FFCC00;
+    }
+
+    .bio-action-btn.delete {
+        background: rgba(255, 59, 48, 0.12);
+        color: #FF3B30;
+    }
+
+    /* Filtros */
+    .bio-filter-container {
+        background: white;
+        border-radius: var(--radius-ios);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-ios);
+    }
+
+    .bio-input {
+        border: 2px solid #E5E5EA;
+        border-radius: 12px;
+        padding: 0.9rem 1.2rem;
+        transition: var(--transition-ios);
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .bio-input:focus {
+        border-color: #FF3B30;
+        box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1);
+        outline: none;
+    }
+
+    /* Animaciones */
+    @keyframes bioFadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bio-animate-in {
+        animation: bioFadeInUp 0.7s ease-out;
+    }
+
+    /* Empty state */
+    .bio-empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #8E8E93;
+    }
+
+    .bio-empty-state i {
+        font-size: 5rem;
+        color: #C7C7CC;
+        margin-bottom: 1rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid px-4 py-3">
+    <!-- Header Biomédico Moderno -->
+    <div class="bio-header bio-animate-in">
+        <div class="bio-header-content">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>
+                        <i class="bi bi-heart-pulse-fill me-3"></i>
+                        Mantenimientos Biomédicos
+                    </h1>
+                    <p>Gestione el mantenimiento de equipos médicos</p>
+                </div>
+                <div class="bio-action-group">
+                    <!-- Botón Exportar -->
+                    <div class="dropdown">
+                        <button class="bio-btn success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-download"></i>
+                            Exportar
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-bio dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item dropdown-item-bio" href="#">
+                                    <i class="bi bi-file-excel-fill text-success"></i>
+                                    Exportar Excel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item dropdown-item-bio" href="#">
+                                    <i class="bi bi-file-pdf-fill text-danger"></i>
+                                    Exportar PDF
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="ios-navbar-large-title">Mantenimientos</h1>
-            <p class="ios-text-body text-secondary">Gestione los mantenimientos de equipos biomédicos</p>
-        </div>
-        <div>
-            <a href="{{ url_for('biomedicos.index') }}" class="ios-button-secondary me-2">
-                <i class="bi bi-arrow-left"></i> Volver
-            </a>
-            <button class="ios-button-primary" onclick="crearMantenimiento()">
-                <i class="bi bi-plus-lg"></i> Nuevo Mantenimiento
-            </button>
+                    <!-- Botón Split: Nuevo + Cargar Histórico -->
+                    <div class="bio-split-group">
+                        <a href="{{ url_for('biomedicos.wizard_mantenimiento') }}" class="bio-split-main">
+                            <i class="bi bi-plus-circle-fill"></i>
+                            Nuevo Mantenimiento
+                        </a>
+                        <button class="bio-split-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Más opciones</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-bio dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item dropdown-item-bio" href="{{ url_for('biomedicos.cargar_historico_biomedico') }}">
+                                    <i class="bi bi-upload"></i>
+                                    Cargar Histórico
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Botón Crear Hoja de Vida -->
+                    <a href="{{ url_for('biomedicos.crear_hoja_de_vida_wizard', activo_id=0) }}" class="bio-btn info">
+                        <i class="bi bi-file-earmark-plus-fill"></i>
+                        Hoja de Vida
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Estadísticas -->
+    <div class="row mb-4 bio-animate-in" style="animation-delay: 0.1s;" id="statsContainer">
+        <!-- Las estadísticas se insertarán aquí dinámicamente -->
+    </div>
+
     <!-- Filtros -->
-    <div class="ios-card mb-4">
+    <div class="bio-filter-container bio-animate-in" style="animation-delay: 0.2s;">
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="ios-label">Búsqueda</label>
-                <input type="text" id="searchInput" class="ios-input" placeholder="Buscar por activo, placa...">
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">Buscar</label>
+                <input type="text" id="searchInput" class="bio-input" placeholder="Buscar por activo, placa...">
             </div>
-            <div class="col-md-3">
-                <label class="ios-label">Estado</label>
-                <select id="estadoFilter" class="ios-input">
+            <div class="col-md-2">
+                <label class="form-label fw-bold small text-muted">Estado</label>
+                <select id="estadoFilter" class="bio-input">
                     <option value="">Todos</option>
                     <option value="Pendiente">Pendiente</option>
                     <option value="En Proceso">En Proceso</option>
                     <option value="Completado">Completado</option>
+                    <option value="Cancelado">Cancelado</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="ios-label">Fecha Inicio</label>
-                <input type="date" id="fechaInicio" class="ios-input">
+                <label class="form-label fw-bold small text-muted">Fecha Inicio</label>
+                <input type="date" id="fechaInicio" class="bio-input">
             </div>
             <div class="col-md-3">
-                <label class="ios-label">Fecha Fin</label>
-                <input type="date" id="fechaFin" class="ios-input">
+                <label class="form-label fw-bold small text-muted">Fecha Fin</label>
+                <input type="date" id="fechaFin" class="bio-input">
             </div>
         </div>
     </div>
 
-    <!-- Lista de Mantenimientos -->
-    <div id="mantenimientosList">
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2 text-secondary">Cargando mantenimientos...</p>
+    <!-- Tabla Pendientes/En Proceso -->
+    <div class="bio-table-container bio-animate-in" style="animation-delay: 0.3s;" id="tablaPendientes">
+        <div class="bio-table-header">
+            <h5>
+                <i class="bi bi-hourglass-split me-2" style="color: #FF3B30;"></i>
+                Mantenimientos Activos
+                <span class="badge bg-danger ms-2" id="badgePendientes">0</span>
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="bio-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Activo</th>
+                        <th style="width: 130px;">Placa</th>
+                        <th>Tipo</th>
+                        <th style="width: 130px;">Fecha</th>
+                        <th style="width: 130px;">Estado</th>
+                        <th style="width: 160px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaPendientesBody">
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="spinner-border text-danger" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
+    <!-- Tabla Históricos -->
+    <div class="bio-table-container bio-animate-in" style="animation-delay: 0.4s;" id="tablaHistoricos">
+        <div class="bio-table-header">
+            <h5>
+                <i class="bi bi-clock-history me-2" style="color: #34C759;"></i>
+                Histórico de Mantenimientos
+                <span class="badge bg-success ms-2" id="badgeHistoricos">0</span>
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="bio-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Activo</th>
+                        <th style="width: 130px;">Placa</th>
+                        <th>Tipo</th>
+                        <th style="width: 130px;">Fecha</th>
+                        <th style="width: 130px;">Estado</th>
+                        <th style="width: 160px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaHistoricosBody">
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
 let mantenimientos = [];
+let pendientes = [];
+let historicos = [];
 
 // Cargar mantenimientos al iniciar
 document.addEventListener('DOMContentLoaded', function() {
@@ -121,58 +618,173 @@ async function cargarMantenimientos() {
         if (!response.ok) throw new Error('Error al cargar mantenimientos');
 
         mantenimientos = await response.json();
-        mostrarMantenimientos(mantenimientos);
+
+        // Separar en pendientes e históricos
+        pendientes = mantenimientos.filter(m => m.estado === 'Pendiente' || m.estado === 'En Proceso' || m.estado === 'Programado');
+        historicos = mantenimientos.filter(m => m.estado === 'Completado' || m.estado === 'Cancelado');
+
+        mostrarEstadisticas();
+        mostrarTablas();
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('mantenimientosList').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Error al cargar los mantenimientos. Por favor, intente de nuevo.
-            </div>
-        `;
+        mostrarError();
     }
 }
 
-function mostrarMantenimientos(lista) {
-    const container = document.getElementById('mantenimientosList');
+function mostrarEstadisticas() {
+    const total = mantenimientos.length;
+    const pendientesCount = pendientes.filter(m => m.estado === 'Pendiente' || m.estado === 'Programado').length;
+    const enProcesoCount = pendientes.filter(m => m.estado === 'En Proceso').length;
+    const completadosCount = historicos.filter(m => m.estado === 'Completado').length;
+
+    const statsHTML = `
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="bio-stat-card red">
+                <div class="bio-stat-icon red">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                </div>
+                <div class="bio-stat-label">Total Mantenimientos</div>
+                <div class="bio-stat-value">${total}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="bio-stat-card yellow">
+                <div class="bio-stat-icon yellow">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="bio-stat-label">Pendientes</div>
+                <div class="bio-stat-value">${pendientesCount}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="bio-stat-card blue">
+                <div class="bio-stat-icon blue">
+                    <i class="bi bi-gear-fill"></i>
+                </div>
+                <div class="bio-stat-label">En Proceso</div>
+                <div class="bio-stat-value">${enProcesoCount}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="bio-stat-card green">
+                <div class="bio-stat-icon green">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="bio-stat-label">Completados</div>
+                <div class="bio-stat-value">${completadosCount}</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('statsContainer').innerHTML = statsHTML;
+}
+
+function mostrarTablas() {
+    mostrarPendientes(pendientes);
+    mostrarHistoricos(historicos);
+}
+
+function mostrarPendientes(lista) {
+    const tbody = document.getElementById('tablaPendientesBody');
+    document.getElementById('badgePendientes').textContent = lista.length;
 
     if (lista.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-5">
-                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--ios-gray-4);"></i>
-                <p class="mt-2 text-secondary">No hay mantenimientos registrados</p>
-            </div>
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="bio-empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mt-2">No hay mantenimientos activos</p>
+                </td>
+            </tr>
         `;
         return;
     }
 
     const html = lista.map(m => `
-        <div class="mantenimiento-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h5 class="mb-1">${m.nombre_activo}</h5>
-                    <p class="text-secondary mb-2">
-                        <i class="bi bi-tag"></i> ${m.placa_codigo_interno} |
-                        <i class="bi bi-tools"></i> ${m.tipo_reporte}
-                    </p>
-                    <p class="mb-2">
-                        <i class="bi bi-calendar3"></i> ${formatearFecha(m.fecha_mantenimiento)}
-                    </p>
-                    <span class="estado-badge estado-${m.estado.toLowerCase().replace(' ', '-')}">${m.estado}</span>
-                </div>
-                <div class="btn-group">
-                    <button class="ios-button-secondary" onclick="verMantenimiento(${m.id})">
-                        <i class="bi bi-eye"></i> Ver
+        <tr>
+            <td class="fw-bold">#${m.id}</td>
+            <td>
+                <i class="bi bi-heart-pulse me-2 text-danger"></i>
+                ${m.nombre_activo}
+            </td>
+            <td><span class="badge bg-dark">${m.placa_codigo_interno}</span></td>
+            <td><span class="badge bg-secondary">${m.tipo_reporte}</span></td>
+            <td>
+                <small>
+                    <i class="bi bi-calendar3 me-1"></i>
+                    ${formatearFecha(m.fecha_mantenimiento)}
+                </small>
+            </td>
+            <td>
+                <span class="bio-badge ${m.estado.toLowerCase().replace(' ', '-')}">
+                    <i class="bi bi-${m.estado === 'Pendiente' || m.estado === 'Programado' ? 'clock' : 'gear'}"></i>
+                    ${m.estado}
+                </span>
+            </td>
+            <td class="text-center">
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="bio-action-btn view" onclick="verMantenimiento(${m.id})" title="Ver">
+                        <i class="bi bi-eye-fill"></i>
                     </button>
-                    <button class="ios-button-secondary" onclick="editarMantenimiento(${m.id})">
-                        <i class="bi bi-pencil"></i> Editar
+                    <button class="bio-action-btn edit" onclick="editarMantenimiento(${m.id})" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
                     </button>
                 </div>
-            </div>
-        </div>
+            </td>
+        </tr>
     `).join('');
 
-    container.innerHTML = html;
+    tbody.innerHTML = html;
+}
+
+function mostrarHistoricos(lista) {
+    const tbody = document.getElementById('tablaHistoricosBody');
+    document.getElementById('badgeHistoricos').textContent = lista.length;
+
+    if (lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="bio-empty-state">
+                    <i class="bi bi-archive"></i>
+                    <p class="mt-2">No hay históricos de mantenimiento</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const html = lista.map(m => `
+        <tr>
+            <td class="fw-bold">#${m.id}</td>
+            <td>
+                <i class="bi bi-heart-pulse me-2 text-success"></i>
+                ${m.nombre_activo}
+            </td>
+            <td><span class="badge bg-dark">${m.placa_codigo_interno}</span></td>
+            <td><span class="badge bg-secondary">${m.tipo_reporte}</span></td>
+            <td>
+                <small>
+                    <i class="bi bi-calendar-check me-1"></i>
+                    ${formatearFecha(m.fecha_mantenimiento)}
+                </small>
+            </td>
+            <td>
+                <span class="bio-badge ${m.estado.toLowerCase()}">
+                    <i class="bi bi-${m.estado === 'Completado' ? 'check-circle' : 'x-circle'}"></i>
+                    ${m.estado}
+                </span>
+            </td>
+            <td class="text-center">
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="bio-action-btn view" onclick="verMantenimiento(${m.id})" title="Ver">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+
+    tbody.innerHTML = html;
 }
 
 function filtrarMantenimientos() {
@@ -181,30 +793,27 @@ function filtrarMantenimientos() {
     const fechaInicio = document.getElementById('fechaInicio').value;
     const fechaFin = document.getElementById('fechaFin').value;
 
-    let filtrados = mantenimientos.filter(m => {
+    const filtrar = lista => lista.filter(m => {
         const matchSearch = !searchTerm ||
             m.nombre_activo.toLowerCase().includes(searchTerm) ||
-            m.placa_codigo_interno.toLowerCase().includes(searchTerm);
+            m.placa_codigo_interno.toLowerCase().includes(searchTerm) ||
+            m.tipo_reporte.toLowerCase().includes(searchTerm);
 
         const matchEstado = !estadoFilter || m.estado === estadoFilter;
-
         const matchFechaInicio = !fechaInicio || m.fecha_mantenimiento >= fechaInicio;
         const matchFechaFin = !fechaFin || m.fecha_mantenimiento <= fechaFin;
 
         return matchSearch && matchEstado && matchFechaInicio && matchFechaFin;
     });
 
-    mostrarMantenimientos(filtrados);
+    mostrarPendientes(filtrar(pendientes));
+    mostrarHistoricos(filtrar(historicos));
 }
 
 function formatearFecha(fecha) {
     if (!fecha) return 'N/A';
-    const d = new Date(fecha);
-    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-function crearMantenimiento() {
-    window.location.href = '/biomedicos/mantenimiento/wizard';
+    const d = new Date(fecha + 'T00:00:00');
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function verMantenimiento(id) {
@@ -213,6 +822,25 @@ function verMantenimiento(id) {
 
 function editarMantenimiento(id) {
     window.location.href = `/biomedicos/mantenimiento/editar/${id}`;
+}
+
+function mostrarError() {
+    document.getElementById('tablaPendientesBody').innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center text-danger py-4">
+                <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                <p class="mt-2">Error al cargar los mantenimientos</p>
+            </td>
+        </tr>
+    `;
+    document.getElementById('tablaHistoricosBody').innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center text-danger py-4">
+                <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+                <p class="mt-2">Error al cargar los mantenimientos</p>
+            </td>
+        </tr>
+    `;
 }
 </script>
 

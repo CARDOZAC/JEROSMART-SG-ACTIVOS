@@ -1,134 +1,225 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Gestión Biomédicos{% endblock %}
+{% block title %}Gestión Biomédica{% endblock %}
 
-{% block styles %}
-{{ super() }}
+{% block head_extra %}
 <style>
-    /* Estilos inspirados en iOS para una interfaz limpia y moderna */
-    body {
-        background-color: #f2f2f7; /* Un gris muy claro, típico de fondos de iOS */
+    /* Estilos específicos para esta página */
+    .table-ios {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 15px;
     }
 
-    .ios-card {
-        background-color: #ffffff;
+    .table-ios thead th {
+        background-color: rgba(242, 242, 247, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--ios-secondary-label-color);
+        border-bottom: 0.5px solid var(--ios-separator-color);
+    }
+
+    .table-ios thead th:first-child {
+        border-top-left-radius: 12px;
+    }
+
+    .table-ios thead th:last-child {
+        border-top-right-radius: 12px;
+    }
+
+    .table-ios tbody tr {
+        transition: background-color 0.2s var(--ios-easing);
+    }
+
+    .table-ios tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .table-ios tbody td {
+        padding: 14px 16px;
+        border-bottom: 0.5px solid var(--ios-separator-color);
+        color: var(--ios-primary-label-color);
+    }
+
+    .table-ios tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-ios tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 12px;
+    }
+
+    .table-ios tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 12px;
+    }
+
+    .btn-edit-ios {
+        background-color: var(--ios-blue);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s var(--ios-easing);
+    }
+
+    .btn-edit-ios:active {
+        transform: scale(0.96);
+        background-color: #0056b3;
+    }
+
+    .badge-estado {
+        padding: 4px 10px;
         border-radius: 12px;
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    .badge-estado.Pendiente {
+        background-color: var(--ios-orange-fill);
+        color: var(--ios-orange);
+    }
+
+    .badge-estado.Completado {
+        background-color: var(--ios-green-fill);
+        color: var(--ios-green);
+    }
+
+    .badge-estado.Cancelado {
+        background-color: var(--ios-red-fill);
+        color: var(--ios-red);
+    }
+
+    /* Estilos para el modal de edición */
+    #editMaintenanceModal .modal-content {
+        border-radius: 20px 20px 0 0;
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        background: rgba(255, 255, 255, 0.9);
         border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        padding: 2rem;
-        margin-top: 2rem;
+        padding-top: 8px;
     }
 
-    .ios-nav .nav-link {
-        border-radius: 8px;
-        font-weight: 600;
-        color: #007aff;
-        padding: 0.75rem 1.25rem;
-        transition: background-color 0.2s ease-in-out;
+    #editMaintenanceModal .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 5px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
     }
 
-    .ios-nav .nav-link.active {
-        background-color: #007aff;
-        color: white;
-        box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
-    }
-
-    .ios-button {
-        border-radius: 8px;
-        font-weight: 600;
-        padding: 10px 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.2s ease;
-        border: none;
-    }
-
-    .ios-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-
-    .ios-button-primary {
-        background-color: #007aff;
-        color: white;
-    }
-
-    .ios-button-secondary {
-        background-color: #e9ecef;
-        color: #007aff;
-    }
-
-    .table-wrapper {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e5ea;
+    @media (prefers-color-scheme: dark) {
+        .table-ios thead th {
+            background-color: rgba(58, 58, 60, 0.8);
+        }
+        .table-ios tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        #editMaintenanceModal .modal-content {
+            background: rgba(30, 30, 30, 0.9);
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="ios-card">
-        <h1 class="mb-4">Gestión de Equipos Biomédicos</h1>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="ios-large-title">Gestión Biomédica</h1>
+        <div>
+            <a href="#" class="btn btn-primary ios-style-button">
+                <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Mantenimiento
+            </a>
+            <a href="{{ url_for('biomedicos.cargar_historico_biomedico') }}" class="btn btn-info ios-style-button">
+                <i class="bi bi-upload me-2"></i>Cargar Histórico
+            </a>
+            <a href="{{ url_for('biomedicos.crear_hoja_de_vida_wizard', activo_id=0) }}" class="btn btn-secondary ios-style-button">
+                <i class="bi bi-file-earmark-plus-fill me-2"></i>Crear Hoja de Vida
+            </a>
+        </div>
+    </div>
 
-        <!-- Navegación por Pestañas -->
-        <ul class="nav nav-pills mb-4 ios-nav" id="biomedicosTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="hojas-vida-tab" data-bs-toggle="tab" data-bs-target="#hojas-vida" type="button" role="tab" aria-controls="hojas-vida" aria-selected="true">
-                    <i class="bi bi-file-earmark-text-fill me-2"></i>Hojas de Vida
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="mantenimientos-tab" data-bs-toggle="tab" data-bs-target="#mantenimientos" type="button" role="tab" aria-controls="mantenimientos" aria-selected="false">
-                    <i class="bi bi-wrench-adjustable-circle-fill me-2"></i>Mantenimientos
-                </button>
-            </li>
-        </ul>
-
-        <!-- Contenido de las Pestañas -->
-        <div class="tab-content" id="biomedicosTabContent">
-            <!-- Sección Hojas de Vida -->
-            <div class="tab-pane fade show active" id="hojas-vida" role="tabpanel" aria-labelledby="hojas-vida-tab">
-                <div class="section-header">
-                    <h2>Hojas de Vida Registradas</h2>
-                    <button id="btn-crear-hdv" class="btn ios-button ios-button-primary">
-                        <i class="bi bi-plus-circle-fill me-2"></i>Crear Hoja de Vida
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <p class="text-muted">La tabla de Hojas de Vida se cargará aquí dinámicamente...</p>
-                    <!-- El componente React/JS renderizará la tabla aquí -->
-                    <div id="tabla-hojas-vida-container"></div>
-                </div>
+    <div class="card ios-glass-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="ios-title-2 mb-0">Historial de Mantenimientos</h2>
+            <div id="loading-indicator" class="spinner-border text-primary" role="status" style="display: none;">
+                <span class="visually-hidden">Cargando...</span>
             </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table-ios">
+                    <thead>
+                        <tr>
+                            <th>Activo</th>
+                            <th>Placa</th>
+                            <th>Tipo de Reporte</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mantenimientos-table-body">
+                        <!-- Las filas se insertarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Sección Mantenimientos -->
-            <div class="tab-pane fade" id="mantenimientos" role="tabpanel" aria-labelledby="mantenimientos-tab">
-                <div class="section-header">
-                    <h2>Historial de Mantenimientos</h2>
-                    <div>
-                        <button id="btn-crear-mantenimiento" class="btn ios-button ios-button-primary me-2">
-                            <i class="bi bi-plus-circle-fill me-2"></i>Registrar Mantenimiento
-                        </button>
-                        <button id="btn-generar-reporte" class="btn ios-button ios-button-secondary">
-                            <i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Generar Reporte
-                        </button>
+<!-- Modal de Edición Estilo iOS -->
+<div class="modal fade" id="editMaintenanceModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title ios-title-2" id="editModalLabel">Editar Mantenimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-maintenance-form">
+                    <input type="hidden" id="edit-maintenance-id" name="id">
+                    <div class="mb-3">
+                        <label for="edit-activo-nombre" class="form-label">Activo</label>
+                        <input type="text" class="form-control" id="edit-activo-nombre" readonly>
                     </div>
-                </div>
-                <div class="table-wrapper">
-                    <p class="text-muted">La tabla de Mantenimientos se cargará aquí dinámicamente...</p>
-                    <!-- El componente React/JS renderizará la tabla aquí -->
-                    <div id="tabla-mantenimientos-container"></div>
-                </div>
+                    <div class="mb-3">
+                        <label for="edit-fecha" class="form-label">Fecha de Mantenimiento</label>
+                        <input type="date" class="form-control" id="edit-fecha" name="fecha_mantenimiento" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-tipo" class="form-label">Tipo de Reporte</label>
+                        <select class="form-select" id="edit-tipo" name="tipo_id" required>
+                            <!-- Opciones de tipo se cargarán aquí -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-estado" class="form-label">Estado</label>
+                        <select class="form-select" id="edit-estado" name="estado" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-observaciones" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="edit-observaciones" name="observaciones" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="save-changes-btn" class="btn btn-primary">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -136,22 +227,104 @@
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Lógica simple para simular la interacción con los botones
-        document.getElementById('btn-crear-hdv').addEventListener('click', function() {
-            alert('Iniciando wizard para crear Hoja de Vida...');
-            // Aquí se llamaría a la función de React para abrir el modal/wizard
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('mantenimientos-table-body');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const editModal = new bootstrap.Modal(document.getElementById('editMaintenanceModal'));
+    const editForm = document.getElementById('edit-maintenance-form');
 
-        document.getElementById('btn-crear-mantenimiento').addEventListener('click', function() {
-            alert('Abriendo formulario para registrar un nuevo mantenimiento...');
-        });
+    async function loadMantenimientos() {
+        loadingIndicator.style.display = 'block';
+        try {
+            const response = await fetch('{{ url_for("biomedicos.api_mantenimientos") }}');
+            if (!response.ok) throw new Error('Error al cargar los datos');
+            const mantenimientos = await response.json();
 
-        document.getElementById('btn-generar-reporte').addEventListener('click', function() {
-            alert('Abriendo modal para generar reporte de mantenimientos...');
-        });
+            tableBody.innerHTML = ''; // Limpiar tabla
+            mantenimientos.forEach(m => {
+                const fecha = new Date(m.fecha_mantenimiento + 'T00:00:00').toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+                const row = `
+                    <tr>
+                        <td>${m.nombre_activo}</td>
+                        <td><span class="badge bg-light text-dark">${m.placa_codigo_interno}</span></td>
+                        <td>${m.tipo_reporte}</td>
+                        <td>${fecha}</td>
+                        <td><span class="badge-estado ${m.estado}">${m.estado}</span></td>
+                        <td>
+                            <button class="btn-edit-ios" data-id="${m.id}">Editar</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">No se pudieron cargar los mantenimientos.</td></tr>';
+        } finally {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    async function openEditModal(id) {
+        // Cargar tipos de mantenimiento
+        const tipoSelect = document.getElementById('edit-tipo');
+        if (tipoSelect.options.length <= 1) { // Cargar solo una vez
+            const tiposResponse = await fetch('{{ url_for("biomedicos.api_mantenimiento_tipos") }}');
+            const tipos = await tiposResponse.json();
+            tipos.forEach(tipo => {
+                tipoSelect.add(new Option(tipo.nombre, tipo.id));
+            });
+        }
+
+        // Cargar datos del mantenimiento
+        const response = await fetch(`{{ url_for("biomedicos.api_mantenimientos") }}/${id}`);
+        const data = await response.json();
+
+        document.getElementById('edit-maintenance-id').value = data.id;
+        document.getElementById('edit-activo-nombre').value = `${data.nombre_activo} (${data.placa_codigo_interno})`;
+        document.getElementById('edit-fecha').value = data.fecha_mantenimiento;
+        document.getElementById('edit-tipo').value = data.tipo_id;
+        document.getElementById('edit-estado').value = data.estado;
+        document.getElementById('edit-observaciones').value = data.observaciones || '';
+
+        editModal.show();
+    }
+
+    // Event listener para botones de editar
+    tableBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-edit-ios')) {
+            const id = e.target.dataset.id;
+            openEditModal(id);
+        }
     });
+
+    // Guardar cambios del modal
+    document.getElementById('save-changes-btn').addEventListener('click', async function() {
+        const id = document.getElementById('edit-maintenance-id').value;
+        const formData = new FormData(editForm);
+
+        try {
+            const response = await fetch(`{{ url_for("biomedicos.api_mantenimientos") }}/${id}`, {
+                method: 'PUT',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                editModal.hide();
+                loadMantenimientos(); // Recargar la tabla
+                // Aquí podrías usar un toast de iOS
+                alert('Mantenimiento actualizado con éxito');
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error al guardar:', error);
+            alert('Ocurrió un error al guardar los cambios.');
+        }
+    });
+
+    loadMantenimientos();
+});
 </script>
 {% endblock %}

@@ -1,14 +1,18 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, make_response, send_from_directory, current_app
 from . import mantenimientos_bp
 from ..decorators import login_required, role_required
 from ..extensions import db
-from ..models import Activo, HojaVidaEquipo, ClaseActivo, Mantenimiento, MantenimientoTipo
-from .forms import MantenimientoForm
+from ..models import Activo, HojaVidaEquipo, ClaseActivo, Mantenimiento, MantenimientoTipo, MantenimientoDocumento
+from .forms import MantenimientoForm, CargarHistoricoForm
 from flask_login import current_user
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 from werkzeug.utils import secure_filename
+import io
+from weasyprint import HTML
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 @mantenimientos_bp.route('/')
 @login_required
@@ -194,6 +198,26 @@ def editar_hoja_vida(id):
                          active_page='mantenimientos')
 
 
+@mantenimientos_bp.route('/hojas_vida/eliminar/<int:id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def eliminar_hoja_vida(id):
+    """Elimina una hoja de vida (solo administradores)."""
+    hoja_vida = HojaVidaEquipo.query.get_or_404(id)
+
+    try:
+        nombre_activo = hoja_vida.activo.nombre_activo
+        db.session.delete(hoja_vida)
+        db.session.commit()
+
+        flash(f'Hoja de vida del activo {nombre_activo} eliminada exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar la hoja de vida: {str(e)}', 'error')
+
+    return redirect(url_for('mantenimientos.hojas_vida'))
+
+
 # ==============================================================================
 # RUTAS PARA MANTENIMIENTOS
 # ==============================================================================
@@ -202,24 +226,594 @@ def editar_hoja_vida(id):
 @login_required
 def gestionar_mantenimientos():
     """Lista todos los mantenimientos de equipos no biomédicos."""
-    # Obtener mantenimientos de activos de clases 2, 3, 4
-    mantenimientos = db.session.query(Mantenimiento).join(Activo).filter(
-        Activo.clase_id.in_([2, 3, 4])
-    ).order_by(Mantenimiento.fecha_mantenimiento.desc()).all()
+    # Estados para mantenimientos pendientes y en proceso
+    estados_pendientes = ['Pendiente', 'En Proceso']
+    # Estados para mantenimientos históricos
+    estados_historicos = ['Completado', 'Cancelado']
+
+    # Consulta para mantenimientos pendientes (clases 2, 3, 4)
+    mantenimientos_pendientes = db.session.scalars(
+        db.select(Mantenimiento).join(Activo).filter(
+            Activo.clase_id.in_([2, 3, 4]),
+            Mantenimiento.estado.in_(estados_pendientes)
+        ).order_by(Mantenimiento.fecha_mantenimiento.asc())
+    ).all()
+
+    # Consulta para mantenimientos históricos (clases 2, 3, 4)
+    mantenimientos_historicos = db.session.scalars(
+        db.select(Mantenimiento).join(Activo).filter(
+            Activo.clase_id.in_([2, 3, 4]),
+            Mantenimiento.estado.in_(estados_historicos)
+        ).order_by(Mantenimiento.fecha_mantenimiento.desc())
+    ).all()
 
     return render_template("mantenimientos/gestion/lista_mantenimientos.html",
-                         mantenimientos=mantenimientos,
+                         mantenimientos_pendientes=mantenimientos_pendientes,
+                         mantenimientos_historicos=mantenimientos_historicos,
                          active_page='mantenimientos')
+
+
+@mantenimientos_bp.route('/mantenimientos/cargar_historico', methods=['GET', 'POST'])
+@login_required
+def cargar_historico():
+    """Carga un PDF de un mantenimiento histórico."""
+    form = CargarHistoricoForm()
+
+    if form.validate_on_submit():
+        try:
+            # 1. Obtener o crear el tipo de mantenimiento 'Histórico'
+            tipo_historico = MantenimientoTipo.query.filter_by(nombre='Histórico').first()
+            if not tipo_historico:
+                tipo_historico = MantenimientoTipo(
+                    nombre='Histórico',
+                    descripcion='Mantenimiento cargado desde un documento histórico.'
+                )
+                db.session.add(tipo_historico)
+                db.session.flush()
+
+            # 2. Crear el registro de mantenimiento
+            mantenimiento = Mantenimiento(
+                activo_id=form.activo_id.data.id,
+                tipo_id=tipo_historico.id,
+                fecha_mantenimiento=form.fecha_mantenimiento.data,
+                estado='Completado',
+                observaciones=form.observaciones.data or "Mantenimiento histórico cargado desde PDF.",
+                created_by=current_user.id,
+                updated_by=current_user.id
+            )
+            db.session.add(mantenimiento)
+            db.session.flush()
+
+            # 3. Guardar el archivo PDF
+            archivo = form.documento.data
+            extension = archivo.filename.rsplit('.', 1)[-1].lower()
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            placa = mantenimiento.activo.placa_codigo_interno or 'SIN_PLACA'
+            nombre_seguro = secure_filename(
+                f"mant_hist_{mantenimiento.id}_{placa}_{timestamp}.{extension}"
+            )
+
+            upload_folder = os.path.join(
+                current_app.root_path,
+                'static',
+                'uploads',
+                'mantenimientos_documentos'
+            )
+            os.makedirs(upload_folder, exist_ok=True)
+
+            ruta_completa = os.path.join(upload_folder, nombre_seguro)
+            archivo.save(ruta_completa)
+            tamano = os.path.getsize(ruta_completa)
+
+            # 4. Crear el registro del documento
+            documento = MantenimientoDocumento(
+                mantenimiento_id=mantenimiento.id,
+                nombre_archivo=archivo.filename,
+                ruta_archivo=f'uploads/mantenimientos_documentos/{nombre_seguro}',
+                tipo_documento='pdf',
+                tamano_archivo=tamano,
+                fecha_documento=form.fecha_mantenimiento.data,
+                descripcion="Documento de mantenimiento histórico.",
+                uploaded_by=current_user.id
+            )
+            db.session.add(documento)
+            db.session.commit()
+
+            flash(
+                f'Mantenimiento histórico para "{form.activo_id.data.nombre_activo}" cargado exitosamente.',
+                'success'
+            )
+            return redirect(url_for('mantenimientos.gestionar_mantenimientos'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al cargar el mantenimiento histórico: {str(e)}', 'error')
+
+    return render_template(
+        'mantenimientos/gestion/cargar_historico.html',
+        form=form,
+        active_page='mantenimientos'
+    )
 
 
 @mantenimientos_bp.route('/mantenimientos/nuevo', methods=['GET', 'POST'])
 @login_required
 def nuevo_mantenimiento():
-    """Página para crear un nuevo mantenimiento (funcionalidad en desarrollo)."""
-    # Lógica para el formulario de creación irá aquí
-    return render_template("mantenimientos/gestion/nuevo_mantenimiento.html", active_page='mantenimientos')
+    """Crea un nuevo registro de mantenimiento para activos no biomédicos."""
+    form = MantenimientoForm()
+
+    if form.validate_on_submit():
+        try:
+            # Crear nuevo mantenimiento
+            mantenimiento = Mantenimiento(
+                activo_id=form.activo_id.data.id,
+                tipo_id=form.tipo_id.data.id,
+                fecha_mantenimiento=form.fecha_mantenimiento.data,
+                estado=form.estado.data,
+                observaciones=form.observaciones.data,
+                created_by=current_user.id,
+                updated_by=current_user.id
+            )
+
+            db.session.add(mantenimiento)
+            db.session.commit()
+
+            flash(f'Mantenimiento registrado exitosamente para {form.activo_id.data.nombre_activo}', 'success')
+            return redirect(url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al registrar el mantenimiento: {str(e)}', 'error')
+            return redirect(url_for('mantenimientos.nuevo_mantenimiento'))
+
+    return render_template("mantenimientos/gestion/nuevo_mantenimiento.html",
+                         form=form,
+                         active_page='mantenimientos')
 
 
+@mantenimientos_bp.route('/mantenimientos/ver/<int:id>')
+@login_required
+def ver_mantenimiento(id):
+    """Muestra los detalles de un mantenimiento."""
+    mantenimiento = Mantenimiento.query.get_or_404(id)
+
+    # Verificar que el mantenimiento es de un activo no biomédico
+    if mantenimiento.activo.clase_id not in [2, 3, 4]:
+        flash('Este mantenimiento pertenece a un equipo biomédico y debe gestionarse en el módulo de Biomédicos.', 'warning')
+        return redirect(url_for('mantenimientos.gestionar_mantenimientos'))
+
+    return render_template("mantenimientos/gestion/ver_mantenimiento.html",
+                         mantenimiento=mantenimiento,
+                         active_page='mantenimientos')
+
+
+@mantenimientos_bp.route('/mantenimientos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_mantenimiento(id):
+    """Edita un mantenimiento existente."""
+    mantenimiento = Mantenimiento.query.get_or_404(id)
+
+    # Verificar que el mantenimiento es de un activo no biomédico
+    if mantenimiento.activo.clase_id not in [2, 3, 4]:
+        flash('Este mantenimiento pertenece a un equipo biomédico y debe gestionarse en el módulo de Biomédicos.', 'warning')
+        return redirect(url_for('mantenimientos.gestionar_mantenimientos'))
+
+    form = MantenimientoForm(obj=mantenimiento)
+
+    if form.validate_on_submit():
+        try:
+            mantenimiento.activo_id = form.activo_id.data.id
+            mantenimiento.tipo_id = form.tipo_id.data.id
+            mantenimiento.fecha_mantenimiento = form.fecha_mantenimiento.data
+            mantenimiento.estado = form.estado.data
+            mantenimiento.observaciones = form.observaciones.data
+            mantenimiento.updated_by = current_user.id
+            mantenimiento.updated_at = datetime.utcnow()
+
+            db.session.commit()
+
+            flash('Mantenimiento actualizado exitosamente', 'success')
+            return redirect(url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar el mantenimiento: {str(e)}', 'error')
+
+    return render_template("mantenimientos/gestion/editar_mantenimiento.html",
+                         form=form,
+                         mantenimiento=mantenimiento,
+                         active_page='mantenimientos')
+
+
+@mantenimientos_bp.route('/mantenimientos/eliminar/<int:id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def eliminar_mantenimiento(id):
+    """Elimina un mantenimiento (solo administradores)."""
+    mantenimiento = Mantenimiento.query.get_or_404(id)
+
+    try:
+        nombre_activo = mantenimiento.activo.nombre_activo
+        db.session.delete(mantenimiento)
+        db.session.commit()
+
+        flash(f'Mantenimiento del activo {nombre_activo} eliminado exitosamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el mantenimiento: {str(e)}', 'error')
+
+    return redirect(url_for('mantenimientos.gestionar_mantenimientos'))
+
+
+# ==============================================================================
+# RUTAS DE REPORTES Y EXPORTACIÓN
+# ==============================================================================
+
+@mantenimientos_bp.route('/mantenimientos/pdf/<int:id>')
+@login_required
+def exportar_mantenimiento_pdf(id):
+    """Genera PDF de un mantenimiento individual"""
+    mantenimiento = Mantenimiento.query.get_or_404(id)
+
+    html_string = render_template('mantenimientos/reportes/mantenimiento_pdf.html',
+                                 mantenimiento=mantenimiento,
+                                 fecha_generacion=datetime.now())
+
+    # Generar PDF
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    response = make_response(pdf_file)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=mantenimiento_{id}_{datetime.now().strftime("%Y%m%d")}.pdf'
+
+    return response
+
+
+@mantenimientos_bp.route('/mantenimientos/excel')
+@login_required
+def exportar_mantenimientos_excel():
+    """Exporta listado de mantenimientos a Excel"""
+
+    # Obtener mantenimientos
+    mantenimientos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4])
+    ).order_by(Mantenimiento.fecha_mantenimiento.desc()).all()
+
+    # Crear workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Mantenimientos"
+
+    # Estilos
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # Encabezados
+    headers = ['ID', 'Activo', 'Placa', 'Categoría', 'Tipo Mantenimiento',
+               'Fecha', 'Estado', 'Observaciones', 'Registrado Por']
+
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.value = header
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell.border = border
+
+    # Datos
+    for row_num, mant in enumerate(mantenimientos, 2):
+        ws.cell(row=row_num, column=1, value=mant.id).border = border
+        ws.cell(row=row_num, column=2, value=mant.activo.nombre_activo).border = border
+        ws.cell(row=row_num, column=3, value=mant.activo.placa_codigo_interno).border = border
+        ws.cell(row=row_num, column=4, value=mant.activo.clase.nombre).border = border
+        ws.cell(row=row_num, column=5, value=mant.tipo.nombre).border = border
+        ws.cell(row=row_num, column=6, value=mant.fecha_mantenimiento.strftime('%d/%m/%Y') if mant.fecha_mantenimiento else 'N/A').border = border
+        ws.cell(row=row_num, column=7, value=mant.estado).border = border
+        ws.cell(row=row_num, column=8, value=mant.observaciones or '').border = border
+        ws.cell(row=row_num, column=9, value=mant.creator.username if mant.creator else 'N/A').border = border
+
+    # Ajustar anchos de columna
+    column_widths = [8, 35, 15, 25, 20, 15, 15, 50, 20]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = width
+
+    # Guardar en memoria
+    excel_file = io.BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    response = make_response(excel_file.read())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = f'attachment; filename=mantenimientos_{datetime.now().strftime("%Y%m%d")}.xlsx'
+
+    return response
+
+
+@mantenimientos_bp.route('/mantenimientos/reporte-consolidado-pdf')
+@login_required
+def exportar_reporte_consolidado_pdf():
+    """Genera reporte consolidado de mantenimientos en PDF"""
+
+    # Obtener mantenimientos
+    mantenimientos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4])
+    ).order_by(Mantenimiento.fecha_mantenimiento.desc()).limit(100).all()
+
+    # Estadísticas
+    total = len(mantenimientos)
+    pendientes = len([m for m in mantenimientos if m.estado == 'Pendiente'])
+    en_proceso = len([m for m in mantenimientos if m.estado == 'En Proceso'])
+    completados = len([m for m in mantenimientos if m.estado == 'Completado'])
+
+    html_string = render_template('mantenimientos/reportes/consolidado_pdf.html',
+                                 mantenimientos=mantenimientos,
+                                 total=total,
+                                 pendientes=pendientes,
+                                 en_proceso=en_proceso,
+                                 completados=completados,
+                                 fecha_generacion=datetime.now())
+
+    # Generar PDF
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    response = make_response(pdf_file)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=reporte_mantenimientos_{datetime.now().strftime("%Y%m%d")}.pdf'
+
+    return response
+
+
+# ==============================================================================
+# RUTAS DE ALERTAS Y NOTIFICACIONES
+# ==============================================================================
+
+@mantenimientos_bp.route('/api/alertas-proximos-mantenimientos')
+@login_required
+def obtener_alertas_mantenimientos():
+    """
+    API endpoint que retorna los mantenimientos próximos a vencer.
+    Retorna mantenimientos pendientes programados para los próximos 15 días.
+    """
+    hoy = datetime.now().date()
+    fecha_limite = hoy + timedelta(days=15)
+
+    # Obtener mantenimientos pendientes próximos
+    mantenimientos_proximos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4]),
+        Mantenimiento.estado.in_(['Pendiente', 'En Proceso']),
+        Mantenimiento.fecha_mantenimiento >= hoy,
+        Mantenimiento.fecha_mantenimiento <= fecha_limite
+    ).order_by(Mantenimiento.fecha_mantenimiento.asc()).all()
+
+    # Obtener mantenimientos vencidos (fecha pasada y aún pendientes)
+    mantenimientos_vencidos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4]),
+        Mantenimiento.estado.in_(['Pendiente', 'En Proceso']),
+        Mantenimiento.fecha_mantenimiento < hoy
+    ).order_by(Mantenimiento.fecha_mantenimiento.asc()).all()
+
+    # Formatear respuesta
+    alertas = {
+        'vencidos': [],
+        'proximos': [],
+        'total_vencidos': len(mantenimientos_vencidos),
+        'total_proximos': len(mantenimientos_proximos)
+    }
+
+    for m in mantenimientos_vencidos:
+        dias_vencido = (hoy - m.fecha_mantenimiento).days
+        alertas['vencidos'].append({
+            'id': m.id,
+            'activo': m.activo.nombre_activo,
+            'placa': m.activo.placa_codigo_interno,
+            'tipo': m.tipo.nombre,
+            'fecha': m.fecha_mantenimiento.strftime('%d/%m/%Y'),
+            'dias_vencido': dias_vencido,
+            'estado': m.estado,
+            'url': url_for('mantenimientos.ver_mantenimiento', id=m.id)
+        })
+
+    for m in mantenimientos_proximos:
+        dias_restantes = (m.fecha_mantenimiento - hoy).days
+        alertas['proximos'].append({
+            'id': m.id,
+            'activo': m.activo.nombre_activo,
+            'placa': m.activo.placa_codigo_interno,
+            'tipo': m.tipo.nombre,
+            'fecha': m.fecha_mantenimiento.strftime('%d/%m/%Y'),
+            'dias_restantes': dias_restantes,
+            'estado': m.estado,
+            'prioridad': 'alta' if dias_restantes <= 3 else 'media' if dias_restantes <= 7 else 'normal',
+            'url': url_for('mantenimientos.ver_mantenimiento', id=m.id)
+        })
+
+    return jsonify(alertas)
+
+
+@mantenimientos_bp.route('/alertas-mantenimientos')
+@login_required
+def alertas_mantenimientos():
+    """Vista de alertas de mantenimientos próximos y vencidos."""
+    hoy = datetime.now().date()
+    fecha_limite = hoy + timedelta(days=15)
+
+    # Obtener mantenimientos vencidos
+    mantenimientos_vencidos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4]),
+        Mantenimiento.estado.in_(['Pendiente', 'En Proceso']),
+        Mantenimiento.fecha_mantenimiento < hoy
+    ).order_by(Mantenimiento.fecha_mantenimiento.asc()).all()
+
+    # Obtener mantenimientos próximos (15 días)
+    mantenimientos_proximos = db.session.query(Mantenimiento).join(Activo).filter(
+        Activo.clase_id.in_([2, 3, 4]),
+        Mantenimiento.estado.in_(['Pendiente', 'En Proceso']),
+        Mantenimiento.fecha_mantenimiento >= hoy,
+        Mantenimiento.fecha_mantenimiento <= fecha_limite
+    ).order_by(Mantenimiento.fecha_mantenimiento.asc()).all()
+
+    return render_template("mantenimientos/alertas/alertas_mantenimientos.html",
+                         mantenimientos_vencidos=mantenimientos_vencidos,
+                         mantenimientos_proximos=mantenimientos_proximos,
+                         hoy=hoy,
+                         active_page='mantenimientos')
+
+
+# ==============================================================================
+# RUTAS DE GESTIÓN DE DOCUMENTOS ESCANEADOS
+# ==============================================================================
+
+@mantenimientos_bp.route('/mantenimientos/<int:mantenimiento_id>/documentos/subir', methods=['GET', 'POST'])
+@login_required
+def subir_documento(mantenimiento_id):
+    """Sube un documento escaneado a un mantenimiento."""
+    mantenimiento = Mantenimiento.query.get_or_404(mantenimiento_id)
+
+    if request.method == 'POST':
+        try:
+            # Validar que se subió un archivo
+            if 'archivo' not in request.files:
+                flash('No se seleccionó ningún archivo', 'error')
+                return redirect(request.url)
+
+            archivo = request.files['archivo']
+
+            if archivo.filename == '':
+                flash('No se seleccionó ningún archivo', 'error')
+                return redirect(request.url)
+
+            # Validar extensión
+            extensiones_permitidas = {'pdf', 'jpg', 'jpeg', 'png', 'gif', 'xlsx', 'xls', 'doc', 'docx'}
+            extension = archivo.filename.rsplit('.', 1)[-1].lower()
+
+            if extension not in extensiones_permitidas:
+                flash(f'Tipo de archivo no permitido. Extensiones válidas: {", ".join(extensiones_permitidas)}', 'error')
+                return redirect(request.url)
+
+            # Determinar tipo de documento
+            tipo_documento = 'otro'
+            if extension == 'pdf':
+                tipo_documento = 'pdf'
+            elif extension in {'jpg', 'jpeg', 'png', 'gif'}:
+                tipo_documento = 'imagen'
+            elif extension in {'xlsx', 'xls'}:
+                tipo_documento = 'excel'
+            elif extension in {'doc', 'docx'}:
+                tipo_documento = 'word'
+
+            # Generar nombre de archivo seguro
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            placa = mantenimiento.activo.placa_codigo_interno
+            nombre_seguro = secure_filename(f"mant_{mantenimiento_id}_{placa}_{timestamp}.{extension}")
+
+            # Crear directorio si no existe
+            from flask import current_app
+            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'mantenimientos_documentos')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Guardar archivo
+            ruta_completa = os.path.join(upload_folder, nombre_seguro)
+            archivo.save(ruta_completa)
+
+            # Obtener tamaño del archivo
+            tamano = os.path.getsize(ruta_completa)
+
+            # Crear registro en BD
+            documento = MantenimientoDocumento(
+                mantenimiento_id=mantenimiento_id,
+                nombre_archivo=archivo.filename,
+                ruta_archivo=f'uploads/mantenimientos_documentos/{nombre_seguro}',
+                tipo_documento=tipo_documento,
+                tamano_archivo=tamano,
+                fecha_documento=datetime.strptime(request.form.get('fecha_documento'), '%Y-%m-%d').date() if request.form.get('fecha_documento') else None,
+                tecnico_responsable=request.form.get('tecnico_responsable'),
+                descripcion=request.form.get('descripcion'),
+                uploaded_by=current_user.id
+            )
+
+            db.session.add(documento)
+            db.session.commit()
+
+            flash(f'Documento "{archivo.filename}" subido exitosamente', 'success')
+            return redirect(url_for('mantenimientos.ver_mantenimiento', id=mantenimiento_id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al subir el documento: {str(e)}', 'error')
+            return redirect(request.url)
+
+    # GET - Mostrar formulario
+    return render_template('mantenimientos/documentos/subir_documento.html',
+                         mantenimiento=mantenimiento,
+                         active_page='mantenimientos')
+
+
+@mantenimientos_bp.route('/mantenimientos/documentos/<int:doc_id>/ver')
+@login_required
+def ver_documento(doc_id):
+    """Muestra un documento en el navegador."""
+    documento = MantenimientoDocumento.query.get_or_404(doc_id)
+
+    from flask import current_app
+    directory = os.path.join(current_app.root_path, 'static')
+
+    return send_from_directory(
+        directory,
+        documento.ruta_archivo,
+        as_attachment=False
+    )
+
+
+@mantenimientos_bp.route('/mantenimientos/documentos/<int:doc_id>/descargar')
+@login_required
+def descargar_documento(doc_id):
+    """Descarga un documento."""
+    documento = MantenimientoDocumento.query.get_or_404(doc_id)
+
+    from flask import current_app
+    directory = os.path.join(current_app.root_path, 'static')
+
+    return send_from_directory(
+        directory,
+        documento.ruta_archivo,
+        as_attachment=True,
+        download_name=documento.nombre_archivo
+    )
+
+
+@mantenimientos_bp.route('/mantenimientos/documentos/<int:doc_id>/eliminar', methods=['POST'])
+@login_required
+@role_required('admin')
+def eliminar_documento(doc_id):
+    """Elimina un documento (solo administradores)."""
+    documento = MantenimientoDocumento.query.get_or_404(doc_id)
+    mantenimiento_id = documento.mantenimiento_id
+
+    try:
+        # Eliminar archivo físico
+        from flask import current_app
+        ruta_completa = os.path.join(current_app.root_path, 'static', documento.ruta_archivo)
+
+        if os.path.exists(ruta_completa):
+            os.remove(ruta_completa)
+
+        # Eliminar registro de BD
+        db.session.delete(documento)
+        db.session.commit()
+
+        flash('Documento eliminado exitosamente', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el documento: {str(e)}', 'error')
+
+    return redirect(url_for('mantenimientos.ver_mantenimiento', id=mantenimiento_id))
 
 
 # ==============================================================================

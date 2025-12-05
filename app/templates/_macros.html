@@ -21,3 +21,65 @@
     </nav>
 </div>
 {% endmacro %}
+
+{% macro render_field(field, placeholder=None, help_text=None) %}
+<div class="mb-3">
+    {{ field.label(class="form-label fw-bold") }}
+    {% if field.type == 'SelectField' or field.type == 'QuerySelectField' %}
+        {{ field(class="form-select" + (" is-invalid" if field.errors else "")) }}
+    {% elif field.type == 'TextAreaField' %}
+        {{ field(class="form-control" + (" is-invalid" if field.errors else ""), placeholder=placeholder or "", rows=field.render_kw.rows if field.render_kw and field.render_kw.rows else 3) }}
+    {% elif field.type == 'BooleanField' %}
+        <div class="form-check">
+            {{ field(class="form-check-input" + (" is-invalid" if field.errors else "")) }}
+            {{ field.label(class="form-check-label") }}
+        </div>
+    {% else %}
+        {{ field(class="form-control" + (" is-invalid" if field.errors else ""), placeholder=placeholder or "") }}
+    {% endif %}
+
+    {% if field.errors %}
+        <div class="invalid-feedback d-block">
+            {% for error in field.errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if help_text %}
+        <small class="form-text text-muted">{{ help_text }}</small>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_submit_button(text="Guardar", icon="fa-save", btn_class="btn-primary") %}
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <a href="{{ url_for(request.endpoint.rsplit('.', 1)[0] + '.index') }}" class="btn btn-secondary">
+        <i class="fas fa-times me-1"></i> Cancelar
+    </a>
+    <button type="submit" class="btn {{ btn_class }}">
+        <i class="fas {{ icon }} me-1"></i> {{ text }}
+    </button>
+</div>
+{% endmacro %}
+
+{% macro render_form_errors(form) %}
+{% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Por favor, corrija los siguientes errores:
+        </h5>
+        <ul class="mb-0">
+        {% for field_name, errors in form.errors.items() %}
+            {% if field_name != 'csrf_token' %}
+                {% for error in errors %}
+                    <li><strong>{{ form[field_name].label.text }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+{% endmacro %}

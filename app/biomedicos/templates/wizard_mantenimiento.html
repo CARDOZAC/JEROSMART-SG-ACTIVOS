@@ -241,25 +241,36 @@
 
     // --- FUNCIONES DE CARGA DE DATOS ---
 
-    /** Carga todos los nombres de los formatos de mantenimiento (desde formatos.json) */
-    async function fetchMaintenanceTypes() {
-        showMessage('Cargando tipos de formatos...', 'loading');
+    /** Carga los tipos de mantenimiento para el dropdown y los formatos de reporte para los campos dinámicos. */
+    async function initializeMaintenanceData() {
+        showMessage('Cargando configuración...', 'loading');
         try {
-            // NOTA: Esta ruta debe ser implementada en app/biomedicos/routes.py para leer formatos.json
-            const response = await fetch(`${API_BASE}/mantenimiento/formatos`); 
-            if (!response.ok) throw new Error('Error al cargar tipos de reportes.');
-            const data = await response.json();
-            allFormats = data.formats; 
-            tipoReporteSelect.innerHTML = '<option value="">-- Seleccione un formato --</option>';
-            Object.keys(allFormats).forEach(name => {
+            // 1. Cargar los formatos de reporte para los campos dinámicos
+            const formatsResponse = await fetch('/biomedicos/api/reporte-formatos');
+            if (!formatsResponse.ok) throw new Error('Error al cargar formatos de reporte.');
+            const formatsData = await formatsResponse.json();
+            if (formatsData.error) throw new Error(formatsData.error);
+            allFormats = formatsData.formats;
+
+            // 2. Cargar los tipos de mantenimiento desde la BD para el dropdown
+            const typesResponse = await fetch('/biomedicos/api/mantenimiento-tipos');
+            if (!typesResponse.ok) throw new Error('Error al cargar tipos de mantenimiento.');
+            const tipos = await typesResponse.json();
+
+            // 3. Poblar el dropdown
+            tipoReporteSelect.innerHTML = '<option value="">-- Seleccione un tipo --</option>';
+            tipos.forEach(tipo => {
                 const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
+                option.value = tipo.id; // El valor es el ID
+                option.textContent = tipo.nombre; // El texto es el nombre
                 tipoReporteSelect.appendChild(option);
             });
-            showMessage('Tipos de reportes cargados.', 'success');
+            
+            messageContainer.classList.add('hidden'); // Ocultar mensaje de loading
+
         } catch (error) {
-            showMessage(`Error: ${error.message}. Asegúrese de que la ruta API /mantenimiento/formatos esté implementada.`, 'error');
+            showMessage(`Error de inicialización: ${error.message}.`, 'error');
+            console.error(error);
         }
     }
     
@@ -322,9 +333,9 @@
         searchResults.innerHTML = '<p class="text-blue-600 text-sm p-1"><i class="fas fa-spinner fa-spin mr-2"></i> Buscando...</p>';
 
         try {
-            // NOTA: La ruta API /activos/biomedicos debe ser implementada en app/activos/routes.py 
-            // y debe filtrar por clase_id=1.
-            const response = await fetch(`${API_BASE}/activos/biomedicos?q=${term}`);
+            // Se corrige la ruta para que apunte directamente al endpoint de la blueprint de biomedicos
+            const response = await fetch(`/biomedicos/api/activos-biomedicos?q=${term}`);
+            if(!response.ok) throw new Error("Error al buscar activos");
             const data = await response.json();
 
             if (data.length === 0) {
@@ -407,19 +418,22 @@
 
     // 3. Lógica de selección de reporte (Step 2)
     tipoReporteSelect.addEventListener('change', (e) => {
-        const formatName = e.target.value;
-        if (formatName) {
-            document.getElementById('tipo_id').value = formatName; // Usamos el nombre como ID temporal en el hidden field
-            loadDynamicFields(formatName);
+        const tipoId = e.target.value;
+        const tipoNombre = e.target.options[e.target.selectedIndex].text;
+
+        if (tipoId) {
+            document.getElementById('tipo_id').value = tipoId; // Guardar el ID en el campo oculto
+            loadDynamicFields(tipoNombre); // Cargar campos dinámicos usando el NOMBRE
         } else {
             document.getElementById('tipo_id').value = '';
+            dynamicFieldsContainer.innerHTML = '<p class="text-center text-gray-500 italic">Seleccione un formato para cargar los campos dinámicos.</p>';
         }
     });
 
     // 4. Inicialización
     document.addEventListener('DOMContentLoaded', () => {
         goToStep(0);
-        fetchMaintenanceTypes();
+        initializeMaintenanceData();
         // Establecer fecha actual por defecto en el campo datetime-local
         document.getElementById('fecha_mantenimiento').value = new Date().toISOString().slice(0, 16);
     });

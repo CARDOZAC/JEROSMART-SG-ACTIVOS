@@ -1,109 +1,796 @@
 {% extends "base.html" %}
-{% from "_macros.html" import render_field, render_submit_button, render_form_errors %}
 
 {% block title %}Gestión de Mantenimientos{% endblock %}
 
-{% block content %}
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Gestión de Mantenimientos</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
-        <li class="breadcrumb-item active">Gestión de Mantenimientos</li>
-    </ol>
+{% block head_extra %}
+<style>
+    /* ===== DISEÑO MODERNO Y OPTIMIZADO ===== */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
+        --border-radius: 16px;
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-wrench me-1"></i>
-            Listado de Mantenimientos Registrados
-            <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="btn btn-primary btn-sm float-end">
-                <i class="fas fa-plus me-1"></i> Nuevo Mantenimiento
-            </a>
-        </div>
-        <div class="card-body">
-            {% if mantenimientos %}
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped" id="datatablesSimple">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Activo</th>
-                            <th>Placa</th>
-                            <th>Tipo Mantenimiento</th>
-                            <th>Fecha Programada</th>
-                            <th>Estado</th>
-                            <th>Registrado Por</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for mantenimiento in mantenimientos %}
-                        <tr>
-                            <td>{{ mantenimiento.id }}</td>
-                            <td>{{ mantenimiento.activo.nombre_activo }}</td>
-                            <td>
-                                <a href="{{ url_for('activos.ver_activo', activo_id=mantenimiento.activo.id) }}">{{ mantenimiento.activo.placa_codigo_interno }}</a>
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary">{{ mantenimiento.tipo.nombre }}</span>
-                            </td>
-                            <td>{{ mantenimiento.fecha_mantenimiento.strftime('%Y-%m-%d') }}</td>
-                            <td>
-                                {% if mantenimiento.estado == 'Pendiente' %}
-                                    <span class="badge bg-warning text-dark">{{ mantenimiento.estado }}</span>
-                                {% elif mantenimiento.estado == 'Completado' %}
-                                    <span class="badge bg-success">{{ mantenimiento.estado }}</span>
-                                {% elif mantenimiento.estado == 'Cancelado' %}
-                                    <span class="badge bg-danger">{{ mantenimiento.estado }}</span>
-                                {% else %}
-                                    <span class="badge bg-info">{{ mantenimiento.estado }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ mantenimiento.usuario.email }}</td>
-                            <td>
-                                <a href="#" class="btn btn-info btn-sm" title="Ver Detalles">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="#" class="btn btn-warning btn-sm" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ mantenimiento.id }}" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <!-- Modal de Confirmación de Eliminación -->
-                                <div class="modal fade" id="deleteModal{{ mantenimiento.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ mantenimiento.id }}" aria-hidden="true">
-                                  <div class="modal-dialog">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title" id="deleteModalLabel{{ mantenimiento.id }}">Confirmar Eliminación</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                      </div>
-                                      <div class="modal-body">
-                                        ¿Está seguro de que desea eliminar el mantenimiento #{{ mantenimiento.id }} para el activo <strong>{{ mantenimiento.activo.nombre_activo }}</strong>?
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        <form action="#" method="POST" style="display: inline;">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-danger">Eliminar</button>
-                                        </form>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    /* Header mejorado */
+    .page-header {
+        background: var(--primary-gradient);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.2rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .page-header small {
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    /* Cards de estadísticas mejoradas */
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-soft);
+        transition: var(--transition-smooth);
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: currentColor;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-card.primary::before { background: var(--primary-gradient); }
+    .stat-card.success::before { background: var(--success-gradient); }
+    .stat-card.warning::before { background: var(--warning-gradient); }
+    .stat-card.info::before { background: var(--info-gradient); }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon.primary { background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea; }
+    .stat-icon.success { background: linear-gradient(135deg, rgba(17, 153, 142, 0.1) 0%, rgba(56, 239, 125, 0.1) 100%); color: #11998e; }
+    .stat-icon.warning { background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%); color: #f5576c; }
+    .stat-icon.info { background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%); color: #4facfe; }
+
+    .stat-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1;
+    }
+
+    /* Botón Split Dropdown Mejorado */
+    .action-button-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .btn-modern {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .btn-modern:active {
+        transform: translateY(0);
+    }
+
+    .btn-modern.btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-modern.btn-success {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .btn-modern.btn-warning {
+        background: var(--warning-gradient);
+        color: white;
+    }
+
+    /* Split Button Especial */
+    .btn-split-group {
+        display: inline-flex;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: var(--transition-smooth);
+    }
+
+    .btn-split-group:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .btn-split-main {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-split-toggle {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-left: 1px solid rgba(255,255,255,0.2);
+        padding: 0.75rem 1rem;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-split-main:hover,
+    .btn-split-toggle:hover {
+        filter: brightness(1.1);
+    }
+
+    .dropdown-menu-modern {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        min-width: 220px;
+    }
+
+    .dropdown-item-modern {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: var(--transition-smooth);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .dropdown-item-modern:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateX(5px);
+    }
+
+    .dropdown-item-modern i {
+        width: 24px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+
+    /* Tabla moderna */
+    .table-modern-container {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-modern-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table-modern {
+        margin: 0;
+    }
+
+    .table-modern thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+        border: none;
+    }
+
+    .table-modern tbody tr {
+        transition: var(--transition-smooth);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table-modern tbody tr:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        transform: scale(1.01);
+    }
+
+    .table-modern tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    /* Badges modernos */
+    .badge-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .badge-modern.pendiente {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+        color: #f5576c;
+    }
+
+    .badge-modern.en-proceso {
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%);
+        color: #4facfe;
+    }
+
+    .badge-modern.completado {
+        background: linear-gradient(135deg, rgba(17, 153, 142, 0.2) 0%, rgba(56, 239, 125, 0.2) 100%);
+        color: #11998e;
+    }
+
+    .badge-modern.cancelado {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+    }
+
+    /* Botones de acción */
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: var(--transition-smooth);
+        font-size: 0.9rem;
+    }
+
+    .btn-action:hover {
+        transform: scale(1.1);
+    }
+
+    .btn-action.btn-info {
+        background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%);
+        color: #4facfe;
+    }
+
+    .btn-action.btn-warning {
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+        color: #f5576c;
+    }
+
+    .btn-action.btn-danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+    }
+
+    /* Filtros mejorados */
+    .filter-container {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .form-control-modern,
+    .form-select-modern {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: var(--transition-smooth);
+        font-size: 0.95rem;
+    }
+
+    .form-control-modern:focus,
+    .form-select-modern:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Animaciones de carga */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-in {
+        animation: fadeInUp 0.6s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Header Moderno -->
+    <div class="page-header animate-in">
+        <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 1;">
+            <div>
+                <h1>
+                    <i class="fas fa-wrench me-3"></i>
+                    Gestión de Mantenimientos
+                </h1>
+                <small>TICs | Mobiliario | Equipos Industriales</small>
             </div>
-            {% else %}
-            <div class="alert alert-info text-center" role="alert">
-                No hay mantenimientos registrados para TICs, mobiliario o equipos industriales.
-                <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="alert-link">¡Crea el primero!</a>
+            <div class="action-button-group">
+                <!-- Botón de Alertas -->
+                <a href="{{ url_for('mantenimientos.alertas_mantenimientos') }}" class="btn-modern btn-warning">
+                    <i class="fas fa-bell"></i>
+                    Alertas
+                    <span class="badge bg-danger rounded-pill" id="badge-alertas" style="display: none;">0</span>
+                </a>
+
+                <!-- Botón de Exportar -->
+                <div class="dropdown">
+                    <button class="btn-modern btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-file-export"></i>
+                        Exportar
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-modern dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item dropdown-item-modern" href="{{ url_for('mantenimientos.exportar_mantenimientos_excel') }}" target="_blank">
+                                <i class="fas fa-file-excel text-success"></i>
+                                Exportar a Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item dropdown-item-modern" href="{{ url_for('mantenimientos.exportar_reporte_consolidado_pdf') }}" target="_blank">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                                Reporte PDF
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Botón Split: Nuevo Mantenimiento + Cargar Histórico -->
+                <div class="btn-split-group">
+                    <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="btn-split-main">
+                        <i class="fas fa-plus-circle"></i>
+                        Nuevo Mantenimiento
+                    </a>
+                    <button class="btn-split-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Más opciones</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-modern dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item dropdown-item-modern" href="{{ url_for('mantenimientos.cargar_historico') }}">
+                                <i class="fas fa-upload text-primary"></i>
+                                Cargar Histórico
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            {% endif %}
         </div>
     </div>
+
+    <!-- Estadísticas -->
+    {% if mantenimientos_pendientes or mantenimientos_historicos %}
+    {% set total_mantenimientos = (mantenimientos_pendientes | length) + (mantenimientos_historicos | length) %}
+    {% set pendientes = mantenimientos_pendientes | selectattr('estado', 'equalto', 'Pendiente') | list | length %}
+    {% set en_proceso = mantenimientos_pendientes | selectattr('estado', 'equalto', 'En Proceso') | list | length %}
+    {% set completados = mantenimientos_historicos | selectattr('estado', 'equalto', 'Completado') | list | length %}
+
+    <div class="row mb-4 animate-in" style="animation-delay: 0.1s;">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card primary">
+                <div class="stat-icon primary">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-label">Total Mantenimientos</div>
+                <div class="stat-value">{{ total_mantenimientos }}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card warning">
+                <div class="stat-icon warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-label">Pendientes</div>
+                <div class="stat-value">{{ pendientes }}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card info">
+                <div class="stat-icon info">
+                    <i class="fas fa-cog fa-spin"></i>
+                </div>
+                <div class="stat-label">En Proceso</div>
+                <div class="stat-value">{{ en_proceso }}</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card success">
+                <div class="stat-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-label">Completados</div>
+                <div class="stat-value">{{ completados }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filtros -->
+    <div class="filter-container animate-in" style="animation-delay: 0.2s;">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">Buscar</label>
+                <input type="text" id="searchInput" class="form-control form-control-modern" placeholder="Buscar en tabla...">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold small text-muted">Estado</label>
+                <select id="filterEstado" class="form-select form-select-modern">
+                    <option value="">Todos</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Completado">Completado</option>
+                    <option value="Cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold small text-muted">Tipo</label>
+                <select id="filterTipo" class="form-select form-select-modern">
+                    <option value="">Todos</option>
+                    {% set all_mantenimientos = mantenimientos_pendientes + mantenimientos_historicos %}
+                    {% set tipos = all_mantenimientos | map(attribute='tipo.nombre') | unique | list %}
+                    {% for tipo in tipos %}
+                    <option value="{{ tipo }}">{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">Categoría</label>
+                <select id="filterCategoria" class="form-select form-select-modern">
+                    <option value="">Todas</option>
+                    {% set categorias = all_mantenimientos | map(attribute='activo.clase.nombre') | unique | list %}
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria }}">{{ categoria }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button id="btnLimpiarFiltros" class="btn-modern btn-warning w-100">
+                    <i class="fas fa-redo"></i>
+                    Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Pendientes/En Proceso -->
+    {% if mantenimientos_pendientes %}
+    <div class="table-modern-container animate-in" style="animation-delay: 0.3s;">
+        <div class="table-modern-header">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-tasks me-2 text-warning"></i>
+                Mantenimientos Activos ({{ mantenimientos_pendientes | length }})
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern" id="tablaPendientes">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Activo</th>
+                        <th style="width: 120px;">Placa</th>
+                        <th>Categoría</th>
+                        <th>Tipo</th>
+                        <th style="width: 120px;">Fecha</th>
+                        <th style="width: 120px;">Estado</th>
+                        <th>Registrado Por</th>
+                        <th style="width: 150px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mantenimiento in mantenimientos_pendientes %}
+                    <tr data-estado="{{ mantenimiento.estado }}"
+                        data-tipo="{{ mantenimiento.tipo.nombre }}"
+                        data-categoria="{{ mantenimiento.activo.clase.nombre }}">
+                        <td class="fw-bold">#{{ mantenimiento.id }}</td>
+                        <td>
+                            <i class="fas fa-desktop text-muted me-2"></i>
+                            {{ mantenimiento.activo.nombre_activo }}
+                        </td>
+                        <td>
+                            <span class="badge bg-dark">{{ mantenimiento.activo.placa_codigo_interno }}</span>
+                        </td>
+                        <td><small class="text-muted">{{ mantenimiento.activo.clase.nombre }}</small></td>
+                        <td><span class="badge bg-secondary">{{ mantenimiento.tipo.nombre }}</span></td>
+                        <td>
+                            <small>
+                                <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'N/A' }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if mantenimiento.estado == 'Pendiente' %}
+                                <span class="badge-modern pendiente">
+                                    <i class="fas fa-clock"></i>
+                                    Pendiente
+                                </span>
+                            {% elif mantenimiento.estado == 'En Proceso' %}
+                                <span class="badge-modern en-proceso">
+                                    <i class="fas fa-cog fa-spin"></i>
+                                    En Proceso
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td><small><i class="fas fa-user text-muted me-1"></i>{{ mantenimiento.creator.username if mantenimiento.creator else 'N/A' }}</small></td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}" class="btn-action btn-info" title="Ver">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('mantenimientos.editar_mantenimiento', id=mantenimiento.id) }}" class="btn-action btn-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if current_user.role == 'admin' %}
+                                <button type="button" class="btn-action btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ mantenimiento.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla Históricos -->
+    {% if mantenimientos_historicos %}
+    <div class="table-modern-container animate-in" style="animation-delay: 0.4s;">
+        <div class="table-modern-header">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-history me-2 text-success"></i>
+                Histórico de Mantenimientos ({{ mantenimientos_historicos | length }})
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern" id="tablaHistoricos">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Activo</th>
+                        <th style="width: 120px;">Placa</th>
+                        <th>Categoría</th>
+                        <th>Tipo</th>
+                        <th style="width: 120px;">Fecha</th>
+                        <th style="width: 120px;">Estado</th>
+                        <th>Registrado Por</th>
+                        <th style="width: 150px;" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mantenimiento in mantenimientos_historicos %}
+                    <tr data-estado="{{ mantenimiento.estado }}"
+                        data-tipo="{{ mantenimiento.tipo.nombre }}"
+                        data-categoria="{{ mantenimiento.activo.clase.nombre }}">
+                        <td class="fw-bold">#{{ mantenimiento.id }}</td>
+                        <td>
+                            <i class="fas fa-desktop text-muted me-2"></i>
+                            {{ mantenimiento.activo.nombre_activo }}
+                        </td>
+                        <td>
+                            <span class="badge bg-dark">{{ mantenimiento.activo.placa_codigo_interno }}</span>
+                        </td>
+                        <td><small class="text-muted">{{ mantenimiento.activo.clase.nombre }}</small></td>
+                        <td><span class="badge bg-secondary">{{ mantenimiento.tipo.nombre }}</span></td>
+                        <td>
+                            <small>
+                                <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'N/A' }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if mantenimiento.estado == 'Completado' %}
+                                <span class="badge-modern completado">
+                                    <i class="fas fa-check-circle"></i>
+                                    Completado
+                                </span>
+                            {% elif mantenimiento.estado == 'Cancelado' %}
+                                <span class="badge-modern cancelado">
+                                    <i class="fas fa-times-circle"></i>
+                                    Cancelado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td><small><i class="fas fa-user text-muted me-1"></i>{{ mantenimiento.creator.username if mantenimiento.creator else 'N/A' }}</small></td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mantenimiento.id) }}" class="btn-action btn-info" title="Ver">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if current_user.role == 'admin' %}
+                                <button type="button" class="btn-action btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ mantenimiento.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not mantenimientos_pendientes and not mantenimientos_historicos %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-clipboard-list" style="font-size: 5rem; color: #e2e8f0;"></i>
+        </div>
+        <h3 class="text-muted">No hay mantenimientos registrados</h3>
+        <p class="text-muted">Comienza creando tu primer mantenimiento</p>
+        <a href="{{ url_for('mantenimientos.nuevo_mantenimiento') }}" class="btn-modern btn-primary">
+            <i class="fas fa-plus-circle"></i>
+            Crear Primer Mantenimiento
+        </a>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const filterEstado = document.getElementById('filterEstado');
+    const filterTipo = document.getElementById('filterTipo');
+    const filterCategoria = document.getElementById('filterCategoria');
+    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+
+    const tablaPendientes = document.getElementById('tablaPendientes');
+    const tablaHistoricos = document.getElementById('tablaHistoricos');
+
+    function filtrarTablas() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const estadoSeleccionado = filterEstado.value;
+        const tipoSeleccionado = filterTipo.value;
+        const categoriaSeleccionada = filterCategoria.value;
+
+        [tablaPendientes, tablaHistoricos].forEach(tabla => {
+            if (!tabla) return;
+
+            const tbody = tabla.querySelector('tbody');
+            const filas = Array.from(tbody.querySelectorAll('tr'));
+
+            filas.forEach(fila => {
+                const textoFila = fila.textContent.toLowerCase();
+                const estado = fila.dataset.estado;
+                const tipo = fila.dataset.tipo;
+                const categoria = fila.dataset.categoria;
+
+                const coincideBusqueda = textoFila.includes(searchTerm);
+                const coincideEstado = !estadoSeleccionado || estado === estadoSeleccionado;
+                const coincideTipo = !tipoSeleccionado || tipo === tipoSeleccionado;
+                const coincideCategoria = !categoriaSeleccionada || categoria === categoriaSeleccionada;
+
+                if (coincideBusqueda && coincideEstado && coincideTipo && coincideCategoria) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    searchInput.addEventListener('keyup', filtrarTablas);
+    filterEstado.addEventListener('change', filtrarTablas);
+    filterTipo.addEventListener('change', filtrarTablas);
+    filterCategoria.addEventListener('change', filtrarTablas);
+
+    btnLimpiarFiltros.addEventListener('click', function() {
+        searchInput.value = '';
+        filterEstado.value = '';
+        filterTipo.value = '';
+        filterCategoria.value = '';
+        filtrarTablas();
+    });
+
+    // Cargar alertas
+    fetch('{{ url_for("mantenimientos.obtener_alertas_mantenimientos") }}')
+        .then(response => response.json())
+        .then(data => {
+            const totalAlertas = data.total_vencidos + data.total_proximos;
+            const badgeAlertas = document.getElementById('badge-alertas');
+
+            if (totalAlertas > 0) {
+                badgeAlertas.textContent = totalAlertas;
+                badgeAlertas.style.display = 'inline-block';
+            }
+        })
+        .catch(error => console.error('Error al cargar alertas:', error));
+});
+</script>
 {% endblock %}

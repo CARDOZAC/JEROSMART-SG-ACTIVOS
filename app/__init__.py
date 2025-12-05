@@ -140,7 +140,7 @@ def create_app(config_class=Config):
     from .funcionarios.routes import funcionarios_bp
     from .reportes.routes import reportes_bp
     from .proveedores.routes import proveedores_bp
-    from .biomedicos.routes import biomedicos_bp
+    from .biomedicos import biomedicos_bp
     from .mantenimientos.routes import mantenimientos_bp
 
     app.register_blueprint(main_bp)  # Se registra en la raíz '/'

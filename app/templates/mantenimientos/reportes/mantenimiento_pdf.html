@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Mantenimiento #{{ mantenimiento.id }}</title>
+    <style>
+        @page {
+            size: Letter;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #0066cc;
+            font-size: 24pt;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 11pt;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            background-color: #0066cc;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            border-left: 3px solid #0066cc;
+            padding-left: 10px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 9pt;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            color: #000;
+            font-size: 11pt;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-proceso {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge-completado {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .badge-cancelado {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .observaciones-box {
+            border: 1px solid #ddd;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #0066cc;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .signature-box {
+            border: 1px solid #ddd;
+            padding: 40px 10px 10px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .signature-line {
+            border-top: 2px solid #000;
+            width: 70%;
+            margin: 0 auto 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <div class="header">
+        <h1>REPORTE DE MANTENIMIENTO</h1>
+        <p>Equipos No Biomédicos | TICs, Mobiliario, Equipos Industriales</p>
+        <p style="margin-top: 10px; font-size: 9pt;">
+            <strong>ID del Mantenimiento:</strong> #{{ mantenimiento.id }} |
+            <strong>Fecha de Generación:</strong> {{ fecha_generacion.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+    </div>
+
+    <!-- Información del Activo -->
+    <div class="section">
+        <div class="section-title">INFORMACIÓN DEL ACTIVO</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Nombre del Activo</div>
+                <div class="info-value">{{ mantenimiento.activo.nombre_activo }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Placa / Código Interno</div>
+                <div class="info-value">{{ mantenimiento.activo.placa_codigo_interno }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Categoría</div>
+                <div class="info-value">{{ mantenimiento.activo.clase.nombre }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Marca</div>
+                <div class="info-value">{{ mantenimiento.activo.marca or 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Modelo</div>
+                <div class="info-value">{{ mantenimiento.activo.modelo or 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Serie</div>
+                <div class="info-value">{{ mantenimiento.activo.numero_serie or 'N/A' }}</div>
+            </div>
+            {% if mantenimiento.activo.ubicacion %}
+            <div class="info-item">
+                <div class="info-label">Ubicación</div>
+                <div class="info-value">{{ mantenimiento.activo.ubicacion.nombre }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información del Mantenimiento -->
+    <div class="section">
+        <div class="section-title">DETALLES DEL MANTENIMIENTO</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Tipo de Mantenimiento</div>
+                <div class="info-value">{{ mantenimiento.tipo.nombre }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Fecha Programada</div>
+                <div class="info-value">
+                    {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'No especificada' }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Estado</div>
+                <div class="info-value">
+                    <span class="badge {% if mantenimiento.estado == 'Pendiente' %}badge-pendiente{% elif mantenimiento.estado == 'En Proceso' %}badge-proceso{% elif mantenimiento.estado == 'Completado' %}badge-completado{% else %}badge-cancelado{% endif %}">
+                        {{ mantenimiento.estado }}
+                    </span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Registrado Por</div>
+                <div class="info-value">{{ mantenimiento.creator.username if mantenimiento.creator else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="section">
+        <div class="section-title">OBSERVACIONES Y ACTIVIDADES REALIZADAS</div>
+        <div class="observaciones-box">
+            {{ mantenimiento.observaciones if mantenimiento.observaciones else 'Sin observaciones registradas.' }}
+        </div>
+    </div>
+
+    <!-- Auditoría -->
+    <div class="section">
+        <div class="section-title">INFORMACIÓN DE AUDITORÍA</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Fecha de Creación</div>
+                <div class="info-value">
+                    {{ mantenimiento.created_at.strftime('%d/%m/%Y %H:%M') if mantenimiento.created_at else 'N/A' }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Última Actualización</div>
+                <div class="info-value">
+                    {{ mantenimiento.updated_at.strftime('%d/%m/%Y %H:%M') if mantenimiento.updated_at else 'N/A' }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Actualizado Por</div>
+                <div class="info-value">
+                    {{ mantenimiento.updater.username if mantenimiento.updater else 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firma -->
+    <div class="signature-box">
+        <div class="signature-line"></div>
+        <div style="font-size: 9pt; margin-top: 5px;">
+            <strong>Firma del Responsable</strong>
+        </div>
+    </div>
+
+    <!-- Pie de Página -->
+    <div class="footer">
+        <div class="footer-grid">
+            <div>
+                <strong>JeroSmart Activos</strong><br>
+                Sistema de Gestión de Activos Fijos Clínicos
+            </div>
+            <div style="text-align: right;">
+                Documento generado automáticamente<br>
+                Fecha: {{ fecha_generacion.strftime('%d/%m/%Y %H:%M:%S') }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        <i class="fas fa-file-alt me-2"></i>
+        Detalles del Mantenimiento
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.index') }}">Mantenimientos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}">Gestión</a></li>
+        <li class="breadcrumb-item active">Detalles #{{ mantenimiento.id }}</li>
+    </ol>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-xl-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-wrench me-2"></i>
+                        Registro de Mantenimiento #{{ mantenimiento.id }}
+                    </span>
+                    {% if mantenimiento.estado == 'Pendiente' %}
+                        <span class="badge bg-warning text-dark">{{ mantenimiento.estado }}</span>
+                    {% elif mantenimiento.estado == 'En Proceso' %}
+                        <span class="badge bg-info">{{ mantenimiento.estado }}</span>
+                    {% elif mantenimiento.estado == 'Completado' %}
+                        <span class="badge bg-success">{{ mantenimiento.estado }}</span>
+                    {% elif mantenimiento.estado == 'Cancelado' %}
+                        <span class="badge bg-danger">{{ mantenimiento.estado }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h5 class="text-primary">
+                                <i class="fas fa-desktop me-2"></i>
+                                Activo Fijo
+                            </h5>
+                            <div class="ps-4">
+                                <p class="mb-1">
+                                    <strong>Nombre:</strong> {{ mantenimiento.activo.nombre_activo }}
+                                </p>
+                                <p class="mb-1">
+                                    <strong>Placa:</strong>
+                                    <span class="badge bg-dark">{{ mantenimiento.activo.placa_codigo_interno }}</span>
+                                </p>
+                                <p class="mb-1">
+                                    <strong>Categoría:</strong> {{ mantenimiento.activo.clase.nombre }}
+                                </p>
+                                {% if mantenimiento.activo.ubicacion %}
+                                <p class="mb-1">
+                                    <strong>Ubicación:</strong>
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                    {{ mantenimiento.activo.ubicacion.nombre }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-secondary">
+                                <i class="fas fa-list-alt me-2"></i>
+                                Tipo de Mantenimiento
+                            </h6>
+                            <p class="ps-4">{{ mantenimiento.tipo.nombre }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-secondary">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Fecha Programada
+                            </h6>
+                            <p class="ps-4">
+                                {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'No especificada' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6 class="text-secondary">
+                                <i class="fas fa-clipboard me-2"></i>
+                                Observaciones y Actividades Realizadas
+                            </h6>
+                            <div class="ps-4">
+                                {% if mantenimiento.observaciones %}
+                                    <div class="alert alert-light border">
+                                        {{ mantenimiento.observaciones | replace('\n', '<br>') | safe }}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted fst-italic">Sin observaciones registradas</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Creado por:</strong>
+                                {{ mantenimiento.creator.username if mantenimiento.creator else 'N/A' }}
+                                <br>
+                                <strong>Fecha creación:</strong>
+                                {{ mantenimiento.created_at.strftime('%d/%m/%Y %H:%M') if mantenimiento.created_at else 'N/A' }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                <strong>Última actualización:</strong>
+                                {{ mantenimiento.updater.username if mantenimiento.updater else 'N/A' }}
+                                <br>
+                                {{ mantenimiento.updated_at.strftime('%d/%m/%Y %H:%M') if mantenimiento.updated_at else 'N/A' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('mantenimientos.gestionar_mantenimientos') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver al Listado
+                        </a>
+                        <div>
+                            <a href="{{ url_for('mantenimientos.exportar_mantenimiento_pdf', id=mantenimiento.id) }}"
+                               class="btn btn-danger" target="_blank" title="Exportar a PDF">
+                                <i class="fas fa-file-pdf me-2"></i>
+                                PDF
+                            </a>
+                            <a href="{{ url_for('mantenimientos.editar_mantenimiento', id=mantenimiento.id) }}"
+                               class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>
+                                Editar
+                            </a>
+                            {% if current_user.role == 'admin' %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash me-2"></i>
+                                Eliminar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-xl-4">
+            <!-- Información del Activo -->
+            <div class="card mb-3 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Activo
+                </div>
+                <div class="card-body small">
+                    <p><strong>Marca:</strong> {{ mantenimiento.activo.marca or 'N/A' }}</p>
+                    <p><strong>Modelo:</strong> {{ mantenimiento.activo.modelo or 'N/A' }}</p>
+                    <p><strong>Serie:</strong> {{ mantenimiento.activo.numero_serie or 'N/A' }}</p>
+                    {% if mantenimiento.activo.fecha_adquisicion %}
+                    <p><strong>Adquisición:</strong> {{ mantenimiento.activo.fecha_adquisicion.strftime('%d/%m/%Y') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Documentos Escaneados -->
+            <div class="card mb-3 shadow-sm border-success">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-file-pdf me-2"></i>
+                        Documentos ({{ mantenimiento.documentos | length }})
+                    </span>
+                    <a href="{{ url_for('mantenimientos.subir_documento', mantenimiento_id=mantenimiento.id) }}"
+                       class="btn btn-light btn-sm">
+                        <i class="fas fa-upload"></i>
+                    </a>
+                </div>
+                <div class="card-body small p-0">
+                    {% if mantenimiento.documentos %}
+                        <div class="list-group list-group-flush">
+                            {% for doc in mantenimiento.documentos %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="fas {% if doc.es_pdf %}fa-file-pdf text-danger{% elif doc.es_imagen %}fa-image text-info{% elif doc.tipo_documento == 'excel' %}fa-file-excel text-success{% elif doc.tipo_documento == 'word' %}fa-file-word text-primary{% else %}fa-file text-secondary{% endif %} me-2"></i>
+                                            <strong class="small">{{ doc.nombre_archivo }}</strong>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <i class="fas fa-weight-hanging"></i> {{ doc.tamano_mb }} MB
+                                            {% if doc.fecha_documento %}
+                                                · <i class="fas fa-calendar-day"></i> {{ doc.fecha_documento.strftime('%d/%m/%Y') }}
+                                            {% endif %}
+                                        </div>
+                                        {% if doc.tecnico_responsable %}
+                                        <div class="small text-muted">
+                                            <i class="fas fa-user-tie"></i> {{ doc.tecnico_responsable }}
+                                        </div>
+                                        {% endif %}
+                                        {% if doc.descripcion %}
+                                        <div class="small text-muted mt-1">
+                                            <em>{{ doc.descripcion }}</em>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="btn-group btn-group-sm mt-2 w-100" role="group">
+                                    <a href="{{ url_for('mantenimientos.ver_documento', doc_id=doc.id) }}"
+                                       class="btn btn-outline-primary" target="_blank" title="Ver en navegador">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                    <a href="{{ url_for('mantenimientos.descargar_documento', doc_id=doc.id) }}"
+                                       class="btn btn-outline-success" title="Descargar">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </a>
+                                    {% if current_user.role == 'admin' %}
+                                    <button type="button" class="btn btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteDocModal{{ doc.id }}"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Modal de Eliminación de Documento -->
+                            {% if current_user.role == 'admin' %}
+                            <div class="modal fade" id="deleteDocModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h6 class="modal-title">Eliminar Documento</h6>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body small">
+                                            ¿Eliminar <strong>{{ doc.nombre_archivo }}</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form action="{{ url_for('mantenimientos.eliminar_documento', doc_id=doc.id) }}" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-3 text-center">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-2"></i>
+                            <p class="text-muted mb-2">No hay documentos adjuntos</p>
+                            <a href="{{ url_for('mantenimientos.subir_documento', mantenimiento_id=mantenimiento.id) }}"
+                               class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-upload me-1"></i> Subir Primer Documento
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historial de Mantenimientos -->
+            <div class="card shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-history me-2"></i>
+                    Historial del Activo
+                </div>
+                <div class="card-body small">
+                    {% set historial = mantenimiento.activo.mantenimientos | rejectattr('id', 'equalto', mantenimiento.id) | list %}
+                    {% if historial %}
+                        <div class="list-group">
+                            {% for mant in historial[:5] %}
+                            <a href="{{ url_for('mantenimientos.ver_mantenimiento', id=mant.id) }}"
+                               class="list-group-item list-group-item-action py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="fas fa-wrench text-muted me-1"></i>
+                                        {{ mant.tipo.nombre }}
+                                    </span>
+                                    <small class="text-muted">
+                                        {{ mant.fecha_mantenimiento.strftime('%d/%m/%Y') if mant.fecha_mantenimiento else 'N/A' }}
+                                    </small>
+                                </div>
+                                {% if mant.estado == 'Completado' %}
+                                    <small class="badge bg-success">{{ mant.estado }}</small>
+                                {% elif mant.estado == 'Pendiente' %}
+                                    <small class="badge bg-warning text-dark">{{ mant.estado }}</small>
+                                {% endif %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% if historial | length > 5 %}
+                            <p class="text-center mt-2 mb-0">
+                                <small class="text-muted">... y {{ historial | length - 5 }} más</small>
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay otros mantenimientos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+{% if current_user.role == 'admin' %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar este registro de mantenimiento?</p>
+                <div class="alert alert-warning">
+                    <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+                </div>
+                <p><strong>Activo:</strong> {{ mantenimiento.activo.nombre_activo }}</p>
+                <p><strong>Tipo:</strong> {{ mantenimiento.tipo.nombre }}</p>
+                <p><strong>Fecha:</strong> {{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') if mantenimiento.fecha_mantenimiento else 'N/A' }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>
+                    Cancelar
+                </button>
+                <form method="POST" action="{{ url_for('mantenimientos.eliminar_mantenimiento', id=mantenimiento.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Eliminar Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
