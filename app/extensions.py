@@ -8,9 +8,12 @@ migrate = Migrate()
 
 # Configuramos el gestor de sesiones de usuario
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'  # Redirige a la página de login si no se está autenticado
-login_manager.login_message_category = 'info'
-login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
+login_manager.login_view = (
+    "auth.login"  # Redirige a la página de login si no se está autenticado
+)
+login_manager.login_message_category = "info"
+login_manager.login_message = "Por favor, inicie sesión para acceder a esta página."
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -19,4 +22,5 @@ def load_user(user_id):
     Se importa aquí para evitar importaciones circulares.
     """
     from .models import User
+
     return db.session.get(User, int(user_id))

@@ -7,6 +7,7 @@ import click
 from flask.cli import with_appcontext
 from .config import Config
 
+
 def create_app(config_class=Config):
     """Factory para crear la aplicación Flask."""
     app = Flask(__name__, instance_relative_config=True)
@@ -25,26 +26,27 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'  # Redirige a esta vista si no está logueado
-    login_manager.login_message = 'Por favor, inicia sesión para acceder a esta página.'
-    login_manager.login_message_category = 'info'
+    login_manager.login_view = "auth.login"  # Redirige a esta vista si no está logueado
+    login_manager.login_message = "Por favor, inicia sesión para acceder a esta página."
+    login_manager.login_message_category = "info"
 
     # --- Registrar Comandos CLI (FASE 1.1) ---
     from .cli import init_cli
+
     init_cli(app)
 
     # --- Registrar Filtros de Plantilla (Jinja2) ---
-    @app.template_filter('formatdatetime')
-    def format_datetime(value, fmt='%d/%m/%Y %H:%M'):
+    @app.template_filter("formatdatetime")
+    def format_datetime(value, fmt="%d/%m/%Y %H:%M"):
         """Formatea una fecha y hora para mostrar en las plantillas."""
         if not value:
             return "N/A"
         if isinstance(value, str):
             try:
                 # Intenta parsear varios formatos comunes
-                for pattern in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d'):
+                for pattern in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
                     try:
-                        value = dt.datetime.strptime(value.split('.')[0], pattern)
+                        value = dt.datetime.strptime(value.split(".")[0], pattern)
                         break
                     except ValueError:
                         continue
@@ -56,17 +58,19 @@ def create_app(config_class=Config):
             return value.strftime(fmt)
         return value
 
-    @app.template_filter('formatdate')
-    def format_date(value, fmt='%d/%m/%Y'):
+    @app.template_filter("formatdate")
+    def format_date(value, fmt="%d/%m/%Y"):
         """Formatea solo la fecha (sin hora) para mostrar en las plantillas."""
         if not value:
             return "N/A"
         if isinstance(value, str):
             try:
                 # Intenta parsear varios formatos comunes
-                for pattern in ('%Y-%m-%d', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S'):
+                for pattern in ("%Y-%m-%d", "%d/%m/%Y", "%Y-%m-%d %H:%M:%S"):
                     try:
-                        value = dt.datetime.strptime(value.split(' ')[0], pattern.split(' ')[0])
+                        value = dt.datetime.strptime(
+                            value.split(" ")[0], pattern.split(" ")[0]
+                        )
                         break
                     except ValueError:
                         continue
@@ -80,7 +84,7 @@ def create_app(config_class=Config):
             return value.strftime(fmt)
         return value
 
-    @app.template_filter('format_currency')
+    @app.template_filter("format_currency")
     def format_currency(value):
         """Formatea un número como moneda colombiana (COP)."""
         if value is None:
@@ -90,11 +94,15 @@ def create_app(config_class=Config):
             if float(value).is_integer():
                 return f"$ {int(value):,}".replace(",", ".")
             else:
-                return f"$ {float(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                return (
+                    f"$ {float(value):,.2f}".replace(",", "X")
+                    .replace(".", ",")
+                    .replace("X", ".")
+                )
         except (ValueError, TypeError):
             return value
 
-    @app.template_filter('from_json')
+    @app.template_filter("from_json")
     def from_json_filter(value):
         """
         Parsea una cadena JSON y retorna el objeto Python correspondiente.
@@ -110,11 +118,13 @@ def create_app(config_class=Config):
             return result if result is not None else []
         except (json.JSONDecodeError, TypeError) as e:
             # Log del error para debugging
-            app.logger.warning(f"[from_json Filter] Error parseando JSON: {e}. Valor: {value}")
+            app.logger.warning(
+                f"[from_json Filter] Error parseando JSON: {e}. Valor: {value}"
+            )
             return []
 
-    @app.template_filter('default_empty')
-    def default_empty(value, default=''):
+    @app.template_filter("default_empty")
+    def default_empty(value, default=""):
         """
         Convierte valores None, 'null', 'None', o strings vacíos a un valor por defecto.
         Útil para evitar mostrar "null" o "None" en PDFs.
@@ -126,7 +136,7 @@ def create_app(config_class=Config):
         if isinstance(value, str):
             # Limpia strings que contengan "null", "None", o estén vacíos
             value_stripped = value.strip()
-            if value_stripped.lower() in ('null', 'none', ''):
+            if value_stripped.lower() in ("null", "none", ""):
                 return default
         return value
 
@@ -144,15 +154,15 @@ def create_app(config_class=Config):
     from .mantenimientos.routes import mantenimientos_bp
 
     app.register_blueprint(main_bp)  # Se registra en la raíz '/'
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(activos_bp, url_prefix='/activos')
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(activos_bp, url_prefix="/activos")
     app.register_blueprint(activos_v2_bp)  # Registrado con prefijo en __init__.py
-    app.register_blueprint(reportes_bp, url_prefix='/reportes')
-    app.register_blueprint(movimientos_bp, url_prefix='/movimientos')
-    app.register_blueprint(funcionarios_bp, url_prefix='/funcionarios')
-    app.register_blueprint(proveedores_bp, url_prefix='/proveedores')
-    app.register_blueprint(biomedicos_bp, url_prefix='/biomedicos')
-    app.register_blueprint(mantenimientos_bp, url_prefix='/mantenimientos')
+    app.register_blueprint(reportes_bp, url_prefix="/reportes")
+    app.register_blueprint(movimientos_bp, url_prefix="/movimientos")
+    app.register_blueprint(funcionarios_bp, url_prefix="/funcionarios")
+    app.register_blueprint(proveedores_bp, url_prefix="/proveedores")
+    app.register_blueprint(biomedicos_bp, url_prefix="/biomedicos")
+    app.register_blueprint(mantenimientos_bp, url_prefix="/mantenimientos")
 
     # --- Registrar Comandos CLI ---
     # Esto es mejor manejarlo en run.py para mantener __init__.py limpio
@@ -167,7 +177,8 @@ def create_app(config_class=Config):
 
     return app
 
-@click.command('init-db')
+
+@click.command("init-db")
 @with_appcontext
 def init_db_command():
     """Limpia los datos existentes y crea nuevas tablas."""
@@ -175,4 +186,4 @@ def init_db_command():
     # En un entorno de producción, usarías migraciones (Flask-Migrate).
     db.drop_all()
     db.create_all()
-    click.echo('Base de datos inicializada.')
+    click.echo("Base de datos inicializada.")

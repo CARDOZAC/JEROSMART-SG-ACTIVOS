@@ -10,7 +10,7 @@ from datetime import datetime
 # ==============================================================================
 # CONFIGURACIÓN DE UPLOADS
 # ==============================================================================
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
@@ -24,8 +24,7 @@ def allowed_file(filename):
     Returns:
         bool: True si la extensión es válida
     """
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_upload_path(tipo, entity_id):
@@ -39,7 +38,7 @@ def get_upload_path(tipo, entity_id):
     Returns:
         str: Ruta relativa al directorio uploads
     """
-    return os.path.join('uploads', tipo, str(entity_id))
+    return os.path.join("uploads", tipo, str(entity_id))
 
 
 def save_uploaded_file(file, upload_folder):
@@ -55,7 +54,7 @@ def save_uploaded_file(file, upload_folder):
     """
     if file and allowed_file(file.filename):
         # Generar nombre seguro con timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         original_name = secure_filename(file.filename)
         name, ext = os.path.splitext(original_name)
         filename = f"{name}_{timestamp}{ext}"
@@ -86,7 +85,7 @@ def format_currency(value):
         str: Valor formateado (ej: $1.234.567,89)
     """
     if value is None:
-        return '$0'
+        return "$0"
 
     try:
         # Convertir a float
@@ -96,11 +95,11 @@ def format_currency(value):
         formatted = f"${value:,.2f}"
 
         # Reemplazar separadores al estilo colombiano
-        formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+        formatted = formatted.replace(",", "X").replace(".", ",").replace("X", ".")
 
         return formatted
     except (ValueError, TypeError):
-        return '$0'
+        return "$0"
 
 
 def format_file_size(bytes_size):
@@ -114,9 +113,9 @@ def format_file_size(bytes_size):
         str: Tamaño formateado (ej: 2.5 MB)
     """
     if bytes_size is None or bytes_size == 0:
-        return '0 B'
+        return "0 B"
 
-    units = ['B', 'KB', 'MB', 'GB']
+    units = ["B", "KB", "MB", "GB"]
     unit_index = 0
     size = float(bytes_size)
 
@@ -138,14 +137,14 @@ def get_estado_badge_class(estado):
         str: Clase CSS del badge
     """
     estado_classes = {
-        'Operativo': 'badge-success',
-        'En reparación': 'badge-warning',
-        'En mantenimiento': 'badge-info',
-        'Dado de baja': 'badge-danger',
-        'Disponible': 'badge-primary'
+        "Operativo": "badge-success",
+        "En reparación": "badge-warning",
+        "En mantenimiento": "badge-info",
+        "Dado de baja": "badge-danger",
+        "Disponible": "badge-primary",
     }
 
-    return estado_classes.get(estado, 'badge-secondary')
+    return estado_classes.get(estado, "badge-secondary")
 
 
 def get_tipo_mantenimiento_badge_class(tipo):
@@ -159,11 +158,11 @@ def get_tipo_mantenimiento_badge_class(tipo):
         str: Clase CSS del badge
     """
     tipo_classes = {
-        'Preventivo': 'badge-info',
-        'Correctivo': 'badge-warning',
-        'Calibración': 'badge-primary',
-        'Inspección': 'badge-secondary',
-        'Actualización': 'badge-success'
+        "Preventivo": "badge-info",
+        "Correctivo": "badge-warning",
+        "Calibración": "badge-primary",
+        "Inspección": "badge-secondary",
+        "Actualización": "badge-success",
     }
 
-    return tipo_classes.get(tipo, 'badge-secondary')
+    return tipo_classes.get(tipo, "badge-secondary")

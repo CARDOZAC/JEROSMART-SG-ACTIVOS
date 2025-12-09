@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Mantenimientos</title>
+    <style>
+        body { font-family: sans-serif; font-size: 10px; }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .footer { text-align: center; margin-top: 20px; font-size: 9px; color: #777; }
+        .filters { margin-bottom: 20px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Mantenimientos</h1>
+
+    <div class="filters">
+        <strong>Filtros aplicados:</strong><br>
+        Clase de Activo: {% if filtros.clase_activo == '2' %}Electroindustrial{% elif filtros.clase_activo == '3' %}Equipos de TIC{% elif filtros.clase_activo == '4' %}Muebles y Enseres{% else %}Todas{% endif %}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Activo</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Realizado Por</th>
+                <th>Costo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mantenimiento in mantenimientos %}
+            <tr>
+                <td>{{ mantenimiento.id }}</td>
+                <td>{{ mantenimiento.activo.nombre_activo }}</td>
+                <td>{{ mantenimiento.fecha_mantenimiento.strftime('%d/%m/%Y') }}</td>
+                <td>{{ mantenimiento.tipo_mantenimiento }}</td>
+                <td>{{ mantenimiento.realizado_por }}</td>
+                <td>{{ mantenimiento.costo }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No hay mantenimientos que coincidan con los filtros.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Reporte generado el: {{ generado }} por {{ usuario }} | Total de mantenimientos: {{ mantenimientos|length }}</p>
+    </div>
+</body>
+</html>
