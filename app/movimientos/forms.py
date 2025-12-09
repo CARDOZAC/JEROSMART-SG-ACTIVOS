@@ -2,6 +2,7 @@
 Formularios para el m�dulo de movimientos.
 Incluye protecci�n CSRF y validaciones WTForms.
 """
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, HiddenField, SubmitField
 from wtforms.validators import DataRequired, Optional, Length, Regexp
@@ -12,40 +13,35 @@ class MovimientoFiltroForm(FlaskForm):
     Formulario para filtrar movimientos en la vista principal.
     Incluye protecci�n CSRF para prevenir ataques.
     """
+
     q = StringField(
-        'B�squeda',
+        "B�squeda",
         validators=[
             Optional(),
             Length(
                 min=2,
                 max=100,
-                message='La b�squeda debe tener entre 2 y 100 caracteres'
-            )
+                message="La b�squeda debe tener entre 2 y 100 caracteres",
+            ),
         ],
-        render_kw={
-            'placeholder': 'Ej. Ana P�rez',
-            'class': 'form-control'
-        }
+        render_kw={"placeholder": "Ej. Ana P�rez", "class": "form-control"},
     )
 
     tipo = SelectField(
-        'Tipo de Acta',
+        "Tipo de Acta",
         choices=[
-            ('', 'Todos los tipos'),
-            ('Entrega', 'Acta de Entrega'),
-            ('Traslado', 'Acta de Traslado'),
-            ('Entrada/Salida', 'Acta de Entrada/Salida'),
-            ('Paz y Salvo', 'Acta de Paz y Salvo'),
-            ('Reporte de Da�o o P�rdida', 'Reporte de Da�o o P�rdida')
+            ("", "Todos los tipos"),
+            ("Entrega", "Acta de Entrega"),
+            ("Traslado", "Acta de Traslado"),
+            ("Entrada/Salida", "Acta de Entrada/Salida"),
+            ("Paz y Salvo", "Acta de Paz y Salvo"),
+            ("Reporte de Da�o o P�rdida", "Reporte de Da�o o P�rdida"),
         ],
         validators=[Optional()],
-        render_kw={'class': 'form-select'}
+        render_kw={"class": "form-select"},
     )
 
-    submit = SubmitField(
-        'Filtrar',
-        render_kw={'class': 'btn btn-primary w-100'}
-    )
+    submit = SubmitField("Filtrar", render_kw={"class": "btn btn-primary w-100"})
 
 
 class MovimientoCSRFForm(FlaskForm):
@@ -54,6 +50,7 @@ class MovimientoCSRFForm(FlaskForm):
     Se usa en add_movimiento.html para proteger el formulario
     sin cambiar toda la l�gica de validaci�n existente.
     """
+
     # No hay campos, solo el token CSRF autom�tico
     pass
 
@@ -63,20 +60,16 @@ class EliminarMovimientoForm(FlaskForm):
     Formulario para confirmar eliminaci�n de un movimiento.
     Protege contra CSRF en operaciones DELETE.
     """
-    movimiento_id = HiddenField(
-        'ID del Movimiento',
-        validators=[DataRequired()]
-    )
 
-    submit = SubmitField(
-        'Eliminar',
-        render_kw={'class': 'btn btn-danger'}
-    )
+    movimiento_id = HiddenField("ID del Movimiento", validators=[DataRequired()])
+
+    submit = SubmitField("Eliminar", render_kw={"class": "btn btn-danger"})
 
 
 # ==============================================================================
 # FUNCIONES HELPER PARA VALIDACI�N Y CONVERSI�N DE DATOS
 # ==============================================================================
+
 
 def safe_float_conversion(value, default=None):
     """
@@ -97,7 +90,7 @@ def safe_float_conversion(value, default=None):
         >>> safe_float_conversion(None, 0.0)
         0.0
     """
-    if value is None or value == '':
+    if value is None or value == "":
         return default
 
     # Si ya es float o int, retornar directamente
@@ -107,7 +100,7 @@ def safe_float_conversion(value, default=None):
     # Si es string, limpiar y convertir
     if isinstance(value, str):
         # Remover espacios y caracteres comunes
-        cleaned = value.strip().replace(',', '').replace('$', '').replace(' ', '')
+        cleaned = value.strip().replace(",", "").replace("$", "").replace(" ", "")
 
         # Validar que sea un n�mero v�lido
         try:
@@ -135,7 +128,7 @@ def safe_int_conversion(value, default=None):
         >>> safe_int_conversion('abc', 0)
         0
     """
-    if value is None or value == '':
+    if value is None or value == "":
         return default
 
     if isinstance(value, int):
@@ -145,7 +138,7 @@ def safe_int_conversion(value, default=None):
         return int(value)
 
     if isinstance(value, str):
-        cleaned = value.strip().replace(',', '').replace(' ', '')
+        cleaned = value.strip().replace(",", "").replace(" ", "")
         try:
             # Intentar convertir directamente
             return int(cleaned)
@@ -178,19 +171,20 @@ def sanitize_search_term(term, min_length=2, max_length=100):
         ('', False)
     """
     if not term or not isinstance(term, str):
-        return '', False
+        return "", False
 
     # Remover caracteres peligrosos para SQL LIKE
-    sanitized = term.replace('%', '').replace('_', '').strip()
+    sanitized = term.replace("%", "").replace("_", "").strip()
 
     # Validar longitud
     if len(sanitized) < min_length or len(sanitized) > max_length:
-        return '', False
+        return "", False
 
     # Limitar a caracteres seguros (letras, n�meros, espacios, guiones)
     # Esto permite b�squedas en espa�ol con acentos
     import re
-    sanitized = re.sub(r'[^\w\s\-������������]', '', sanitized)
+
+    sanitized = re.sub(r"[^\w\s\-������������]", "", sanitized)
 
     return sanitized, len(sanitized) >= min_length
 
@@ -213,7 +207,7 @@ def validate_json_structure(data, required_keys=None):
         (False, ['name'])
     """
     if not isinstance(data, dict):
-        return False, ['Invalid data type']
+        return False, ["Invalid data type"]
 
     if required_keys is None:
         return True, []
@@ -226,14 +220,16 @@ def validate_json_structure(data, required_keys=None):
 # VALIDADORES PERSONALIZADOS
 # ==============================================================================
 
+
 class NITValidator:
     """
     Validador personalizado para NIT colombiano.
     Formato: XXXXXXXXX-X
     """
+
     def __init__(self, message=None):
         if not message:
-            message = 'NIT inv�lido. Use el formato XXXXXXXXX-X'
+            message = "NIT inv�lido. Use el formato XXXXXXXXX-X"
         self.message = message
 
     def __call__(self, form, field):
@@ -241,10 +237,12 @@ class NITValidator:
             return  # Optional field
 
         import re
+
         # Patr�n: 9 d�gitos, gui�n, 1 d�gito
-        pattern = r'^\d{9}-\d$'
+        pattern = r"^\d{9}-\d$"
         if not re.match(pattern, field.data):
             from wtforms.validators import ValidationError
+
             raise ValidationError(self.message)
 
 
@@ -253,9 +251,10 @@ class CedulaValidator:
     Validador personalizado para c�dula colombiana.
     Acepta entre 6 y 10 d�gitos.
     """
+
     def __init__(self, message=None):
         if not message:
-            message = 'C�dula inv�lida. Debe tener entre 6 y 10 d�gitos'
+            message = "C�dula inv�lida. Debe tener entre 6 y 10 d�gitos"
         self.message = message
 
     def __call__(self, form, field):
@@ -263,10 +262,12 @@ class CedulaValidator:
             return  # Optional field
 
         import re
+
         # Solo d�gitos, entre 6 y 10 caracteres
-        pattern = r'^\d{6,10}$'
+        pattern = r"^\d{6,10}$"
         if not re.match(pattern, str(field.data)):
             from wtforms.validators import ValidationError
+
             raise ValidationError(self.message)
 
 
@@ -274,11 +275,12 @@ class CedulaValidator:
 # FUNCIONES DE SEGURIDAD
 # ==============================================================================
 
+
 def get_client_ip(request):
     """
     Obtiene la direccion IP del cliente de forma segura.
 
-    La confianza en los encabezados de proxy se gestiona centralmente a través de 
+    La confianza en los encabezados de proxy se gestiona centralmente a través de
     la configuración de la aplicación `TRUST_X_FORWARDED_FOR`.
 
     ADVERTENCIA DE SEGURIDAD:
@@ -304,21 +306,21 @@ def get_client_ip(request):
     import re
     from flask import current_app
 
-    trust_proxy = current_app.config.get('TRUST_X_FORWARDED_FOR', False)
-    ip_address = 'desconocida'
+    trust_proxy = current_app.config.get("TRUST_X_FORWARDED_FOR", False)
+    ip_address = "desconocida"
 
     # Si confiamos en el proxy, intentar obtener IP de headers
     if trust_proxy:
         # X-Forwarded-For puede contener multiples IPs: "client, proxy1, proxy2"
         # La primera es la IP real del cliente
-        if request.headers.get('X-Forwarded-For'):
-            forwarded_ips = request.headers.get('X-Forwarded-For').split(',')
+        if request.headers.get("X-Forwarded-For"):
+            forwarded_ips = request.headers.get("X-Forwarded-For").split(",")
             # Tomar la primera IP y limpiarla
             ip_address = forwarded_ips[0].strip()
 
         # X-Real-IP es mas confiable en configuraciones simples (nginx)
-        elif request.headers.get('X-Real-IP'):
-            ip_address = request.headers.get('X-Real-IP').strip()
+        elif request.headers.get("X-Real-IP"):
+            ip_address = request.headers.get("X-Real-IP").strip()
 
         # Fallback: usar remote_addr (IP del ultimo salto)
         elif request.remote_addr:
@@ -331,13 +333,12 @@ def get_client_ip(request):
     # Validar formato de IP (basico)
     # IPv4: xxx.xxx.xxx.xxx
     # IPv6: xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx
-    ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
-    ipv6_pattern = r'^([0-9a-fA-F]{0,4}:){7}[0-9a-fA-F]{0,4}$'
+    ipv4_pattern = r"^(\d{1,3}\.){3}\d{1,3}$"
+    ipv6_pattern = r"^([0-9a-fA-F]{0,4}:){7}[0-9a-fA-F]{0,4}$"
 
     if not (re.match(ipv4_pattern, ip_address) or re.match(ipv6_pattern, ip_address)):
         # Si no es una IP valida, truncar y registrar advertencia
-        ip_address = ip_address[:45] if ip_address else 'invalida'
+        ip_address = ip_address[:45] if ip_address else "invalida"
 
     # Limitar longitud para compatibilidad con BD (VARCHAR(45))
     return ip_address[:45]
-

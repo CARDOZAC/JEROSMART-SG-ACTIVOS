@@ -7,11 +7,11 @@
 from flask import Blueprint
 
 activos_v2_bp = Blueprint(
-    'activos_v2',
+    "activos_v2",
     __name__,
-    url_prefix='/activos-v2',
-    template_folder='../templates/activos_v2',
-    static_folder='../static'
+    url_prefix="/activos-v2",
+    template_folder="../templates/activos_v2",
+    static_folder="../static",
 )
 
 from app.activos_v2 import routes

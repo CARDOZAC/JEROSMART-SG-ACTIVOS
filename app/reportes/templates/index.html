@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Centro de Reportes{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0"><i class="fas fa-chart-line me-2"></i>Centro de Reportes</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Seleccione el reporte que desea generar. Puede exportar la mayoría de los reportes en formato PDF o Excel.</p>
+                </div>
+            </div>
+
+            <!-- Reporte General de Activos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Reporte General de Activos</h2>
+                </div>
+                <div class="card-body">
+                    <p>Obtenga un listado completo de todos los activos registrados en el sistema.</p>
+                    <a href="{{ url_for('reportes.reporte_general_activos', formato='pdf') }}" class="btn btn-danger"><i class="fas fa-file-pdf me-2"></i>Exportar a PDF</a>
+                    <a href="{{ url_for('reportes.reporte_general_activos', formato='xlsx') }}" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Exportar a Excel</a>
+                </div>
+            </div>
+
+            <!-- Reporte de Depreciación -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Reporte de Depreciación Mensual</h2>
+                </div>
+                <div class="card-body">
+                    <p>Calcule y visualice la depreciación mensual para todos los activos propios. Este reporte utiliza el método de depreciación lineal.</p>
+                    <a href="{{ url_for('reportes.reporte_depreciacion', formato='pdf') }}" class="btn btn-danger"><i class="fas fa-file-pdf me-2"></i>Generar PDF</a>
+                    <a href="{{ url_for('reportes.reporte_depreciacion', formato='xlsx') }}" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Generar Excel</a>
+                </div>
+            </div>
+
+            <!-- Reporte de Movimientos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Reporte de Movimientos</h2>
+                </div>
+                <div class="card-body">
+                    <p>Filtre y genere reportes de movimientos de activos por tipo o por un rango de fechas específico.</p>
+                    <form action="{{ url_for('reportes.reporte_movimientos') }}" method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="tipo_movimiento" class="form-label">Tipo de Movimiento</label>
+                            <select name="tipo_movimiento" id="tipo_movimiento" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="Entrega">Entrega</option>
+                                <option value="Traslado">Traslado</option>
+                                <option value="Entrada/Salida">Entrada/Salida</option>
+                                <option value="Paz y Salvo">Paz y Salvo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                            <input type="date" name="fecha_fin" id="fecha_fin" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" name="formato" value="pdf" class="btn btn-danger w-100"><i class="fas fa-file-pdf me-2"></i>Generar PDF</button>
+                            <button type="submit" name="formato" value="xlsx" class="btn btn-success w-100 mt-2"><i class="fas fa-file-excel me-2"></i>Generar Excel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Reporte de Activos Ajenos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Reporte de Activos Ajenos</h2>
+                </div>
+                <div class="card-body">
+                    <p>Genere un listado de todos los activos que no son propiedad de la entidad y su conteo total.</p>
+                    <a href="{{ url_for('reportes.reporte_activos_ajenos', formato='pdf') }}" class="btn btn-danger"><i class="fas fa-file-pdf me-2"></i>Listado en PDF</a>
+                    <a href="{{ url_for('reportes.reporte_activos_ajenos', formato='xlsx') }}" class="btn btn-success"><i class="fas fa-file-excel me-2"></i>Listado en Excel</a>
+                </div>
+            </div>
+
+            <!-- Reporte de Mantenimientos -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Reporte de Mantenimientos</h2>
+                </div>
+                <div class="card-body">
+                    <p>Filtre los mantenimientos realizados por clase de activo.</p>
+                    <form action="{{ url_for('reportes.reporte_mantenimientos') }}" method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label for="clase_activo" class="form-label">Clase de Activo</label>
+                            <select name="clase_activo" id="clase_activo" class="form-select">
+                                <option value="">Todas</option>
+                                <option value="2">Electroindustrial</option>
+                                <option value="3">Equipos de TIC</option>
+                                <option value="4">Muebles y Enseres</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" name="formato" value="pdf" class="btn btn-danger w-100"><i class="fas fa-file-pdf me-2"></i>Generar PDF</button>
+                            <button type="submit" name="formato" value="xlsx" class="btn btn-success w-100 mt-2"><i class="fas fa-file-excel me-2"></i>Generar Excel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
