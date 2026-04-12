@@ -17,13 +17,13 @@
                         Para `clase_id` y `funcionario_id`, usa los IDs numéricos de tu base de datos.
                     </p>
 
-                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('importar_activos') }}">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('main.importar_activos') }}">
                         <div class="mb-3">
                             <label for="csv_file" class="form-label">Seleccionar archivo CSV:</label>
                             <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
                         </div>
                         <button type="submit" class="btn btn-success"><i class="bi bi-upload me-2"></i>Importar Activos</button>
-                        <a href="{{ url_for('ver_activos') }}" class="btn btn-secondary ms-2">Cancelar</a>
+                        <a href="{{ url_for('activos.ver_activos') }}" class="btn btn-secondary ms-2">Cancelar</a>
                     </form>
                 </div>
             </div>

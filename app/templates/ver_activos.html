@@ -52,15 +52,15 @@
                 <h2 class="h3 mb-0 text-dark fw-bold"><i class="bi bi-collection-fill me-2 text-primary"></i>Inventario General de Activos</h2>
                 <div>
                     {% if session.get('rol') == 'admin' %}
-                    <a href="{{ url_for('importar_activos') }}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar CSV</a>
-                    <a href="{{ url_for('add_activo') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Agregar Activo</a>
+                    <a href="{{ url_for('main.importar_activos') }}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar CSV</a>
+                    <a href="{{ url_for('activos.add_activo') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Agregar Activo</a>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Barra de Búsqueda y Filtros Mejorada -->
             <div class="filter-bar mb-4">
-                <form method="GET" action="{{ url_for('ver_activos') }}" class="row g-3 align-items-end">
+                <form method="GET" action="{{ url_for('activos.ver_activos') }}" class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label for="q" class="form-label fw-semibold">Buscar Activo</label>
                         <div class="input-group">
@@ -106,7 +106,7 @@
                     </thead>
                     <tbody>
                         {% for activo in activos %}
-                        <tr class='clickable-row' data-href="{{ url_for('edit_activo', activo_id=activo.id) }}">
+                        <tr class='clickable-row' data-href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}">
                             <td><strong class="text-primary">{{ activo.placa_codigo }}</strong></td>
                             <td>
                                 <div class="fw-bold">{{ activo.nombre_activo }}</div>
@@ -144,10 +144,10 @@
                             </td>
                             <td class="text-center">
                                 {% if session.get('rol') == 'admin' %}
-                                    <a href="{{ url_for('edit_activo', activo_id=activo.id) }}" class="btn btn-outline-secondary btn-sm" title="Editar Activo">
+                                    <a href="{{ url_for('activos.edit_activo', activo_id=activo.id) }}" class="btn btn-outline-secondary btn-sm" title="Editar Activo">
                                         <i class="bi bi-pencil-fill"></i>
                                     </a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-delete-url="{{ url_for('delete_activo', activo_id=activo.id) }}" data-asset-name="{{ activo.nombre_activo }}" title="Eliminar Activo" onclick="event.stopPropagation();">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-delete-url="{{ url_for('activos.delete_activo', activo_id=activo.id) }}" data-asset-name="{{ activo.nombre_activo }}" title="Eliminar Activo" onclick="event.stopPropagation();">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 {% else %}

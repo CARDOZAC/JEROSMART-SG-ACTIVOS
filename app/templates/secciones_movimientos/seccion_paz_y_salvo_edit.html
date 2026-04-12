@@ -1,0 +1,23 @@
+<h5 class="mb-3">Detalles del Acta de Paz y Salvo</h5>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="paz_salvo_nombre_funcionario" class="form-label">Nombre del Funcionario</label>
+        <input type="text" name="paz_salvo_nombre_funcionario" id="paz_salvo_nombre_funcionario" class="form-control" value="{{ detalles.nombre_funcionario or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="funcionario_id" class="form-label">Cédula o ID del Funcionario</label>
+        <input type="text" name="funcionario_id" id="funcionario_id" class="form-control" value="{{ detalles.funcionario_desvinculado_id or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="paz_salvo_cargo_funcionario" class="form-label">Cargo</label>
+        <input type="text" name="paz_salvo_cargo_funcionario" id="paz_salvo_cargo_funcionario" class="form-control" value="{{ detalles.cargo_funcionario or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="paz_salvo_area_funcionario" class="form-label">Área</label>
+        <input type="text" name="paz_salvo_area_funcionario" id="paz_salvo_area_funcionario" class="form-control" value="{{ detalles.area_funcionario or '' }}">
+    </div>
+    <div class="col-12">
+        <label for="observaciones_paz_salvo" class="form-label">Observaciones</label>
+        <textarea name="observaciones_paz_salvo" id="observaciones_paz_salvo" class="form-control" rows="3">{{ detalles.observaciones_paz_salvo or '' }}</textarea>
+    </div>
+</div>

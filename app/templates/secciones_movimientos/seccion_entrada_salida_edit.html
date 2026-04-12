@@ -1,0 +1,43 @@
+<h5 class="mb-3">Detalles del Acta de Entrada/Salida</h5>
+<div class="row g-3">
+    <div class="col-md-6"><label for="ciudad_es" class="form-label">Ciudad</label><input type="text" name="ciudad_es" id="ciudad_es" class="form-control" value="{{ detalles.ciudad or 'Villavicencio' }}"></div>
+    <div class="col-md-6"><label for="sede_es" class="form-label">Sede</label><input type="text" name="sede_es" id="sede_es" class="form-control" value="{{ detalles.sede or 'CORPORACION CLINICA PRIMAVERA' }}"></div>
+    <hr class="my-3">
+    <h6 class="text-secondary">Datos del Solicitante</h6>
+    <div class="col-md-6"><label for="solicitante_responsable_nombre" class="form-label">Nombre Responsable</label><input type="text" name="solicitante_responsable_nombre" id="solicitante_responsable_nombre" class="form-control" value="{{ detalles.solicitante_responsable_nombre or '' }}"></div>
+    <div class="col-md-6"><label for="solicitante_responsable_cc" class="form-label">Cédula</label><input type="text" name="solicitante_responsable_cc" id="solicitante_responsable_cc" class="form-control" value="{{ detalles.solicitante_responsable_cc or '' }}"></div>
+    <div class="col-12"><label for="solicitante_responsable_cargo_area" class="form-label">Cargo/Área</label><input type="text" name="solicitante_responsable_cargo_area" id="solicitante_responsable_cargo_area" class="form-control" value="{{ detalles.solicitante_responsable_cargo_area or '' }}"></div>
+    <hr class="my-3">
+    <h6 class="text-secondary">Datos del Tercero</h6>
+    <div class="col-md-6"><label for="tercero_entidad_persona" class="form-label">Entidad/Persona (Tercero)</label><input type="text" name="tercero_entidad_persona" id="tercero_entidad_persona" class="form-control" value="{{ detalles.tercero_entidad_persona or '' }}"></div>
+    <div class="col-md-6"><label for="tercero_nit_cc" class="form-label">NIT/Cédula</label><input type="text" name="tercero_nit_cc" id="tercero_nit_cc" class="form-control" value="{{ detalles.tercero_nit_cc or '' }}"></div>
+    <div class="col-md-6"><label for="tercero_direccion" class="form-label">Dirección</label><input type="text" name="tercero_direccion" id="tercero_direccion" class="form-control" value="{{ detalles.tercero_direccion or '' }}"></div>
+    <div class="col-md-6"><label for="tercero_movil" class="form-label">Móvil</label><input type="text" name="tercero_movil" id="tercero_movil" class="form-control" value="{{ detalles.tercero_movil or '' }}"></div>
+    <hr class="my-3">
+    <h6 class="text-secondary">Detalles de la Operación</h6>
+    <div class="col-12">
+        <label for="tipo_operacion_es" class="form-label">Tipo de Operación</label>
+        <select name="tipo_operacion_es" id="tipo_operacion_es" class="form-select">
+            <option value="Entrada" {{ 'selected' if detalles.tipo_operacion == 'Entrada' }}>Entrada</option>
+            <option value="Salida" {{ 'selected' if detalles.tipo_operacion == 'Salida' }}>Salida</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <label for="motivo_es" class="form-label">Motivo</label>
+        <select name="motivo_es" id="motivo_es" class="form-select">
+            <option value="Salida Por Mantenimiento" {{ 'selected' if detalles.motivo == 'Salida Por Mantenimiento' }}>Salida Por Mantenimiento</option>
+            <option value="Salida Por Préstamo a la Clinica" {{ 'selected' if detalles.motivo == 'Salida Por Préstamo a la Clinica' }}>Salida Por Préstamo a la Clínica</option>
+            <option value="Entrada Por Mantenimiento Realizado" {{ 'selected' if detalles.motivo == 'Entrada Por Mantenimiento Realizado' }}>Entrada Por Mantenimiento Realizado</option>
+            <option value="Entrada Por Préstamo de la Clinica" {{ 'selected' if detalles.motivo == 'Entrada Por Préstamo de la Clinica' }}>Entrada Por Préstamo de la Clínica</option>
+            <option value="Otro" {{ 'selected' if detalles.motivo not in ['Salida Por Mantenimiento', 'Salida Por Préstamo a la Clinica', 'Entrada Por Mantenimiento Realizado', 'Entrada Por Préstamo de la Clinica'] }}>Otro</option>
+        </select>
+    </div>
+    <div class="col-12" id="motivo_otro_group" style="{{ 'display: block;' if detalles.motivo not in ['Salida Por Mantenimiento', 'Salida Por Préstamo a la Clinica', 'Entrada Por Mantenimiento Realizado', 'Entrada Por Préstamo de la Clinica'] else 'display: none;' }}">
+        <label for="motivo_otro" class="form-label">Especifique el motivo</label>
+        <input type="text" name="motivo_otro" id="motivo_otro" class="form-control" value="{{ detalles.motivo if detalles.motivo not in ['Salida Por Mantenimiento', 'Salida Por Préstamo a la Clinica', 'Entrada Por Mantenimiento Realizado', 'Entrada Por Préstamo de la Clinica'] else '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="fecha_retorno_estimada" class="form-label">Fecha de Retorno Estimada</label>
+        <input type="date" name="fecha_retorno_estimada" id="fecha_retorno_estimada" class="form-control" value="{{ detalles.fecha_retorno_estimada or '' }}">
+    </div>
+</div>
