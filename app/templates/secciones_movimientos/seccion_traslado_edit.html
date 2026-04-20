@@ -1,0 +1,67 @@
+<h5 class="mb-3">Detalles del Acta de Traslado</h5>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="fecha_traslado" class="form-label">Fecha de Traslado</label>
+        <input type="date" name="fecha_traslado" id="fecha_traslado" class="form-control" value="{{ detalles.fecha_traslado or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="hora_traslado" class="form-label">Hora de Traslado</label>
+        <input type="time" name="hora_traslado" id="hora_traslado" class="form-control" value="{{ detalles.hora_traslado or '' }}">
+    </div>
+    <div class="col-12">
+        <label class="form-label">Tipo de Traslado</label>
+        {% set tipos = detalles.tipo_traslado_json|from_json if detalles.tipo_traslado_json else [] %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Retiro de funcionario" id="tipo_retiro" {{ 'checked' if 'Retiro de funcionario' in tipos }}>
+            <label class="form-check-label" for="tipo_retiro">Retiro de funcionario</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Traslado de bodega por obsolescencia, desuso o reposición" id="tipo_bodega" {{ 'checked' if 'Traslado de bodega por obsolescencia, desuso o reposición' in tipos }}>
+            <label class="form-check-label" for="tipo_bodega">Traslado de bodega por obsolescencia, desuso o reposición</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Activo de un funcionario a otro en la misma área" id="tipo_mismo_funcionario" {{ 'checked' if 'Activo de un funcionario a otro en la misma área' in tipos }}>
+            <label class="form-check-label" for="tipo_mismo_funcionario">Activo de un funcionario a otro en la misma área</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Traslado de un activo de bodega a centro de costo" id="tipo_bodega_costo" {{ 'checked' if 'Traslado de un activo de bodega a centro de costo' in tipos }}>
+            <label class="form-check-label" for="tipo_bodega_costo">Traslado de un activo de bodega a centro de costo</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="traslado_tipo[]" value="Activo de un centro de costo a otro" id="tipo_costo_costo" {{ 'checked' if 'Activo de un centro de costo a otro' in tipos }}>
+            <label class="form-check-label" for="tipo_costo_costo">Activo de un centro de costo a otro</label>
+        </div>
+    </div>
+    <div class="col-12">
+        <label for="traslado_ubicacion_inicial" class="form-label">Ubicación Inicial</label>
+        <input type="text" name="traslado_ubicacion_inicial" id="traslado_ubicacion_inicial" class="form-control" value="{{ detalles.ubicacion_inicial or '' }}">
+    </div>
+    <div class="col-12">
+        <label for="traslado_ubicacion_final" class="form-label">Ubicación Final</label>
+        <input type="text" name="traslado_ubicacion_final" id="traslado_ubicacion_final" class="form-control" value="{{ detalles.ubicacion_final or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="origen_responsable_nombre" class="form-label">Nombre Responsable Origen</label>
+        <input type="text" name="origen_responsable_nombre" id="origen_responsable_nombre" class="form-control" value="{{ detalles.origen_responsable_nombre or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="origen_responsable_cc" class="form-label">Cédula Responsable Origen</label>
+        <input type="text" name="origen_responsable_cc" id="origen_responsable_cc" class="form-control" value="{{ detalles.origen_responsable_cc or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="origen_responsable_cargo" class="form-label">Cargo Responsable Origen</label>
+        <input type="text" name="origen_responsable_cargo" id="origen_responsable_cargo" class="form-control" value="{{ detalles.origen_responsable_cargo or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="nuevo_responsable_nombre" class="form-label">Nombre Nuevo Responsable</label>
+        <input type="text" name="nuevo_responsable_nombre" id="nuevo_responsable_nombre" class="form-control" value="{{ detalles.nuevo_responsable_nombre or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="nuevo_responsable_cc" class="form-label">Cédula Nuevo Responsable</label>
+        <input type="text" name="nuevo_responsable_cc" id="nuevo_responsable_cc" class="form-control" value="{{ detalles.nuevo_responsable_cc or '' }}">
+    </div>
+    <div class="col-md-4">
+        <label for="nuevo_responsable_cargo" class="form-label">Cargo Nuevo Responsable</label>
+        <input type="text" name="nuevo_responsable_cargo" id="nuevo_responsable_cargo" class="form-control" value="{{ detalles.nuevo_responsable_cargo or '' }}">
+    </div>
+</div>

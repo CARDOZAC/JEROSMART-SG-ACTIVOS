@@ -442,8 +442,8 @@ def seed_data(cursor):
     """
     print("-> Insertando datos de ejemplo...")
 
-    # from .app.models import User, ClaseActivo, Funcionario, Proveedor, MantenimientoTipo, Activo, etc.
-    # from .app.extensions import db
+    # from app.models import User, ClaseActivo, Funcionario, Proveedor, MantenimientoTipo, Activo, etc.
+    # from app.extensions import db
     # from werkzeug.security import generate_password_hash
 
     # try:
@@ -471,7 +471,7 @@ def seed_data(cursor):
     # clases = ['Equipo Biomédico', 'Equipo Electro-Industrial', 'TICs', 'Muebles y Enseres']
     # cursor.executemany("INSERT INTO clases_activo (nombre_clase) VALUES (?)", [(c,) for c in clases])
     # cursor.execute("INSERT INTO funcionarios (nombres, apellidos, cedula, cargo, area) VALUES (?, ?, ?, ?, ?)",
-                   ('Ana', 'Pérez', '12345678', 'Coordinadora', 'Administración'))
+    #              ('Ana', 'Pérez', '12345678', 'Coordinadora', 'Administración'))
     cursor.execute("INSERT INTO funcionarios (nombres, apellidos, cedula, cargo, area) VALUES (?, ?, ?, ?, ?)",
                    ('Luis', 'García', '87654321', 'Jefe de Sistemas', 'Sistemas'))
     cursor.execute("INSERT INTO funcionarios (nombres, apellidos, cedula, cargo, area) VALUES (?, ?, ?, ?, ?)",
@@ -482,8 +482,8 @@ def seed_data(cursor):
                    ('Laura', 'Martínez', '33445566', 'Auxiliar Administrativa', 'Recursos Humanos'))
 
 
-    # cursor.execute("INSERT INTO proveedores (razon_social, nit) VALUES (?, ?)",
-                   ('TecnoSoluciones S.A.S.', '900.123.456-7'))
+    #    # cursor.execute("INSERT INTO proveedores (razon_social, nit) VALUES (?, ?)",
+    #                   ('TecnoSoluciones S.A.S.', '900.123.456-7'))
     cursor.execute("INSERT INTO proveedores (razon_social, nit) VALUES (?, ?)",
                    ('BioEquipos SAS', '900.555.123-4'))
 
@@ -586,9 +586,9 @@ def init_db_app(app):
     Esta función se debe ejecutar en el contexto de la aplicación Flask.
     """
     with app.app_context():
-        from .app.extensions import db
+        from app.extensions import db
         # Importa aquí todos tus modelos para que SQLAlchemy los conozca
-        from .app.models import User, Funcionario, Proveedor, ClaseActivo, Activo, Movimiento, Mantenimiento # y todos los demás
+        from app.models import User, Funcionario, Proveedor, ClaseActivo, Activo, Movimiento, Mantenimiento # y todos los demás
 
         db_path = app.config.get('SQLALCHEMY_DATABASE_URI').replace('sqlite:///', '')
         if os.path.exists(db_path):

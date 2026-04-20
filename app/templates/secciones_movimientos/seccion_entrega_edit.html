@@ -1,0 +1,70 @@
+<h5 class="mb-3">Detalles del Acta de Entrega</h5>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="proveedor_id" class="form-label">Proveedor</label>
+        <input type="text" name="proveedor_id" id="proveedor_id" class="form-control" value="{{ detalles.proveedor_id or '' }}" placeholder="ID del proveedor">
+    </div>
+    <div class="col-md-6">
+        <label for="entrega_factura" class="form-label">Factura</label>
+        <input type="text" name="entrega_factura" id="entrega_factura" class="form-control" value="{{ detalles.factura or '' }}" placeholder="N° de Factura">
+    </div>
+    <div class="col-md-6">
+        <label for="entrega_contrato_nro" class="form-label">N° Contrato</label>
+        <input type="text" name="entrega_contrato_nro" id="entrega_contrato_nro" class="form-control" value="{{ detalles.orden_compra_contrato or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="entrega_contrato_fecha" class="form-label">Fecha del Contrato</label>
+        <input type="date" name="entrega_contrato_fecha" id="entrega_contrato_fecha" class="form-control" value="{{ detalles.fecha_oc_contrato or '' }}">
+    </div>
+    <div class="col-12">
+        <label for="entrega_objeto_contrato" class="form-label">Objeto del Contrato o Entrega</label>
+        <textarea name="entrega_objeto_contrato" id="entrega_objeto_contrato" class="form-control" rows="3">{{ detalles.objeto_contrato or '' }}</textarea>
+    </div>
+    <div class="col-12">
+        <label class="form-label">Tipo de Elemento Entregado</label>
+        {% set elementos = detalles.tipo_elementos|from_json if detalles.tipo_elementos else [] %}
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos biomédicos" id="tipo_biomedicos" {{ 'checked' if 'Equipos biomédicos' in elementos }}>
+            <label class="form-check-label" for="tipo_biomedicos">Equipos biomédicos</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipos TIC" id="tipo_tic" {{ 'checked' if 'Equipos TIC' in elementos }}>
+            <label class="form-check-label" for="tipo_tic">Equipos TIC</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Mobiliario y enseres" id="tipo_mobiliario" {{ 'checked' if 'Mobiliario y enseres' in elementos }}>
+            <label class="form-check-label" for="tipo_mobiliario">Mobiliario y enseres</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="entrega_tipo_elementos" value="Equipo de vigilancia" id="tipo_vigilancia" {{ 'checked' if 'Equipo de vigilancia' in elementos }}>
+            <label class="form-check-label" for="tipo_vigilancia">Equipo de vigilancia</label>
+        </div>
+    </div>
+    <div class="col-12">
+        <label class="form-label">Características</label>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="requiere_montaje" id="requiere_montaje" {{ 'checked' if detalles.requiere_montaje }}>
+            <label class="form-check-label" for="requiere_montaje">Requiere montaje</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="requiere_capacitacion" id="requiere_capacitacion" {{ 'checked' if detalles.requiere_capacitacion }}>
+            <label class="form-check-label" for="requiere_capacitacion">Requiere capacitación</label>
+        </div>
+    </div>
+    <div class="col-12">
+        <label for="entrega_tipo_asignacion" class="form-label">Tipo de Asignación</label>
+        <input type="text" name="entrega_tipo_asignacion" id="entrega_tipo_asignacion" class="form-control" value="{{ detalles.tipo_asignacion or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="entrega_nombre" class="form-label">Quién Entrega</label>
+        <input type="text" name="entrega_nombre" id="entrega_nombre" class="form-control" value="{{ detalles.quien_entrega_nombre or '' }}">
+    </div>
+    <div class="col-md-6">
+        <label for="recibe_nombre" class="form-label">Quién Recibe</label>
+        <input type="text" name="recibe_nombre" id="recibe_nombre" class="form-control" value="{{ detalles.quien_recibe_nombre or '' }}">
+    </div>
+    <div class="col-12">
+        <label for="observaciones_acta" class="form-label">Observaciones</label>
+        <textarea name="observaciones_acta" id="observaciones_acta" class="form-control" rows="3">{{ detalles.observaciones_acta or '' }}</textarea>
+    </div>
+</div>

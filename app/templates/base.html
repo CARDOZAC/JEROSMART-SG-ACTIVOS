@@ -47,7 +47,7 @@
     <header class="shadow-sm">
         <nav class="navbar navbar-expand-lg navbar-custom" aria-label="Menú principal">
             <div class="container-fluid px-4">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('index') }}">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('main.index') }}">
                     <i class="bi bi-gear-wide-connected me-2 fs-4"></i>SG Activos Fijos
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
@@ -59,8 +59,8 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                         {{ nav_link('main.index', 'Dashboard', 'index') }}
-                        {{ nav_link('ver_activos', 'Inventario', 'ver_activos') }}
-                        {{ nav_link('ver_movimientos', 'Movimientos', 'ver_movimientos') }}
+                        {{ nav_link('activos.ver_activos', 'Inventario', 'ver_activos') }}
+                        {{ nav_link('movimientos.ver_movimientos', 'Movimientos', 'ver_movimientos') }}
 
                         {% if session.get('rol') == 'admin' %}
                         {{ nav_link('ver_proveedores', 'Proveedores', 'proveedores') }}
@@ -76,8 +76,8 @@
                                 <li><a class="dropdown-item" href="{{ url_for('biomedicos.index') }}">Gestión Biomédicos</a></li>
                                 {% if session.get('rol') == 'admin' %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('register') }}">Registrar Usuario</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('importar_activos') }}">Importar Activos (CSV)</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Registrar Usuario</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.importar_activos') }}">Importar Activos (CSV)</a></li>
                                 {% endif %}
                             </ul>
                         </li>

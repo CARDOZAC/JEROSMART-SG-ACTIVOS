@@ -6,7 +6,7 @@ from flask import (
     current_app, session, make_response
 )
 import weasyprint
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
 from ..extensions import db
 from flask_login import login_required, current_user
 from ..models import (
@@ -17,7 +17,8 @@ from ..models import (
     DetalleEntrega,
     DetalleTraslado,
     DetalleEntradaSalida,
-    DetallePazSalvo
+    DetallePazSalvo,
+    Firma
 )
 
 movimientos_bp = Blueprint(
@@ -26,21 +27,37 @@ movimientos_bp = Blueprint(
     template_folder='templates',
 )
 
-# =====================================================================
-# VISTAS PRINCIPALES (Renderizado de plantillas)
-# =====================================================================
-
 @movimientos_bp.route('/')
 @login_required
 def ver_movimientos():
     """Muestra una lista de todos los movimientos registrados."""
-    stmt = (
-        select(Movimiento)
-        .order_by(Movimiento.fecha.desc())
-        .limit(50)
-    )
+    filtros = {
+        'q': request.args.get('q', '').strip(),
+        'tipo': request.args.get('tipo', ''),
+        'desde': request.args.get('desde', ''),
+        'hasta': request.args.get('hasta', '')
+    }
+
+    stmt = select(Movimiento)
+    conditions = []
+    if filtros['q']:
+        search_term = f"%{filtros['q']}%"
+        # Since Movimiento doesn't have many searchable text fields directly,
+        # we might need to join with details or just search observations.
+        conditions.append(Movimiento.observaciones_generales.ilike(search_term))
+    if filtros['tipo']:
+        conditions.append(Movimiento.tipo_movimiento == filtros['tipo'])
+    if filtros['desde']:
+        conditions.append(Movimiento.fecha >= filtros['desde'])
+    if filtros['hasta']:
+        conditions.append(Movimiento.fecha <= filtros['hasta'])
+
+    if conditions:
+        stmt = stmt.where(and_(*conditions))
+
+    stmt = stmt.order_by(Movimiento.fecha.desc()).limit(50)
     movimientos = db.session.execute(stmt).scalars().all()
-    return render_template('movimientos/ver_movimientos.html', movimientos=movimientos)
+    return render_template("ver_movimientos.html", movimientos=movimientos, filtros=filtros)
 
 @movimientos_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
@@ -57,7 +74,7 @@ def add_movimiento():
             # 1. Crear el objeto principal 'Movimiento'
             nuevo_movimiento = Movimiento(
                 tipo_movimiento=tipo_movimiento,
-                fecha=datetime.now(),
+                fecha=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 usuario_id=current_user.id,
                 observaciones_generales=data.get('observaciones_acta')
             )
@@ -95,7 +112,7 @@ def add_movimiento():
             if tipo_movimiento == 'Entrega':
                 detalle = DetalleEntrega(
                     movimiento_id=movimiento_id,
-                    proveedor_id=data.get('proveedor_id'),
+                    proveedor_id=data.get('proveedor_id') if data.get('proveedor_id') and str(data.get('proveedor_id')).isdigit() else None,
                     factura=data.get('entrega_factura'),
                     orden_compra_contrato=data.get('entrega_contrato_nro'),
                     fecha_oc_contrato=data.get('entrega_contrato_fecha'),
@@ -161,26 +178,16 @@ def add_movimiento():
             db.session.rollback()
             current_app.logger.error(f"Error de decodificación JSON al procesar movimiento: {e}")
             flash(f'Error interno con los datos del formulario (JSON). Detalles: {e}', 'danger')
-        except Exception as e: # SQLAlchemy envuelve IntegrityError en sus propias excepciones
+        except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f"Error de integridad de BD al procesar movimiento: {e}")
-            flash(f'Error de base de datos. Es posible que un dato ya exista o falte una referencia. Detalles: {e}', 'danger')
+            current_app.logger.error(f"Error al procesar movimiento: {e}")
+            flash(f'Error al guardar el movimiento: {e}', 'danger')
 
-    # Para el método GET, simplemente renderizamos la plantilla del asistente.
     return render_template('add_movimiento.html', active_page='add_movimiento')
-
-
-# =====================================================================
-# API ENDPOINTS (Para ser consumidos por el frontend)
-# =====================================================================
 
 @movimientos_bp.route('/api/buscar_activos')
 @login_required
 def buscar_activos_api():
-    """
-    API para la búsqueda predictiva de activos.
-    Utilizado en el asistente de creación de movimientos para añadir activos a un acta.
-    """
     term = request.args.get('term', '')
     if len(term) < 2:
         return jsonify([])
@@ -195,46 +202,32 @@ def buscar_activos_api():
         .limit(10)
     )
     activos = db.session.execute(stmt).mappings().all()
-
-    return jsonify([dict(row) for row in activos]) # Convertir a dict para JSON
+    return jsonify([dict(row) for row in activos])
 
 
 @movimientos_bp.route('/<int:movimiento_id>/pdf')
 @login_required
 def generar_acta_pdf(movimiento_id):
-    """
-    Genera el PDF del acta correspondiente a un movimiento.
-    Determina qué plantilla usar según el tipo de movimiento.
-    """
     movimiento = db.session.get(Movimiento, movimiento_id)
-
     if not movimiento:
         return "Movimiento no encontrado", 404
 
-    # 1. Obtener activos del movimiento
-    # Usando las relaciones del ORM para obtener los activos y sus IDs de la tabla intermedia
     activos_relacionados = db.session.scalars(
         select(MovimientoActivo).where(MovimientoActivo.movimiento_id == movimiento_id)
     ).all()
     activos = [ar.activo for ar in activos_relacionados]
-    movimiento_activo_ids = {ar.activo_id: ar.id for ar in activos_relacionados}
 
-    # 2. Obtener accesorios para cada activo en este movimiento
     accesorios_por_activo = {}
-    for activo in activos_relacionados:
-        accesorios = db.session.scalars(select(Accesorio).where(Accesorio.movimiento_activo_id == activo.id)).all()
+    for ar in activos_relacionados:
+        accesorios = db.session.scalars(select(Accesorio).where(Accesorio.movimiento_activo_id == ar.id)).all()
         if accesorios:
-            accesorios_por_activo[activo.activo_id] = [{"descripcion": acc.descripcion, "cantidad": acc.cantidad} for acc in accesorios]
+            accesorios_por_activo[ar.activo_id] = [{"descripcion": acc.descripcion, "cantidad": acc.cantidad} for acc in accesorios]
 
-    # 3. Obtener firmas
-    # Asumiendo que hay un modelo Firma
-    # firmas_db = db.session.execute(select(Firma).where(Firma.documento_id == movimiento_id, Firma.tipo_documento == 'movimiento')).scalars().all()
-    # firmas = {firma.rol_firma: firma.firma_base64 for firma in firmas_db}
-    firmas = {} # Placeholder
+    firmas_db = db.session.scalars(select(Firma).where(Firma.documento_id == movimiento_id, Firma.tipo_documento == 'movimiento')).all()
+    firmas = {firma.rol_firma: firma.firma_base64 for firma in firmas_db}
 
-    # 4. Lógica para determinar la plantilla y los detalles específicos
     template_name = None
-    detalles = {}
+    detalles = None
     tipo = movimiento.tipo_movimiento
 
     if tipo == 'Traslado':
@@ -253,14 +246,18 @@ def generar_acta_pdf(movimiento_id):
     if not template_name:
         return f"No hay una plantilla de PDF definida para el tipo de movimiento: {tipo}", 501
 
-    # 5. Procesar datos JSON para la plantilla (si existen)
     detalles_dict = detalles.__dict__ if detalles else {}
     if 'tipo_traslado_json' in detalles_dict and detalles_dict['tipo_traslado_json']:
-        detalles_dict['tipo_traslado'] = json.loads(detalles_dict['tipo_traslado_json'])
+        try:
+            detalles_dict['tipo_traslado'] = json.loads(detalles_dict['tipo_traslado_json'])
+        except:
+            detalles_dict['tipo_traslado'] = []
     if 'tipo_elementos' in detalles_dict and detalles_dict['tipo_elementos']:
-        detalles_dict['tipo_elementos_list'] = json.loads(detalles_dict['tipo_elementos'])
+        try:
+            detalles_dict['tipo_elementos_list'] = json.loads(detalles_dict['tipo_elementos'])
+        except:
+            detalles_dict['tipo_elementos_list'] = []
 
-    # Preparar datos para la plantilla
     context = {
         "movimiento": movimiento,
         "activos": activos,
@@ -280,10 +277,6 @@ def generar_acta_pdf(movimiento_id):
 @movimientos_bp.route('/<int:movimiento_id>/editar', methods=['GET', 'POST'])
 @login_required
 def edit_movimiento(movimiento_id):
-    """
-    Permite editar un movimiento existente, incluyendo sus detalles,
-    activos asociados y accesorios.
-    """
     movimiento = db.session.get(Movimiento, movimiento_id)
     if not movimiento:
         flash("Movimiento no encontrado.", "danger")
@@ -292,16 +285,11 @@ def edit_movimiento(movimiento_id):
     if request.method == 'POST':
         try:
             data = request.form
-
-            # 1. Actualizar observaciones generales
             movimiento.observaciones_generales = data.get('observaciones_generales')
 
-            # 2. Actualizar activos y accesorios (lógica de reemplazo)
-            # SQLAlchemy con cascade="all, delete-orphan" lo maneja automáticamente al limpiar la colección.
             movimiento.activos.clear()
-            db.session.flush() # Aplicar la eliminación antes de añadir nuevos
+            db.session.flush()
 
-            # Luego, insertar los nuevos
             activos_data = json.loads(data.get('activos_data', '[]'))
             accesorios_data = json.loads(data.get('accesorios_data', '{}'))
 
@@ -312,53 +300,83 @@ def edit_movimiento(movimiento_id):
                     activo_id=activo_id
                 )
                 db.session.add(movimiento_activo)
+                db.session.flush()
 
                 if str(activo_id) in accesorios_data:
-                    for accesorio in accesorios_data[str(activo_id)]:
-                        nuevo_accesorio = Accesorio(
-                            movimiento_activo=movimiento_activo,
-                            descripcion=accesorio.get('descripcion'),
-                            cantidad=accesorio.get('cantidad')
+                    for acc in accesorios_data[str(activo_id)]:
+                        nuevo_acc = Accesorio(
+                            movimiento_activo_id=movimiento_activo.id,
+                            descripcion=acc.get('descripcion'),
+                            cantidad=acc.get('cantidad')
                         )
-                        db.session.add(nuevo_accesorio)
+                        db.session.add(nuevo_acc)
 
-            # 3. Actualizar detalles específicos
-            tipo_movimiento = movimiento.tipo_movimiento
-            if tipo_movimiento == 'Entrega':
-                detalle = movimiento.detalle_entrega
-                detalle.proveedor_id = data.get('proveedor_id')
-                detalle.factura = data.get('entrega_factura')
-                # ... (actualizar todos los demás campos de la misma manera) ...
-
-            # ... Aquí irían los bloques UPDATE para los otros tipos de movimiento ...
+            tipo = movimiento.tipo_movimiento
+            if tipo == 'Entrega':
+                d = movimiento.detalle_entrega
+                d.proveedor_id = data.get('proveedor_id') if data.get('proveedor_id') and str(data.get('proveedor_id')).isdigit() else None
+                d.factura = data.get('entrega_factura')
+                d.orden_compra_contrato = data.get('entrega_contrato_nro')
+                d.fecha_oc_contrato = data.get('entrega_contrato_fecha')
+                d.objeto_contrato = data.get('entrega_objeto_contrato')
+                d.tipo_elementos = json.dumps(request.form.getlist('entrega_tipo_elementos'))
+                d.requiere_montaje = 'requiere_montaje' in data
+                d.requiere_capacitacion = 'requiere_capacitacion' in data
+                d.tipo_asignacion = data.get('entrega_tipo_asignacion')
+                d.quien_entrega_nombre = data.get('entrega_nombre')
+                d.quien_recibe_nombre = data.get('recibe_nombre')
+                d.observaciones_acta = data.get('observaciones_acta')
+            elif tipo == 'Traslado':
+                d = movimiento.detalle_traslado
+                d.fecha_traslado = data.get('fecha_traslado')
+                d.hora_traslado = data.get('hora_traslado')
+                d.tipo_traslado_json = json.dumps(request.form.getlist('traslado_tipo[]'))
+                d.ubicacion_inicial = data.get('traslado_ubicacion_inicial')
+                d.ubicacion_final = data.get('traslado_ubicacion_final')
+                d.origen_responsable_nombre = data.get('origen_responsable_nombre')
+                d.origen_responsable_cc = data.get('origen_responsable_cc')
+                d.origen_responsable_cargo = data.get('origen_responsable_cargo')
+                d.nuevo_responsable_nombre = data.get('nuevo_responsable_nombre')
+                d.nuevo_responsable_cc = data.get('nuevo_responsable_cc')
+                d.nuevo_responsable_cargo = data.get('nuevo_responsable_cargo')
+            elif tipo == 'Entrada/Salida':
+                d = movimiento.detalle_entrada_salida
+                d.ciudad = data.get('ciudad_es')
+                d.sede = data.get('sede_es')
+                d.solicitante_responsable_nombre = data.get('solicitante_responsable_nombre')
+                d.solicitante_responsable_cc = data.get('solicitante_responsable_cc')
+                d.solicitante_responsable_cargo_area = data.get('solicitante_responsable_cargo_area')
+                d.tercero_entidad_persona = data.get('tercero_entidad_persona')
+                d.tercero_nit_cc = data.get('tercero_nit_cc')
+                d.tercero_direccion = data.get('tercero_direccion')
+                d.tercero_movil = data.get('tercero_movil')
+                d.tipo_operacion = data.get('tipo_operacion_es')
+                d.motivo = data.get('motivo_es')
+                d.fecha_retorno_estimada = data.get('fecha_retorno_estimada')
+            elif tipo == 'Paz y Salvo':
+                d = movimiento.detalle_paz_salvo
+                d.funcionario_desvinculado_id = data.get('funcionario_id')
+                d.nombre_funcionario = data.get('paz_salvo_nombre_funcionario')
+                d.cargo_funcionario = data.get('paz_salvo_cargo_funcionario')
+                d.area_funcionario = data.get('paz_salvo_area_funcionario')
+                d.observaciones_paz_salvo = data.get('observaciones_paz_salvo')
 
             db.session.commit()
             flash(f"Movimiento #{movimiento_id} actualizado con éxito.", "success")
-            return redirect(url_for('movimientos.ver_movimiento', movimiento_id=movimiento_id))
+            return redirect(url_for('movimientos.ver_movimientos'))
 
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error al editar movimiento #{movimiento_id}: {e}")
             flash(f"Error al actualizar el movimiento: {e}", "danger")
 
-    # --- Lógica para el método GET ---
-    # Cargar todos los datos necesarios para poblar el formulario de edición
-    # La lógica para obtener detalles ahora usa las relaciones del ORM
-    detalles = getattr(movimiento, f"detalle_{movimiento.tipo_movimiento.lower().replace('/', '_')}")
-
-    activos_relacionados = db.session.scalars(
-        select(MovimientoActivo).where(MovimientoActivo.movimiento_id == movimiento_id)
-    ).all()
-
-    activos_asociados = [
-        {"id": ar.activo.id, "nombre_activo": ar.activo.nombre_activo, "placa_codigo_interno": ar.activo.placa_codigo_interno, "serie": ar.activo.serie}
-        for ar in activos_relacionados
-    ]
-
+    detalles = getattr(movimiento, f"detalle_{movimiento.tipo_movimiento.lower().replace('/', '_').replace(' ', '_')}")
+    activos_relacionados = db.session.scalars(select(MovimientoActivo).where(MovimientoActivo.movimiento_id == movimiento_id)).all()
+    activos_asociados = [{"id": ar.activo.id, "nombre_activo": ar.activo.nombre_activo, "placa_codigo_interno": ar.activo.placa_codigo_interno, "serie": ar.activo.serie} for ar in activos_relacionados]
     accesorios_asociados = []
     for ar in activos_relacionados:
-        accesorios = db.session.scalars(select(Accesorio).where(Accesorio.movimiento_activo_id == ar.id)).all()
-        for acc in accesorios:
+        accs = db.session.scalars(select(Accesorio).where(Accesorio.movimiento_activo_id == ar.id)).all()
+        for acc in accs:
             accesorios_asociados.append({"descripcion": acc.descripcion, "cantidad": acc.cantidad, "activo_id": ar.activo_id})
 
     return render_template(
@@ -372,14 +390,12 @@ def edit_movimiento(movimiento_id):
 @movimientos_bp.route('/<int:movimiento_id>/eliminar', methods=['POST'])
 @login_required
 def eliminar_movimiento(movimiento_id):
-    """Elimina un movimiento y sus datos asociados."""
     movimiento = db.session.get(Movimiento, movimiento_id)
     if not movimiento:
         flash(f"Movimiento #{movimiento_id} no encontrado.", "danger")
         return redirect(url_for('movimientos.ver_movimientos'))
 
     try:
-        # Gracias a cascade="all, delete-orphan", SQLAlchemy se encarga de todo.
         db.session.delete(movimiento)
         db.session.commit()
         flash(f"Movimiento #{movimiento_id} eliminado exitosamente.", "success")
