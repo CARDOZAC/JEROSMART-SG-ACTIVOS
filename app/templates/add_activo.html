@@ -30,53 +30,96 @@
       Un sistema pre-compilado es más robusto, eficiente y seguro.
     -->
 
-    <!-- React 18 y ReactDOM desde CDN -->
+    <!-- React 18 y ReactDOM desde CDN (versión mayor fijada) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-    <!-- Babel Standalone para transpilar JSX en el navegador -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!--
+      Babel Standalone con la versión mayor FIJADA (@8).
+      Antes se pedía la URL sin versión, que sirve siempre la última: cuando Babel
+      publicó una versión mayor nueva el wizard dejó de cargar sin que nadie
+      tocara el código.
+    -->
+    <script src="https://unpkg.com/@babel/standalone@8/babel.min.js"></script>
 
     <!-- Cargar el JSX del wizard mediante fetch e inyectarlo -->
     <script>
         (async function loadWizard() {
+            const container = document.getElementById('asset-wizard-root');
+
+            // Si algo falla, la página quedaría en blanco sin ninguna pista para
+            // el usuario. Este aviso hace visible el fallo.
+            function mostrarError(detalle) {
+                console.error('❌ Error cargando el wizard:', detalle);
+                if (!container) return;
+                container.innerHTML = `
+                    <div class="ios-card" style="padding: 2rem; text-align: center; max-width: 560px; margin: 2rem auto;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; color: var(--ios-orange);"></i>
+                        <h2 style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0 .5rem;">
+                            No se pudo cargar el formulario
+                        </h2>
+                        <p style="color: var(--ios-label-secondary); font-size: .95rem; margin-bottom: 1.25rem;">
+                            Revisa tu conexión e inténtalo de nuevo. Si el problema persiste,
+                            reporta este detalle al administrador:
+                        </p>
+                        <pre style="text-align: left; background: var(--ios-bg-tertiary); border: 1px solid var(--ios-separator); border-radius: 8px; padding: .75rem; font-size: .8rem; white-space: pre-wrap; overflow-x: auto;">${String(detalle).replace(/</g, '&lt;')}</pre>
+                        <a class="ios-btn ios-btn-secondary" href="{{ url_for('activos.ver_activos') }}" style="margin-top: 1rem;">
+                            <i class="bi bi-arrow-left"></i> Volver al inventario
+                        </a>
+                    </div>`;
+            }
+
+            if (!container) {
+                console.error('❌ Container #asset-wizard-root no encontrado');
+                return;
+            }
+
             try {
-                // Cargar el código JSX
+                if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+                    throw new Error('React no se cargó desde el CDN.');
+                }
+                if (typeof Babel === 'undefined') {
+                    throw new Error('Babel no se cargó desde el CDN.');
+                }
+
                 const response = await fetch("{{ url_for('static', filename='js/wizard_activos_v3.jsx') }}?v={{ range(100000, 999999) | random }}");
+                if (!response.ok) {
+                    throw new Error(`No se pudo descargar el wizard (HTTP ${response.status}).`);
+                }
                 const jsxCode = await response.text();
 
-                // Transpilar y ejecutar
+                // runtime 'classic' es OBLIGATORIO aquí: el runtime automático (por
+                // defecto desde Babel 8) genera `import ... from "react/jsx-runtime"`,
+                // y un import ES no se puede ejecutar con eval(), lo que dejaba la
+                // página en blanco. 'classic' emite React.createElement, compatible
+                // con el build UMD de React que cargamos arriba.
                 const transformedCode = Babel.transform(jsxCode, {
-                    presets: ['react']
+                    presets: [['react', { runtime: 'classic' }]]
                 }).code;
 
-                // Ejecutar el código transpilado
                 eval(transformedCode);
 
-                // Inicializar el wizard
-                const container = document.getElementById('asset-wizard-root');
-                if (container && typeof AssetWizard !== 'undefined') {
-                    const mode = container.dataset.mode || 'create';
-                    let assetData = null;
-
-                    if (mode === 'edit' && container.dataset.assetJson) {
-                        try {
-                            assetData = JSON.parse(container.dataset.assetJson);
-                        } catch (e) {
-                            console.error("Error al parsear datos del activo:", e);
-                        }
-                    }
-
-                    const root = ReactDOM.createRoot(container);
-                    root.render(React.createElement(AssetWizard, { mode: mode, assetData: assetData }));
-                    console.log('✅ Wizard inicializado correctamente');
-                } else if (!container) {
-                    console.error('❌ Container #asset-wizard-root no encontrado');
-                } else {
-                    console.error('❌ AssetWizard no está definido después de transpilar');
+                if (typeof AssetWizard === 'undefined' && typeof window.AssetWizard === 'undefined') {
+                    throw new Error('El wizard se transpiló pero no definió AssetWizard.');
                 }
+
+                const Wizard = (typeof AssetWizard !== 'undefined') ? AssetWizard : window.AssetWizard;
+                const mode = container.dataset.mode || 'create';
+                let assetData = null;
+
+                if (mode === 'edit' && container.dataset.assetJson) {
+                    try {
+                        assetData = JSON.parse(container.dataset.assetJson);
+                    } catch (e) {
+                        console.error('Error al parsear datos del activo:', e);
+                    }
+                }
+
+                const root = ReactDOM.createRoot(container);
+                root.render(React.createElement(Wizard, { mode: mode, assetData: assetData }));
+                console.log('✅ Wizard inicializado correctamente');
             } catch (error) {
-                console.error('❌ Error cargando wizard:', error);
+                mostrarError(error && error.message ? error.message : error);
             }
         })();
     </script>
