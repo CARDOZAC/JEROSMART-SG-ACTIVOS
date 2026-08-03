@@ -205,6 +205,7 @@
                                 <option value="Traslado">Acta de Traslado</option>
                                 <option value="Paz y Salvo">Acta de Paz y Salvo</option>
                                 <option value="Reporte de Daño o Pérdida">Reporte de Daño o Pérdida</option>
+                                <option value="Comodato">📋 Acta de Comodato</option>
                             </select>
                             <div class="form-text text-muted">
                                 Nota: “Entrada” y “Salida” se registrarán como <strong>Entrada/Salida</strong> en la base de datos.
@@ -624,6 +625,346 @@
                             <!-- SECCIÓN REPORTE DE DAÑO O PÉRDIDA -->
                             {% include 'secciones_movimientos/seccion_reporte_dano_perdida.html' %}
 
+                            <!-- ========================================= -->
+                            <!-- SECCIÓN: COMODATO -->
+                            <!-- ========================================= -->
+                            <div id="section-comodato" class="acta-section" style="display: none;">
+                                <h4 class="mb-4">📋 Datos del Contrato de Comodato</h4>
+                                
+                                <!-- Acordeón para organizar la información -->
+                                <div class="accordion" id="accordionComodato">
+                                    
+                                    <!-- PANEL 1: Información del Contrato -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseContrato">
+                                                📄 Información del Contrato
+                                            </button>
+                                        </h2>
+                                        <div id="collapseContrato" class="accordion-collapse collapse show">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Número de Contrato <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodato_numero_contrato" 
+                                                               placeholder="Ej: COM-2024-001" required>
+                                                        <small class="text-muted">Identificador único del contrato</small>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
+                                                        <input type="date" class="form-control" name="comodato_fecha_inicio" required>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
+                                                        <input type="date" class="form-control" name="comodato_fecha_fin" required>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Objeto del Comodato <span class="text-danger">*</span></label>
+                                                        <textarea class="form-control" name="comodato_objeto" rows="3" required
+                                                            placeholder="Descripción detallada del objeto del contrato..."></textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="renovacion_automatica" id="renovacionAuto">
+                                                            <label class="form-check-label" for="renovacionAuto">
+                                                                🔄 Renovación Automática
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 2: Datos del Comodante (Quien Presta) -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseComodante">
+                                                🏢 Comodante (Quien Presta el Bien)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseComodante" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <!-- Selector de Proveedor (Opcional) -->
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Proveedor Registrado (Opcional)</label>
+                                                        <select class="form-select" name="proveedor_id" id="comodatoProveedorSelect">
+                                                            <option value="">-- Seleccionar proveedor existente o ingresar nuevo --</option>
+                                                            {% for proveedor in proveedores %}
+                                                            <option value="{{ proveedor.id }}">{{ proveedor.razon_social }} ({{ proveedor.nit }})</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodante_nombre" 
+                                                               placeholder="Ej: SIEMENS HEALTHCARE S.A." required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">NIT <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodante_nit" 
+                                                               placeholder="Ej: 800234567-3" required>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Dirección</label>
+                                                        <input type="text" class="form-control" name="comodante_direccion" 
+                                                               placeholder="Calle, Avenida, Ciudad">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Teléfono</label>
+                                                        <input type="tel" class="form-control" name="comodante_telefono" 
+                                                               placeholder="3001234567">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control" name="comodante_email" 
+                                                               placeholder="contacto@empresa.com">
+                                                    </div>
+                                                    
+                                                    <div class="col-12"><hr></div>
+                                                    <h6 class="col-12">Representante Legal</h6>
+                                                    
+                                                    <div class="col-md-8">
+                                                        <label class="form-label">Nombre Completo</label>
+                                                        <input type="text" class="form-control" name="comodante_representante" 
+                                                               placeholder="Ej: Juan Pérez González">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Cédula</label>
+                                                        <input type="text" class="form-control" name="comodante_cedula_representante" 
+                                                               placeholder="79456123">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 3: Datos del Comodatario (Quien Recibe - Tu Institución) -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseComodatario">
+                                                🏥 Comodatario (Tu Institución)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseComodatario" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Nombre Institución <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodatario_nombre" 
+                                                               value="CLÍNICA XYZ S.A." required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">NIT <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodatario_nit" 
+                                                               value="900123456-7" required>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Dirección</label>
+                                                        <input type="text" class="form-control" name="comodatario_direccion" 
+                                                               placeholder="Dirección de la institución">
+                                                    </div>
+                                                    
+                                                    <div class="col-12"><hr></div>
+                                                    <h6 class="col-12">Representante Legal</h6>
+                                                    
+                                                    <div class="col-md-8">
+                                                        <label class="form-label">Nombre Completo</label>
+                                                        <input type="text" class="form-control" name="comodatario_representante">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Cédula</label>
+                                                        <input type="text" class="form-control" name="comodatario_cedula_representante">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 4: Condiciones del Comodato -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseCondiciones">
+                                                ⚙️ Condiciones del Comodato
+                                            </button>
+                                        </h2>
+                                        <div id="collapseCondiciones" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Uso Permitido</label>
+                                                        <textarea class="form-control" name="uso_permitido" rows="2"
+                                                            placeholder="Ej: Uso exclusivo para diagnóstico médico en el servicio de radiología"></textarea>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Restricciones</label>
+                                                        <textarea class="form-control" name="restricciones" rows="2"
+                                                            placeholder="Ej: No se permite uso fuera de las instalaciones"></textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Mantenimiento a Cargo de:</label>
+                                                        <select class="form-select" name="mantenimiento_cargo">
+                                                            <option value="">-- Seleccionar --</option>
+                                                            <option value="Comodante">Comodante</option>
+                                                            <option value="Comodatario">Comodatario</option>
+                                                            <option value="Compartido">Compartido</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Seguros a Cargo de:</label>
+                                                        <select class="form-select" name="seguros_cargo">
+                                                            <option value="">-- Seleccionar --</option>
+                                                            <option value="Comodante">Comodante</option>
+                                                            <option value="Comodatario">Comodatario</option>
+                                                            <option value="Compartido">Compartido</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Valor Comercial Referencial (para seguros)</label>
+                                                        <input type="number" class="form-control" name="valor_comercial_referencial" 
+                                                               placeholder="Ej: 250000000" step="0.01">
+                                                    </div>
+                                                    
+                                                    <div class="col-12 mt-3">
+                                                        <h6>Servicios Incluidos:</h6>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="incluye_capacitacion" id="incluye_cap">
+                                                            <label class="form-check-label" for="incluye_cap">
+                                                                📚 Capacitación
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="incluye_mantenimiento_preventivo" id="incluye_mant">
+                                                            <label class="form-check-label" for="incluye_mant">
+                                                                🔧 Mantenimiento Preventivo
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="incluye_soporte_tecnico" id="incluye_sop">
+                                                            <label class="form-check-label" for="incluye_sop">
+                                                                🛠️ Soporte Técnico
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 5: Responsable Interno y Ubicación -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseResponsable">
+                                                👤 Responsable Interno y Ubicación
+                                            </button>
+                                        </h2>
+                                        <div id="collapseResponsable" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Ubicación del Bien <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="comodato_ubicacion_bien" 
+                                                               placeholder="Ej: Servicio de Radiología, Piso 3" required>
+                                                    </div>
+                                                    
+                                                    <div class="col-12"><hr></div>
+                                                    <h6 class="col-12">Responsable Interno</h6>
+                                                    
+                                                    <div class="col-md-8">
+                                                        <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="responsable_interno_nombre" 
+                                                               placeholder="Ej: Dr. Carlos Ramírez" required>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Cédula <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" name="responsable_interno_cedula" 
+                                                               placeholder="80123456" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Cargo</label>
+                                                        <input type="text" class="form-control" name="responsable_interno_cargo" 
+                                                               placeholder="Ej: Jefe de Radiología">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Área</label>
+                                                        <input type="text" class="form-control" name="responsable_interno_area" 
+                                                               placeholder="Ej: Diagnóstico por Imágenes">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Teléfono</label>
+                                                        <input type="tel" class="form-control" name="responsable_interno_telefono" 
+                                                               placeholder="3201234567">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control" name="responsable_interno_email" 
+                                                               placeholder="responsable@institucion.com">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 6: Condiciones de Devolución -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseDevolucion">
+                                                🔙 Condiciones de Devolución
+                                            </button>
+                                        </h2>
+                                        <div id="collapseDevolucion" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Lugar de Devolución</label>
+                                                        <input type="text" class="form-control" name="lugar_devolucion" 
+                                                               placeholder="Ej: Bodega Central del Comodante">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-check mt-4">
+                                                            <input class="form-check-input" type="checkbox" name="requiere_verificacion_tecnica" id="verif_tec">
+                                                            <label class="form-check-label" for="verif_tec">
+                                                                ✅ Requiere Verificación Técnica al Devolver
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Condiciones de Devolución</label>
+                                                        <textarea class="form-control" name="condiciones_devolucion" rows="3"
+                                                            placeholder="Ej: El bien debe devolverse en las mismas condiciones, limpio y funcional"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANEL 7: Observaciones -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseObservaciones">
+                                                📝 Observaciones Adicionales
+                                            </button>
+                                        </h2>
+                                        <div id="collapseObservaciones" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <textarea class="form-control" name="observaciones_adicionales" rows="4"
+                                                    placeholder="Cualquier información adicional relevante sobre el comodato..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div> <!-- Fin Acordeón -->
+                            </div> <!-- Fin section-comodato -->
+
                         </div>
                         <div class="form-navigation-buttons">
                             <button type="button" class="btn btn-outline-secondary btn-prev"><i class="bi bi-arrow-left me-1"></i> Anterior</button>
@@ -966,7 +1307,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'Entrada': document.getElementById('seccion-entrada-salida'),
             'Salida': document.getElementById('seccion-entrada-salida'),
             'Paz y Salvo': document.getElementById('seccion-paz-y-salvo'),
-            'Reporte de Daño o Pérdida': document.getElementById('seccion-reporte_dano_perdida')
+            'Reporte de Daño o Pérdida': document.getElementById('seccion-reporte_dano_perdida'),
+            'Comodato': document.getElementById('section-comodato')
         };
         Object.values(sections).forEach(sec => {
             if (sec) sec.style.display = 'none';
@@ -995,6 +1337,23 @@ document.addEventListener('DOMContentLoaded', () => {
     tipoSelect.addEventListener('change', () => {
         toggleDetailSections();
         togglePazYSalvoUI();
+    });
+
+    // Autocompletar datos del comodante desde proveedor
+    document.getElementById('comodatoProveedorSelect')?.addEventListener('change', function() {
+        const proveedorId = this.value;
+        if (proveedorId) {
+            // Buscar el proveedor seleccionado en la lista
+            const option = this.options[this.selectedIndex];
+            const texto = option.text; // "NOMBRE PROVEEDOR (NIT)"
+            
+            // Extraer nombre y NIT
+            const match = texto.match(/^(.+)\s*\((.+)\)$/);
+            if (match) {
+                document.querySelector('input[name="comodante_nombre"]').value = match[1].trim();
+                document.querySelector('input[name="comodante_nit"]').value = match[2].trim();
+            }
+        }
     });
 
     // Control para mostrar/ocultar el campo "Otro" en Entrada/Salida

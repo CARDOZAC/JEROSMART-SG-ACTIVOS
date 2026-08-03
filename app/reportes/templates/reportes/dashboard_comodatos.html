@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block title %}Dashboard de Comodatos{% endblock %}
+
+{% block head_extra %}
+<style>
+    .metric-card {
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-lg);
+        padding: 24px;
+        border: 1px solid var(--ios-separator);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--ios-shadow-md);
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+    .metric-label {
+        color: var(--ios-label-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .metric-icon {
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+    .alert-item {
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-md);
+        padding: 16px;
+        border-left: 4px solid;
+        margin-bottom: 12px;
+    }
+    .alert-danger {
+        border-left-color: var(--ios-red);
+        background: rgba(255, 59, 48, 0.05);
+    }
+    .alert-warning {
+        border-left-color: var(--ios-orange);
+        background: rgba(255, 149, 0, 0.05);
+    }
+    .alert-info {
+        border-left-color: var(--ios-blue);
+        background: rgba(0, 122, 255, 0.05);
+    }
+    .comodato-list-item {
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-md);
+        padding: 16px;
+        margin-bottom: 12px;
+        border: 1px solid var(--ios-separator);
+        transition: all 0.2s;
+    }
+    .comodato-list-item:hover {
+        box-shadow: var(--ios-shadow-sm);
+        border-color: var(--ios-blue);
+    }
+    .badge-estado {
+        padding: 6px 12px;
+        border-radius: var(--ios-radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge-vigente {
+        background: rgba(52, 199, 89, 0.15);
+        color: var(--ios-green);
+    }
+    .badge-proximo-vencer {
+        background: rgba(255, 149, 0, 0.15);
+        color: var(--ios-orange);
+    }
+    .badge-vencido {
+        background: rgba(255, 59, 48, 0.15);
+        color: var(--ios-red);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="ios-text-title mb-2">
+            <i class="bi bi-file-earmark-text me-2" style="color: var(--ios-blue);"></i>
+            Dashboard de Comodatos
+        </h1>
+        <p class="ios-text-caption mb-0" style="color: var(--ios-label-secondary);">
+            Gestión y seguimiento de contratos de comodato vigentes
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reportes.listado_comodatos') }}" class="ios-btn ios-btn-secondary">
+            <i class="bi bi-list-ul"></i> Ver Listado Completo
+        </a>
+        <a href="{{ url_for('movimientos.add_movimiento') }}" class="ios-btn ios-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Comodato
+        </a>
+    </div>
+</div>
+
+<!-- Métricas Principales -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-blue);">
+                        {{ metricas.total_comodatos }}
+                    </div>
+                    <div class="metric-label">Total Comodatos</div>
+                </div>
+                <i class="bi bi-file-earmark-text metric-icon" style="color: var(--ios-blue);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-green);">
+                        {{ metricas.comodatos_vigentes }}
+                    </div>
+                    <div class="metric-label">Vigentes</div>
+                </div>
+                <i class="bi bi-check-circle metric-icon" style="color: var(--ios-green);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-orange);">
+                        {{ metricas.comodatos_proximos_vencer }}
+                    </div>
+                    <div class="metric-label">Próximos a Vencer</div>
+                    <small class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                        (30 días)
+                    </small>
+                </div>
+                <i class="bi bi-exclamation-triangle metric-icon" style="color: var(--ios-orange);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-red);">
+                        {{ metricas.comodatos_vencidos }}
+                    </div>
+                    <div class="metric-label">Vencidos</div>
+                </div>
+                <i class="bi bi-x-circle metric-icon" style="color: var(--ios-red);"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Valor Total -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-purple);">
+                        ${{ "{:,.2f}".format(metricas.valor_total) }}
+                    </div>
+                    <div class="metric-label">Valor Total Referencial</div>
+                    <small class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                        Suma de todos los comodatos vigentes
+                    </small>
+                </div>
+                <i class="bi bi-cash-stack metric-icon" style="color: var(--ios-purple);"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-value" style="color: var(--ios-teal);">
+                        {{ metricas.proveedores_activos }}
+                    </div>
+                    <div class="metric-label">Comodantes Activos</div>
+                    <small class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                        Proveedores con comodatos vigentes
+                    </small>
+                </div>
+                <i class="bi bi-building metric-icon" style="color: var(--ios-teal);"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas y Top 10 -->
+<div class="row g-4">
+    <!-- Alertas de Vencimiento -->
+    <div class="col-12 col-xl-6">
+        <div class="ios-card p-4">
+            <h5 class="ios-text-headline mb-3">
+                <i class="bi bi-bell-fill me-2" style="color: var(--ios-red);"></i>
+                Alertas Prioritarias
+                {% if alertas|length > 0 %}
+                <span class="badge bg-danger ms-2">{{ alertas|length }}</span>
+                {% endif %}
+            </h5>
+
+            {% if alertas|length > 0 %}
+            <div style="max-height: 400px; overflow-y: auto;">
+                {% for alerta in alertas[:10] %}
+                <div class="alert-item alert-{{ alerta.tipo }}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if alerta.tipo == 'danger' %}
+                                <i class="bi bi-x-circle-fill me-2" style="color: var(--ios-red);"></i>
+                                {% elif alerta.tipo == 'warning' %}
+                                <i class="bi bi-exclamation-triangle-fill me-2" style="color: var(--ios-orange);"></i>
+                                {% else %}
+                                <i class="bi bi-info-circle-fill me-2" style="color: var(--ios-blue);"></i>
+                                {% endif %}
+                                <strong class="ios-text-body">{{ alerta.titulo }}</strong>
+                            </div>
+                            <p class="ios-text-caption mb-0" style="color: var(--ios-label-secondary);">
+                                {{ alerta.mensaje }}
+                            </p>
+                        </div>
+                        {% if alerta.movimiento_id %}
+                        <a href="{{ url_for('movimientos.ver_movimiento', id=alerta.movimiento_id) }}"
+                           class="ios-btn ios-btn-sm ios-btn-link ms-2">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-check-circle" style="font-size: 4rem; color: var(--ios-green); opacity: 0.3;"></i>
+                <p class="ios-text-body mt-3 mb-0" style="color: var(--ios-label-secondary);">
+                    No hay alertas en este momento
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top 10 Comodatos Próximos a Vencer -->
+    <div class="col-12 col-xl-6">
+        <div class="ios-card p-4">
+            <h5 class="ios-text-headline mb-3">
+                <i class="bi bi-clock-history me-2" style="color: var(--ios-orange);"></i>
+                Top 10 - Próximos Vencimientos
+            </h5>
+
+            {% if top_10_proximos|length > 0 %}
+            <div style="max-height: 400px; overflow-y: auto;">
+                {% for item in top_10_proximos %}
+                <div class="comodato-list-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <strong class="ios-text-body">{{ item.numero_contrato }}</strong>
+                                <span class="badge-estado badge-{{ 'vencido' if item.esta_vencido else 'proximo-vencer' if item.esta_proximo_a_vencer else 'vigente' }}">
+                                    {{ item.estado_visual }}
+                                </span>
+                            </div>
+                            <p class="ios-text-caption mb-1" style="color: var(--ios-label-secondary);">
+                                <i class="bi bi-building me-1"></i>
+                                {{ item.comodante_nombre }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Vence: {{ item.fecha_fin.strftime('%d/%m/%Y') }}
+                        </span>
+                        <span class="ios-text-caption {% if item.dias_para_vencimiento < 0 %}text-danger{% elif item.dias_para_vencimiento <= 30 %}text-warning{% endif %}">
+                            {% if item.dias_para_vencimiento < 0 %}
+                            <i class="bi bi-exclamation-circle-fill me-1"></i>
+                            Vencido hace {{ item.dias_para_vencimiento|abs }} días
+                            {% else %}
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            {{ item.dias_para_vencimiento }} días restantes
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{{ url_for('movimientos.ver_movimiento', id=item.movimiento_id) }}"
+                           class="ios-btn ios-btn-sm ios-btn-secondary">
+                            <i class="bi bi-eye"></i> Ver Detalle
+                        </a>
+                        {% if item.dias_para_vencimiento <= 30 %}
+                        <button class="ios-btn ios-btn-sm ios-btn-primary"
+                                onclick="notificarRenovacion({{ item.movimiento_id }})">
+                            <i class="bi bi-arrow-repeat"></i> Iniciar Renovación
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: var(--ios-label-tertiary); opacity: 0.3;"></i>
+                <p class="ios-text-body mt-3 mb-0" style="color: var(--ios-label-secondary);">
+                    No hay comodatos próximos a vencer
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Botones de Exportación -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="ios-card p-4">
+            <h5 class="ios-text-headline mb-3">
+                <i class="bi bi-download me-2" style="color: var(--ios-blue);"></i>
+                Exportar Reportes
+            </h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('reportes.exportar_comodatos_excel') }}"
+                   class="ios-btn ios-btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Descargar Excel
+                </a>
+                <a href="{{ url_for('reportes.exportar_comodatos_pdf') }}"
+                   class="ios-btn ios-btn-danger" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+                </a>
+                <a href="{{ url_for('reportes.api_alertas_comodatos') }}"
+                   class="ios-btn ios-btn-secondary" target="_blank">
+                    <i class="bi bi-code-square"></i> API de Alertas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh cada 5 minutos para mantener métricas actualizadas
+setTimeout(() => {
+    location.reload();
+}, 300000);
+
+// Función para notificar renovación
+function notificarRenovacion(movimientoId) {
+    if (confirm('¿Desea iniciar el proceso de renovación para este comodato?')) {
+        // Aquí se podría implementar lógica para crear un nuevo comodato basado en el anterior
+        window.location.href = `/movimientos/${movimientoId}`;
+    }
+}
+
+// Marcar alertas como leídas al hacer click
+document.querySelectorAll('.alert-item').forEach(item => {
+    item.addEventListener('click', function() {
+        this.style.opacity = '0.6';
+    });
+});
+</script>
+{% endblock %}

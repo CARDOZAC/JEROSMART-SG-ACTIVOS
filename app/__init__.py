@@ -29,6 +29,10 @@ def create_app(config_class=Config):
     login_manager.login_message = 'Por favor, inicia sesión para acceder a esta página.'
     login_manager.login_message_category = 'info'
 
+    # --- Registrar Sistema de Permisos (RBAC) ---
+    from .permissions import registrar_funciones_contexto
+    registrar_funciones_contexto(app)
+
     # --- Registrar Comandos CLI (FASE 1.1) ---
     from .cli import init_cli
     init_cli(app)

@@ -4,7 +4,7 @@ Cada clase representa una tabla en la base de datos.
 Este archivo contiene TODOS los modelos de la aplicación, consolidados desde init_db.py.
 """
 import json
-from datetime import datetime # Keep this for general use
+from datetime import datetime, date # Keep this for general use
 from .extensions import db
 from flask_login import UserMixin, current_user # Added current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -64,6 +64,11 @@ class Funcionario(db.Model):
     # Relaciones
     activos = db.relationship('Activo', back_populates='funcionario', lazy=True)
     detalles_paz_salvo = db.relationship('DetallePazSalvo', back_populates='funcionario_desvinculado', lazy=True)
+
+    @property
+    def nombre_completo(self):
+        """Nombre y apellidos concatenados para mostrar en UI y reportes."""
+        return f"{self.nombres or ''} {self.apellidos or ''}".strip()
 
     def __repr__(self):
         return f'<Funcionario {self.nombres} {self.apellidos} ({self.cedula})>'
@@ -309,8 +314,9 @@ class Activo(db.Model):
             )
             db.session.add(valor_obj)
 
-        # Asignar el valor
+        # Asignar el valor (capturando el valor anterior ANTES de sobrescribirlo)
         try:
+            valor_anterior = valor_obj.valor
             valor_obj.valor = valor
             valor_obj.updated_at = datetime.utcnow()
             db.session.commit()
@@ -321,11 +327,11 @@ class Activo(db.Model):
                 cambio = ActivoHistorico(
                     activo_id=self.id,
                     usuario_id=usuario_id,
-                    tipo_cambio='atributo_modificado',
+                    tipo_operacion='UPDATE',
                     campo_modificado=nombre_atributo,
-                    valor_anterior=str(valor_obj.valor) if valor_obj.valor else None,
+                    valor_anterior=str(valor_anterior) if valor_anterior is not None else None,
                     valor_nuevo=str(valor),
-                    descripcion_cambio=f"Atributo '{definicion.etiqueta}' actualizado"
+                    observaciones=f"Atributo '{definicion.etiqueta}' actualizado"
                 )
                 db.session.add(cambio)
                 db.session.commit()
@@ -386,7 +392,7 @@ class Activo(db.Model):
             'valor_comercial': float(self.valor_comercial) if self.valor_comercial else 0.0,
             'valor_en_libros': float(self.valor_en_libros),
             'estado': self.estado,
-            'fecha_ingreso': self.fecha_ingreso.isoformat() if self.fecha_ingreso else None,
+            'fecha_ingreso': self.created_at.isoformat() if self.created_at else None,
             'ubicacion': self.ubicacion,
             'responsable': self.funcionario.nombre_completo if self.funcionario else None,
             'clase': self.clase.nombre_clase if self.clase else None,
@@ -762,6 +768,66 @@ class ActivoHistorico(db.Model):
 
 
 # ==============================================================================
+# AUDITORÍA DE MOVIMIENTOS
+# ==============================================================================
+class MovimientoHistorico(db.Model):
+    """
+    Registro completo de auditoría para todos los cambios en movimientos.
+    Proporciona trazabilidad legal completa con información del usuario y timestamp.
+    """
+    __tablename__ = 'movimiento_historico'
+
+    id = db.Column(db.Integer, primary_key=True)
+    movimiento_id = db.Column(db.Integer, db.ForeignKey('movimientos.id', ondelete='CASCADE'),
+                             nullable=False, index=True)
+
+    # Información del cambio
+    campo_modificado = db.Column(db.String(100), nullable=False, index=True)
+    valor_anterior = db.Column(db.Text, nullable=True)
+    valor_nuevo = db.Column(db.Text, nullable=True)
+
+    # Auditoría de usuario
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id', ondelete='SET NULL'), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    # Información técnica de auditoría
+    ip_address = db.Column(db.String(45), nullable=True)  # Soporta IPv4 e IPv6
+    user_agent = db.Column(db.String(500), nullable=True)  # Navegador/dispositivo
+
+    # Contexto del cambio
+    tipo_operacion = db.Column(db.String(50), nullable=True)  # 'CREATE', 'UPDATE', 'DELETE', 'APROBACION', 'RECHAZO'
+    observaciones = db.Column(db.Text, nullable=True)
+
+    # Relaciones
+    movimiento = db.relationship('Movimiento', back_populates='historial')
+    usuario = db.relationship('User', foreign_keys=[usuario_id], backref='historial_cambios_movimientos')
+
+    # Índice compuesto para consultas eficientes
+    __table_args__ = (
+        db.Index('idx_movimiento_timestamp', 'movimiento_id', 'timestamp'),
+        db.Index('idx_campo_timestamp', 'campo_modificado', 'timestamp'),
+    )
+
+    def __repr__(self):
+        return f'<MovimientoHistorico Movimiento:{self.movimiento_id} Campo:{self.campo_modificado} {self.timestamp}>'
+
+    def to_dict(self):
+        """Serializa el registro de auditoría para API/reportes."""
+        return {
+            'id': self.id,
+            'movimiento_id': self.movimiento_id,
+            'campo_modificado': self.campo_modificado,
+            'valor_anterior': self.valor_anterior,
+            'valor_nuevo': self.valor_nuevo,
+            'usuario': self.usuario.email if self.usuario else 'Sistema',
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'ip_address': self.ip_address,
+            'tipo_operacion': self.tipo_operacion,
+            'observaciones': self.observaciones
+        }
+
+
+# ==============================================================================
 # MOVIMIENTOS
 # ==============================================================================
 class Movimiento(db.Model):
@@ -803,6 +869,11 @@ class Movimiento(db.Model):
                            primaryjoin="and_(Movimiento.id==Firma.documento_id, Firma.tipo_documento=='movimiento')",
                            overlaps="firmas")
 
+    # Auditoría histórica completa
+    historial = db.relationship('MovimientoHistorico', back_populates='movimiento',
+                               cascade='all, delete-orphan', lazy='dynamic',
+                               order_by='MovimientoHistorico.timestamp.desc()')
+
     # Relaciones uno a uno con los detalles por tipo de movimiento
     detalle_entrega = db.relationship('DetalleEntrega', back_populates='movimiento',
                                      uselist=False, cascade='all, delete-orphan')
@@ -814,6 +885,8 @@ class Movimiento(db.Model):
                                        uselist=False, cascade='all, delete-orphan')
     detalle_reporte_dano_perdida = db.relationship('DetalleReporteDanoPerdida', back_populates='movimiento',
                                                    uselist=False, cascade='all, delete-orphan')
+    detalle_comodato = db.relationship('DetalleComodato', back_populates='movimiento',
+                                       uselist=False, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Movimiento {self.tipo_movimiento} ({self.fecha})>'
@@ -1315,6 +1388,120 @@ class DetalleReporteDanoPerdida(db.Model):
         return f'<DetalleReporteDanoPerdida mov_id={self.movimiento_id} tipo={self.reporte_tipo}>'
 
 
+# ==============================================================================
+# DETALLES DE COMODATO
+# ==============================================================================
+class DetalleComodato(db.Model):
+    """
+    Detalles específicos de un movimiento tipo Comodato.
+
+    FUNDAMENTO LEGAL Y CONTABLE:
+    - Contrato de préstamo gratuito (Art. 2200 Código Civil Colombiano)
+    - No genera propiedad ni depreciación en libros del comodatario
+    - Revelación en notas a estados financieros (NIIF para PYMES, Sección 20)
+    - Control y custodia bajo responsabilidad del comodatario
+    - Obligación de devolución en las mismas condiciones
+    """
+    __tablename__ = 'detalles_comodato'
+
+    movimiento_id = db.Column(db.Integer, db.ForeignKey('movimientos.id', ondelete='CASCADE'),
+                             primary_key=True, index=True)
+
+    # ===== DATOS DEL COMODANTE (Quien presta) =====
+    proveedor_id = db.Column(db.Integer, db.ForeignKey('proveedores.id', ondelete='SET NULL'),
+                            nullable=True, index=True)
+    comodante_nombre = db.Column(db.String(200), nullable=False)
+    comodante_nit = db.Column(db.String(50), nullable=False)
+    comodante_direccion = db.Column(db.String(200))
+    comodante_telefono = db.Column(db.String(50))
+    comodante_email = db.Column(db.String(100))
+    comodante_representante = db.Column(db.String(200))  # Representante legal
+    comodante_cedula_representante = db.Column(db.String(50))
+
+    # ===== DATOS DEL COMODATARIO (Quien recibe - La Institución) =====
+    comodatario_nombre = db.Column(db.String(200), nullable=False)  # Nombre institución
+    comodatario_nit = db.Column(db.String(50), nullable=False)
+    comodatario_direccion = db.Column(db.String(200))
+    comodatario_representante = db.Column(db.String(200))  # Representante legal
+    comodatario_cedula_representante = db.Column(db.String(50))
+
+    # ===== INFORMACIÓN DEL CONTRATO =====
+    numero_contrato = db.Column(db.String(100), nullable=False, index=True)
+    fecha_inicio = db.Column(db.Date, nullable=False, index=True)
+    fecha_fin = db.Column(db.Date, nullable=False, index=True)
+    plazo_meses = db.Column(db.Integer)  # Duración en meses (calculado)
+    renovacion_automatica = db.Column(db.Boolean, default=False)  # ¿Se renueva automáticamente?
+    objeto_comodato = db.Column(db.Text, nullable=False)  # Descripción detallada del objeto
+
+    # ===== CONDICIONES DEL COMODATO =====
+    uso_permitido = db.Column(db.Text)  # Uso específico permitido del bien
+    restricciones = db.Column(db.Text)  # Restricciones de uso
+    mantenimiento_cargo = db.Column(db.String(100))  # "Comodante", "Comodatario", "Compartido"
+    seguros_cargo = db.Column(db.String(100))  # "Comodante", "Comodatario", "Compartido"
+
+    # ===== CONDICIONES DE DEVOLUCIÓN =====
+    condiciones_devolucion = db.Column(db.Text)
+    lugar_devolucion = db.Column(db.String(200))
+    requiere_verificacion_tecnica = db.Column(db.Boolean, default=False)
+
+    # ===== VALOR REFERENCIAL (para seguros) =====
+    valor_comercial_referencial = db.Column(db.Float)  # Valor estimado del bien (no contable)
+
+    # ===== UBICACIÓN Y RESPONSABLE =====
+    ubicacion_bien = db.Column(db.String(200), nullable=False)  # Dónde se ubicará físicamente
+    responsable_interno_nombre = db.Column(db.String(150), nullable=False)
+    responsable_interno_cedula = db.Column(db.String(50), nullable=False)
+    responsable_interno_cargo = db.Column(db.String(100))
+    responsable_interno_area = db.Column(db.String(100))
+    responsable_interno_telefono = db.Column(db.String(50))
+    responsable_interno_email = db.Column(db.String(100))
+
+    # ===== INFORMACIÓN ADICIONAL =====
+    incluye_capacitacion = db.Column(db.Boolean, default=False)
+    incluye_mantenimiento_preventivo = db.Column(db.Boolean, default=False)
+    incluye_soporte_tecnico = db.Column(db.Boolean, default=False)
+    observaciones_adicionales = db.Column(db.Text)
+
+    # ===== ESTADO DEL COMODATO =====
+    estado_comodato = db.Column(db.String(50), default='Vigente', nullable=False, index=True)
+    # Estados posibles: 'Vigente', 'Vencido', 'Renovado', 'Terminado anticipadamente', 'Devuelto'
+
+    # ===== RENOVACIONES (Historial) =====
+    renovaciones_json = db.Column(db.JSON, nullable=True)
+    # Almacena historial de renovaciones: [{"fecha": "2024-01-01", "fecha_fin": "2025-01-01"}]
+
+    # Relaciones
+    movimiento = db.relationship('Movimiento', back_populates='detalle_comodato')
+    proveedor = db.relationship('Proveedor', foreign_keys=[proveedor_id])
+
+    def __repr__(self):
+        return f'<DetalleComodato mov_id={self.movimiento_id} contrato={self.numero_contrato}>'
+
+    @property
+    def dias_para_vencimiento(self):
+        """Calcula los días restantes hasta el vencimiento del comodato."""
+        from datetime import date
+        if self.fecha_fin:
+            delta = self.fecha_fin - date.today()
+            return delta.days
+        return None
+
+    @property
+    def esta_vencido(self):
+        """Verifica si el comodato está vencido."""
+        from datetime import date
+        if self.fecha_fin:
+            return date.today() > self.fecha_fin
+        return False
+
+    @property
+    def esta_proximo_a_vencer(self, dias_alerta=30):
+        """Verifica si el comodato está próximo a vencer (dentro de los próximos N días)."""
+        dias = self.dias_para_vencimiento
+        if dias is not None:
+            return 0 < dias <= dias_alerta
+        return False
+
 
 # TIPOS DE MANTENIMIENTO
 
@@ -1618,7 +1805,7 @@ class AtributoDefinicion(db.Model):
                 return False, f'{self.etiqueta} debe ser un número válido'
 
         elif self.tipo_dato == self.TIPO_FECHA:
-            if not isinstance(valor, datetime.date):
+            if not isinstance(valor, (date, datetime)):
                 try:
                     datetime.strptime(str(valor), '%Y-%m-%d')
                 except ValueError:

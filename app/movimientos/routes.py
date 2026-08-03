@@ -10,6 +10,30 @@ from sqlalchemy import select, func
 from ..extensions import db
 from flask_login import current_user
 from ..decorators import login_required
+from ..permissions import (
+    require_permission,
+    require_any_permission,
+    puede_editar_movimiento,
+    puede_eliminar_movimiento
+)
+from ..audit_helper import (
+    registrar_creacion_movimiento,
+    registrar_eliminacion_movimiento,
+    registrar_aprobacion_movimiento,
+    obtener_historial_movimiento
+)
+from ..email_service import (
+    notificar_aprobacion_pendiente,
+    notificar_movimiento_aprobado,
+    obtener_email_supervisor
+)
+from ..signature_manager import (
+    create_signature_metadata,
+    process_and_validate_signature,
+    verify_stored_signature,
+    SignatureWatermark
+)
+from ..pdf_cache import invalidate_movimiento_cache
 from ..models import (
     Movimiento,
     Activo,
@@ -21,6 +45,7 @@ from ..models import (
     DetalleEntradaSalida,
     DetallePazSalvo,
     DetalleReporteDanoPerdida,
+    DetalleComodato,
     Firma,
     Proveedor
 )
@@ -32,13 +57,170 @@ from . import movimientos_bp
 # VISTAS PRINCIPALES (Renderizado de plantillas)
 # =====================================================================
 
+@movimientos_bp.route('/dashboard')
+@login_required
+def dashboard():
+    """Muestra el dashboard con estadísticas y gráficos de movimientos."""
+    from datetime import datetime, timedelta
+    from sqlalchemy import extract
+
+    # Fecha actual y rango del mes
+    hoy = datetime.now()
+    primer_dia_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # ====== ESTADÍSTICAS PRINCIPALES ======
+    total_movimientos = db.session.query(func.count(Movimiento.id)).scalar() or 0
+
+    movimientos_mes_actual = db.session.query(func.count(Movimiento.id))\
+        .filter(Movimiento.fecha >= primer_dia_mes)\
+        .scalar() or 0
+
+    pendientes_aprobacion = db.session.query(func.count(Movimiento.id))\
+        .filter(Movimiento.estado_aprobacion == 'Pendiente')\
+        .scalar() or 0
+
+    aprobados_mes = db.session.query(func.count(Movimiento.id))\
+        .filter(
+            Movimiento.estado_aprobacion == 'Aprobado',
+            Movimiento.fecha >= primer_dia_mes
+        )\
+        .scalar() or 0
+
+    # Valor total del mes (sumando valores de activos en movimientos)
+    valor_total_mes = db.session.query(func.sum(MovimientoActivo.valor_libros_momento))\
+        .join(Movimiento)\
+        .filter(Movimiento.fecha >= primer_dia_mes)\
+        .scalar() or 0
+
+    # ====== MOVIMIENTOS POR TIPO ======
+    tipos_query = db.session.query(
+        Movimiento.tipo_movimiento,
+        func.count(Movimiento.id)
+    )\
+    .group_by(Movimiento.tipo_movimiento)\
+    .all()
+
+    tipos_labels = [t[0] for t in tipos_query]
+    tipos_data = [t[1] for t in tipos_query]
+
+    # ====== TENDENCIA ÚLTIMOS 6 MESES ======
+    meses_labels = []
+    meses_data = []
+
+    for i in range(5, -1, -1):
+        mes = (hoy.replace(day=1) - timedelta(days=i*30)).replace(day=1)
+        siguiente_mes = (mes + timedelta(days=32)).replace(day=1)
+
+        cantidad = db.session.query(func.count(Movimiento.id))\
+            .filter(Movimiento.fecha >= mes, Movimiento.fecha < siguiente_mes)\
+            .scalar() or 0
+
+        meses_labels.append(mes.strftime('%b %Y'))
+        meses_data.append(cantidad)
+
+    # ====== ESTADO DE APROBACIÓN ======
+    aprobados = db.session.query(func.count(Movimiento.id))\
+        .filter(Movimiento.estado_aprobacion == 'Aprobado')\
+        .scalar() or 0
+
+    pendientes = pendientes_aprobacion
+
+    rechazados = db.session.query(func.count(Movimiento.id))\
+        .filter(Movimiento.estado_aprobacion == 'Rechazado')\
+        .scalar() or 0
+
+    # ====== USUARIOS MÁS ACTIVOS ======
+    usuarios_query = db.session.query(
+        User.email,
+        func.count(Movimiento.id)
+    )\
+    .join(Movimiento, User.id == Movimiento.usuario_id)\
+    .group_by(User.email)\
+    .order_by(func.count(Movimiento.id).desc())\
+    .limit(5)\
+    .all()
+
+    usuarios_labels = [u[0].split('@')[0] for u in usuarios_query]
+    usuarios_data = [u[1] for u in usuarios_query]
+
+    # ====== ACTIVOS MÁS MOVIDOS ======
+    activos_query = db.session.query(
+        Activo.placa_codigo_interno,
+        Activo.nombre_activo,
+        func.count(MovimientoActivo.id)
+    )\
+    .join(MovimientoActivo)\
+    .group_by(Activo.id, Activo.placa_codigo_interno, Activo.nombre_activo)\
+    .order_by(func.count(MovimientoActivo.id).desc())\
+    .limit(5)\
+    .all()
+
+    activos_mas_movidos = [
+        {'placa': a[0], 'nombre': a[1], 'cantidad': a[2]}
+        for a in activos_query
+    ]
+
+    # ====== MOVIMIENTOS RECIENTES ======
+    movimientos_recientes = db.session.query(Movimiento)\
+        .order_by(Movimiento.fecha.desc())\
+        .limit(5)\
+        .all()
+
+    # Calcular porcentaje de aprobación (vs mes anterior)
+    mes_anterior = (primer_dia_mes - timedelta(days=1)).replace(day=1)
+    aprobados_mes_anterior = db.session.query(func.count(Movimiento.id))\
+        .filter(
+            Movimiento.estado_aprobacion == 'Aprobado',
+            Movimiento.fecha >= mes_anterior,
+            Movimiento.fecha < primer_dia_mes
+        )\
+        .scalar() or 1  # Evitar división por cero
+
+    porcentaje_aprobacion = int(((aprobados_mes - aprobados_mes_anterior) / max(aprobados_mes_anterior, 1)) * 100)
+
+    # ====== CONSOLIDAR STATS ======
+    stats = {
+        'total_movimientos': total_movimientos,
+        'movimientos_mes_actual': movimientos_mes_actual,
+        'pendientes_aprobacion': pendientes_aprobacion,
+        'aprobados_mes': aprobados_mes,
+        'valor_total_mes': valor_total_mes,
+        'porcentaje_aprobacion': porcentaje_aprobacion,
+
+        'tipos_labels': tipos_labels,
+        'tipos_data': tipos_data,
+
+        'meses_labels': meses_labels,
+        'meses_data': meses_data,
+
+        'aprobados': aprobados,
+        'pendientes': pendientes,
+        'rechazados': rechazados,
+
+        'usuarios_labels': usuarios_labels,
+        'usuarios_data': usuarios_data,
+
+        'activos_mas_movidos': activos_mas_movidos,
+        'movimientos_recientes': movimientos_recientes
+    }
+
+    return render_template('dashboard.html', stats=stats)
+
+
 @movimientos_bp.route('/')
 @login_required
 def ver_movimientos():
     """Muestra una lista paginada y filtrable de todos los movimientos."""
+    # Parámetros de paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    per_page = min(per_page, 100)  # Máximo 100 por página
+
     filtros = {
         'q': request.args.get('q', '').strip(),
-        'tipo': request.args.get('tipo', '')
+        'tipo': request.args.get('tipo', ''),
+        'page': page,
+        'per_page': per_page
     }
 
     # Subconsulta para contar activos por movimiento
@@ -57,6 +239,7 @@ def ver_movimientos():
             Movimiento.observaciones_generales,
             Movimiento.usuario_id,
             Movimiento.funcionario_id,
+            Movimiento.estado_aprobacion,
             User.email.label("usuario_nombre"),
             func.coalesce(asset_count_subq.c.asset_count, 0).label("asset_count")
         )
@@ -75,19 +258,48 @@ def ver_movimientos():
 
         if not is_valid:
             flash('La búsqueda debe tener entre 2 y 100 caracteres válidos', 'warning')
-            return render_template('ver_movimientos.html', movimientos=[], filtros=filtros)
+            return render_template('ver_movimientos.html',
+                movimientos=[],
+                filtros=filtros,
+                pagination=None
+            )
 
         # Usar parámetros preparados de SQLAlchemy (previene SQL injection)
         search_term = f"%{safe_term}%"
         stmt = stmt.where(Movimiento.observaciones_generales.ilike(search_term))
 
-    stmt = stmt.order_by(Movimiento.fecha.desc()).limit(50)
+    stmt = stmt.order_by(Movimiento.fecha.desc())
+
+    # Obtener total de resultados
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    total = db.session.scalar(count_stmt)
+
+    # Aplicar paginación
+    stmt = stmt.offset((page - 1) * per_page).limit(per_page)
 
     # Procesar resultados para la plantilla
     results = db.session.execute(stmt).all()
     movimientos = [dict(row._mapping) for row in results]
 
-    return render_template('ver_movimientos.html', movimientos=movimientos, filtros=filtros)
+    # Calcular datos de paginación
+    total_pages = (total + per_page - 1) // per_page  # Redondeo hacia arriba
+    pagination = {
+        'page': page,
+        'per_page': per_page,
+        'total': total,
+        'total_pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_num': page - 1 if page > 1 else None,
+        'next_num': page + 1 if page < total_pages else None,
+        'pages': list(range(max(1, page - 2), min(total_pages + 1, page + 3)))  # Mostrar 5 páginas
+    }
+
+    return render_template('ver_movimientos.html',
+        movimientos=movimientos,
+        filtros=filtros,
+        pagination=pagination
+    )
 
 @movimientos_bp.route('/<int:movimiento_id>')
 @login_required
@@ -106,7 +318,8 @@ def ver_movimiento(movimiento_id):
         'Traslado': 'detalle_traslado',
         'Entrada/Salida': 'detalle_entrada_salida',
         'Paz y Salvo': 'detalle_paz_salvo',
-        'Reporte de Daño o Pérdida': 'detalle_reporte_dano_perdida'
+        'Reporte de Daño o Pérdida': 'detalle_reporte_dano_perdida',
+        'Comodato': 'detalle_comodato'
     }
 
     attr_name = DETALLE_ATTR_MAP.get(movimiento.tipo_movimiento)
@@ -146,6 +359,7 @@ def ver_movimiento(movimiento_id):
 
 @movimientos_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
+@require_permission('crear_movimiento')
 def add_movimiento():
     """
     Gestiona la creación de un nuevo movimiento a través de un asistente (wizard).
@@ -493,6 +707,147 @@ def add_movimiento():
                 )
                 db.session.add(detalle)
 
+            elif tipo_movimiento_form == 'Comodato':
+                # ===== LÓGICA DE COMODATO =====
+                # Importar validadores
+                from .forms import (
+                    validar_fecha_comodato,
+                    calcular_plazo_meses,
+                    validar_nit_comodato,
+                    validar_numero_contrato
+                )
+
+                # === VALIDACIONES OBLIGATORIAS ===
+                errores_validacion = []
+
+                # Validar número de contrato
+                numero_contrato = data.get('comodato_numero_contrato', '').strip()
+                es_valido, mensaje = validar_numero_contrato(numero_contrato)
+                if not es_valido:
+                    errores_validacion.append(mensaje)
+
+                # Validar fechas
+                fecha_inicio_str = data.get('comodato_fecha_inicio')
+                fecha_fin_str = data.get('comodato_fecha_fin')
+
+                if not fecha_inicio_str or not fecha_fin_str:
+                    errores_validacion.append('Las fechas de inicio y fin del comodato son obligatorias')
+                else:
+                    try:
+                        fecha_inicio_dt = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+                        fecha_fin_dt = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+
+                        # Validar coherencia de fechas
+                        es_valido, mensaje = validar_fecha_comodato(fecha_inicio_dt, fecha_fin_dt)
+                        if not es_valido:
+                            errores_validacion.append(mensaje)
+
+                        # Calcular plazo en meses
+                        plazo_meses = calcular_plazo_meses(fecha_inicio_dt, fecha_fin_dt)
+                    except (ValueError, TypeError) as e:
+                        errores_validacion.append(f'Formato de fecha inválido: {str(e)}')
+                        fecha_inicio_dt = None
+                        fecha_fin_dt = None
+                        plazo_meses = None
+
+                # Validar datos del comodante (quien presta)
+                if not data.get('comodante_nombre'):
+                    errores_validacion.append('El nombre del comodante es obligatorio')
+                if not data.get('comodante_nit'):
+                    errores_validacion.append('El NIT del comodante es obligatorio')
+                else:
+                    es_valido, nit_limpio = validar_nit_comodato(data.get('comodante_nit'))
+                    if not es_valido:
+                        errores_validacion.append('El NIT del comodante tiene un formato inválido')
+
+                # Validar datos del comodatario (quien recibe - la institución)
+                if not data.get('comodatario_nombre'):
+                    errores_validacion.append('El nombre del comodatario es obligatorio')
+                if not data.get('comodatario_nit'):
+                    errores_validacion.append('El NIT del comodatario es obligatorio')
+
+                # Validar objeto del comodato
+                if not data.get('comodato_objeto'):
+                    errores_validacion.append('El objeto del comodato es obligatorio')
+
+                # Validar ubicación y responsable
+                if not data.get('comodato_ubicacion_bien'):
+                    errores_validacion.append('La ubicación del bien es obligatoria')
+                if not data.get('responsable_interno_nombre'):
+                    errores_validacion.append('El nombre del responsable interno es obligatorio')
+                if not data.get('responsable_interno_cedula'):
+                    errores_validacion.append('La cédula del responsable interno es obligatoria')
+
+                # Si hay errores de validación, abortar y mostrar mensajes
+                if errores_validacion:
+                    for error in errores_validacion:
+                        flash(error, 'danger')
+                    current_app.logger.warning(f"Validación fallida en Comodato: {errores_validacion}")
+                    return redirect(url_for('movimientos.add_movimiento'))
+
+                # === PROCESAR PROVEEDOR (OPCIONAL) ===
+                proveedor_id_raw = data.get('proveedor_id')
+                proveedor_id_final = None
+                if proveedor_id_raw and proveedor_id_raw.strip() and proveedor_id_raw.isdigit():
+                    proveedor_id_final = int(proveedor_id_raw)
+
+                # === CREAR DETALLE DE COMODATO ===
+                detalle = DetalleComodato(
+                    movimiento_id=movimiento_id,
+                    # Datos del comodante
+                    proveedor_id=proveedor_id_final,
+                    comodante_nombre=data.get('comodante_nombre', '').strip(),
+                    comodante_nit=data.get('comodante_nit', '').strip(),
+                    comodante_direccion=data.get('comodante_direccion', '').strip() or None,
+                    comodante_telefono=data.get('comodante_telefono', '').strip() or None,
+                    comodante_email=data.get('comodante_email', '').strip() or None,
+                    comodante_representante=data.get('comodante_representante', '').strip() or None,
+                    comodante_cedula_representante=data.get('comodante_cedula_representante', '').strip() or None,
+                    # Datos del comodatario
+                    comodatario_nombre=data.get('comodatario_nombre', '').strip(),
+                    comodatario_nit=data.get('comodatario_nit', '').strip(),
+                    comodatario_direccion=data.get('comodatario_direccion', '').strip() or None,
+                    comodatario_representante=data.get('comodatario_representante', '').strip() or None,
+                    comodatario_cedula_representante=data.get('comodatario_cedula_representante', '').strip() or None,
+                    # Información del contrato
+                    numero_contrato=numero_contrato,
+                    fecha_inicio=fecha_inicio_dt,
+                    fecha_fin=fecha_fin_dt,
+                    plazo_meses=plazo_meses,
+                    renovacion_automatica=bool(data.get('renovacion_automatica')),
+                    objeto_comodato=data.get('comodato_objeto', '').strip(),
+                    # Condiciones del comodato
+                    uso_permitido=data.get('uso_permitido', '').strip() or None,
+                    restricciones=data.get('restricciones', '').strip() or None,
+                    mantenimiento_cargo=data.get('mantenimiento_cargo') or None,
+                    seguros_cargo=data.get('seguros_cargo') or None,
+                    # Condiciones de devolución
+                    condiciones_devolucion=data.get('condiciones_devolucion', '').strip() or None,
+                    lugar_devolucion=data.get('lugar_devolucion', '').strip() or None,
+                    requiere_verificacion_tecnica=bool(data.get('requiere_verificacion_tecnica')),
+                    # Valor referencial
+                    valor_comercial_referencial=float(data.get('valor_comercial_referencial', 0)) if data.get('valor_comercial_referencial') else None,
+                    # Ubicación y responsable
+                    ubicacion_bien=data.get('comodato_ubicacion_bien', '').strip(),
+                    responsable_interno_nombre=data.get('responsable_interno_nombre', '').strip(),
+                    responsable_interno_cedula=data.get('responsable_interno_cedula', '').strip(),
+                    responsable_interno_cargo=data.get('responsable_interno_cargo', '').strip() or None,
+                    responsable_interno_area=data.get('responsable_interno_area', '').strip() or None,
+                    responsable_interno_telefono=data.get('responsable_interno_telefono', '').strip() or None,
+                    responsable_interno_email=data.get('responsable_interno_email', '').strip() or None,
+                    # Información adicional
+                    incluye_capacitacion=bool(data.get('incluye_capacitacion')),
+                    incluye_mantenimiento_preventivo=bool(data.get('incluye_mantenimiento_preventivo')),
+                    incluye_soporte_tecnico=bool(data.get('incluye_soporte_tecnico')),
+                    observaciones_adicionales=data.get('observaciones_adicionales', '').strip() or None,
+                    # Estado inicial
+                    estado_comodato='Vigente'
+                )
+                db.session.add(detalle)
+
+                # Log para auditoría
+                current_app.logger.info(f"Comodato creado: Contrato {numero_contrato}, Comodante: {data.get('comodante_nombre')}, Vigencia: {fecha_inicio_dt} a {fecha_fin_dt}")
+
             # 4. Procesar y guardar firmas (NUEVO)
             try:
                 firmas_data = json.loads(firmas_json) if firmas_json else {}
@@ -515,8 +870,30 @@ def add_movimiento():
                         )
                         db.session.add(nueva_firma)
 
+            # Registrar auditoría de creación
+            registrar_creacion_movimiento(
+                nuevo_movimiento,
+                observaciones=f"Movimiento {nuevo_movimiento.tipo_movimiento} creado con {len(activos_data)} activo(s)"
+            )
+
             db.session.commit()
-            flash(f'Acta de {nuevo_movimiento.tipo_movimiento} #{movimiento_id} creada exitosamente.', 'success')
+
+            # Enviar notificación si requiere aprobación
+            if nuevo_movimiento.requiere_aprobacion:
+                supervisor_email = obtener_email_supervisor()
+                if supervisor_email:
+                    try:
+                        url_base = request.url_root.rstrip('/')
+                        notificar_aprobacion_pendiente(nuevo_movimiento, supervisor_email, url_base)
+                        flash(f'Acta de {nuevo_movimiento.tipo_movimiento} #{movimiento_id} creada. Notificación enviada al supervisor.', 'success')
+                    except Exception as e:
+                        current_app.logger.error(f"Error enviando notificación: {e}")
+                        flash(f'Acta creada pero no se pudo enviar la notificación.', 'warning')
+                else:
+                    flash(f'Acta creada pero no hay supervisor configurado para notificaciones.', 'warning')
+            else:
+                flash(f'Acta de {nuevo_movimiento.tipo_movimiento} #{movimiento_id} creada exitosamente.', 'success')
+
             return redirect(url_for('movimientos.ver_movimientos'))
 
         except json.JSONDecodeError as e:
@@ -751,6 +1128,12 @@ def generar_acta_pdf(movimiento_id):
         elif tipo == 'Paz y Salvo':
             template_name = 'pdf_templates/acta_paz_y_salvo.html'
             detalles = movimiento.detalle_paz_salvo
+        elif tipo == 'Reporte de Daño o Pérdida':
+            template_name = 'pdf_templates/acta_reporte_dano_perdida.html'
+            detalles = movimiento.detalle_reporte_dano_perdida
+        elif tipo == 'Comodato':
+            template_name = 'pdf_templates/acta_comodato.html'
+            detalles = movimiento.detalle_comodato
 
         if not template_name:
             current_app.logger.error(f"[PDF Generation] No hay plantilla para tipo: {tipo}")
@@ -1246,6 +1629,7 @@ def generar_plantilla_pdf_ejemplo(tipo):
 
 @movimientos_bp.route('/eliminar/<int:movimiento_id>', methods=['POST'])
 @login_required
+@require_permission('eliminar_movimiento')
 def eliminar_movimiento(movimiento_id):
     """Elimina un movimiento y sus datos asociados."""
     movimiento = db.session.get(Movimiento, movimiento_id)
@@ -1253,7 +1637,22 @@ def eliminar_movimiento(movimiento_id):
         flash(f"Movimiento #{movimiento_id} no encontrado.", "danger")
         return redirect(url_for('movimientos.ver_movimientos'))
 
+    # Verificar permisos específicos del movimiento
+    if not puede_eliminar_movimiento(movimiento):
+        flash("No tiene permisos para eliminar este movimiento.", "danger")
+        current_app.logger.warning(
+            f"Usuario {current_user.email} intentó eliminar movimiento #{movimiento_id} sin permisos"
+        )
+        return redirect(url_for('movimientos.ver_movimientos'))
+
     try:
+        # Registrar auditoría ANTES de eliminar
+        registrar_eliminacion_movimiento(
+            movimiento_id=movimiento.id,
+            tipo_movimiento=movimiento.tipo_movimiento,
+            usuario_email=current_user.email
+        )
+
         # Gracias a cascade="all, delete-orphan", SQLAlchemy se encarga de todo.
         db.session.delete(movimiento)
         db.session.commit()
@@ -1310,11 +1709,31 @@ def firmar_movimiento(movimiento_id):
             # ✅ Extraer User Agent
             user_agent = request.headers.get('User-Agent', '')[:500]
 
-            # ✅ Calcular hash SHA256 del documento para auditoría
-            import hashlib
-            # Incluir datos relevantes del movimiento en el hash
-            hash_data = f"{movimiento_id}|{movimiento.tipo_movimiento}|{movimiento.fecha}|{rol_firma}|{datetime.utcnow().isoformat()}"
-            doc_hash = hashlib.sha256(hash_data.encode('utf-8')).hexdigest()
+            # ✅ Crear metadata usando el sistema avanzado de firmas
+            signature_metadata = create_signature_metadata(
+                document_id=movimiento_id,
+                signer_role=rol_firma,
+                signer_name=nombre_firmante,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                consent=consentimiento
+            )
+
+            # ✅ Procesar y validar firma con validación criptográfica (HMAC-SHA256)
+            success, error_msg, processed_metadata, verification_code = process_and_validate_signature(
+                signature_b64=signature_b64,
+                signature_svg=signature_svg,
+                metadata=signature_metadata
+            )
+
+            if not success:
+                current_app.logger.error(
+                    f"❌ Validación de firma falló: mov={movimiento_id}, rol={rol_firma}, error={error_msg}"
+                )
+                return jsonify({'success': False, 'message': error_msg}), 400
+
+            # ✅ Extraer el hash de integridad criptográfico (HMAC-SHA256)
+            doc_hash = processed_metadata['integrity_hash']
 
             # ✅ Validar consentimiento
             if not consentimiento:
@@ -1370,15 +1789,21 @@ def firmar_movimiento(movimiento_id):
 
             db.session.commit()
 
-            # ✅ Log detallado de auditoría (para cumplimiento legal)
+            # ✅ Invalidar caché de PDFs (la firma cambia el documento)
+            invalidate_movimiento_cache(movimiento_id)
+
+            # ✅ Log detallado de auditoría con validación criptográfica (cumplimiento legal)
             current_app.logger.info(
-                f"[AUDITORIA_FIRMA] "
+                f"[AUDITORIA_FIRMA_CRYPTO] "
                 f"timestamp={datetime.utcnow().isoformat()} | "
                 f"movimiento_id={movimiento_id} | "
                 f"tipo={movimiento.tipo_movimiento} | "
                 f"rol={rol_firma} | "
+                f"firmante={nombre_firmante} | "
                 f"ip={ip_address} | "
-                f"hash_doc={doc_hash} | "
+                f"hmac_hash={doc_hash[:16]}... | "
+                f"verification_code={verification_code} | "
+                f"fingerprint={processed_metadata.get('fingerprint')} | "
                 f"consentimiento={consentimiento} | "
                 f"user_agent={user_agent[:50]}..."
             )
@@ -1393,14 +1818,17 @@ def firmar_movimiento(movimiento_id):
 
             return jsonify({
                 'success': True,
-                'message': 'Firma guardada exitosamente con metadata de auditoría.',
+                'message': 'Firma guardada exitosamente con validación criptográfica.',
                 'image_url': signature_b64,
+                'verification_code': verification_code,  # ✅ Código de verificación único
                 'debug_info': {
-                    'hash': doc_hash[:12],
+                    'integrity_hash': doc_hash[:16],
+                    'fingerprint': processed_metadata.get('fingerprint'),
                     'ip': ip_address,
                     'timestamp': datetime.utcnow().isoformat(),
                     'svg_size': len(signature_svg or ''),
-                    'consentimiento': consentimiento
+                    'consentimiento': consentimiento,
+                    'has_svg': processed_metadata.get('has_svg', False)
                 }
             })
 
@@ -1423,14 +1851,36 @@ def firmar_movimiento(movimiento_id):
         with open(firmas_config_path, 'r', encoding='utf-8') as f:
             roles_config = json.load(f)
         
-        tipo_mov_key = movimiento.tipo_movimiento.lower().replace('/', '_')
+        # Normalizar el tipo de movimiento a la clave usada en firmas_requeridas.json
+        # (minúsculas, sin '/', espacios como '_', sin tildes)
+        TIPO_MOV_KEY_MAP = {
+            'Entrega': 'entrega',
+            'Traslado': 'traslado',
+            'Entrada/Salida': 'entrada_salida',
+            'Paz y Salvo': 'paz_y_salvo',
+            'Comodato': 'comodato',
+            'Reporte de Daño o Pérdida': 'reporte_dano_perdida'
+        }
+        tipo_mov_key = TIPO_MOV_KEY_MAP.get(
+            movimiento.tipo_movimiento,
+            movimiento.tipo_movimiento.lower().replace('/', '_').replace(' ', '_')
+        )
         roles_requeridos = roles_config.get(tipo_mov_key, [])
 
         # Cargar firmas ya guardadas
         firmas_guardadas = {f.rol_firma: f.firma_base64 for f in movimiento.firmas}
 
-        # Cargar detalles específicos usando la relación del modelo
-        detalles = getattr(movimiento, f"detalle_{movimiento.tipo_movimiento.lower().replace('/', '_')}", None)
+        # Cargar detalles específicos usando el nombre real del atributo de relación
+        DETALLE_ATTR_MAP_FIRMAS = {
+            'Entrega': 'detalle_entrega',
+            'Traslado': 'detalle_traslado',
+            'Entrada/Salida': 'detalle_entrada_salida',
+            'Paz y Salvo': 'detalle_paz_salvo',
+            'Reporte de Daño o Pérdida': 'detalle_reporte_dano_perdida',
+            'Comodato': 'detalle_comodato'
+        }
+        detalle_attr = DETALLE_ATTR_MAP_FIRMAS.get(movimiento.tipo_movimiento)
+        detalles = getattr(movimiento, detalle_attr, None) if detalle_attr else None
 
         # Cargar activos y sus accesorios
         activos_con_accesorios = []
@@ -1457,13 +1907,25 @@ def firmar_movimiento(movimiento_id):
         return redirect(url_for('movimientos.ver_movimiento', movimiento_id=movimiento_id))
 
 
-@movimientos_bp.route('/firmar/<int:movimiento_id>/<string:rol_firma>', methods=['DELETE'])
+@movimientos_bp.route('/firmar/<int:movimiento_id>/<string:rol_firma>/eliminar', methods=['POST'])
 @login_required
 def eliminar_firma(movimiento_id, rol_firma):
     """
     Elimina una firma específica de un movimiento.
+    SEGURIDAD: Ahora usa POST con validación CSRF automática.
     """
     try:
+        # Validar que el usuario tenga permiso para eliminar firmas
+        if not current_user.rol in ['Admin', 'Supervisor']:
+            current_app.logger.warning(
+                f"Usuario {current_user.email} intentó eliminar firma sin permisos. "
+                f"Mov: {movimiento_id}, Rol firma: {rol_firma}"
+            )
+            return jsonify({
+                'success': False,
+                'message': 'No tiene permisos para eliminar firmas.'
+            }), 403
+
         firma_a_eliminar = db.session.execute(
             select(Firma).where(
                 Firma.documento_id == movimiento_id,
@@ -1475,9 +1937,21 @@ def eliminar_firma(movimiento_id, rol_firma):
         if not firma_a_eliminar:
             return jsonify({'success': False, 'message': 'Firma no encontrada.'}), 404
 
+        # Log de auditoría antes de eliminar
+        current_app.logger.info(
+            f"[AUDITORIA] Firma eliminada: "
+            f"mov_id={movimiento_id} | "
+            f"rol={rol_firma} | "
+            f"usuario={current_user.email} | "
+            f"ip={request.remote_addr}"
+        )
+
         db.session.delete(firma_a_eliminar)
         db.session.commit()
-        
+
+        # ✅ Invalidar caché de PDFs (la eliminación de firma cambia el documento)
+        invalidate_movimiento_cache(movimiento_id)
+
         current_app.logger.info(f"Firma eliminada para rol '{rol_firma}' en movimiento {movimiento_id}.")
 
         return jsonify({'success': True, 'message': 'Firma eliminada correctamente.'})
@@ -1486,3 +1960,99 @@ def eliminar_firma(movimiento_id, rol_firma):
         db.session.rollback()
         current_app.logger.error(f"Error al eliminar firma para movimiento {movimiento_id}: {e}", exc_info=True)
         return jsonify({'success': False, 'message': f'Error interno del servidor: {e}'}), 500
+
+
+@movimientos_bp.route('/firmar/<int:movimiento_id>/<string:rol_firma>/verificar', methods=['GET'])
+@login_required
+def verificar_firma(movimiento_id, rol_firma):
+    """
+    Verifica la integridad criptográfica de una firma específica.
+    Comprueba que no haya sido manipulada usando validación HMAC-SHA256.
+
+    Retorna:
+        JSON con el resultado de la verificación y detalles de la firma.
+    """
+    try:
+        # Buscar la firma
+        firma = db.session.execute(
+            select(Firma).where(
+                Firma.documento_id == movimiento_id,
+                Firma.tipo_documento == 'movimiento',
+                Firma.rol_firma == rol_firma
+            )
+        ).scalar_one_or_none()
+
+        if not firma:
+            return jsonify({
+                'success': False,
+                'message': 'Firma no encontrada.'
+            }), 404
+
+        # Reconstruir metadata original para verificación
+        stored_metadata = {
+            'timestamp': firma.timestamp_firma.isoformat() if firma.timestamp_firma else '',
+            'ip_address': firma.ip_address or '',
+            'user_agent': firma.user_agent or '',
+            'document_id': str(firma.documento_id),
+            'signer_role': firma.rol_firma
+        }
+
+        # Verificar integridad usando HMAC-SHA256
+        is_valid, error_msg = verify_stored_signature(
+            signature_b64=firma.firma_base64,
+            stored_hash=firma.hash_documento,
+            stored_metadata=stored_metadata
+        )
+
+        # Regenerar código de verificación
+        verification_code = SignatureWatermark.generate_verification_code(
+            movimiento_id,
+            firma.hash_documento
+        )
+
+        if is_valid:
+            current_app.logger.info(
+                f"✅ Verificación de firma exitosa: mov={movimiento_id}, rol={rol_firma}, "
+                f"verification_code={verification_code}"
+            )
+
+            return jsonify({
+                'success': True,
+                'valid': True,
+                'message': 'Firma válida: no ha sido manipulada.',
+                'details': {
+                    'firmante': firma.nombre_firmante,
+                    'rol': firma.rol_firma,
+                    'timestamp': firma.timestamp_firma.isoformat() if firma.timestamp_firma else None,
+                    'ip_address': firma.ip_address,
+                    'verification_code': verification_code,
+                    'consentimiento': firma.consentimiento_aceptado,
+                    'has_svg': bool(firma.firma_svg)
+                }
+            })
+        else:
+            current_app.logger.warning(
+                f"❌ Verificación de firma FALLÓ: mov={movimiento_id}, rol={rol_firma}, "
+                f"error={error_msg}"
+            )
+
+            return jsonify({
+                'success': True,
+                'valid': False,
+                'message': f'ADVERTENCIA: {error_msg}',
+                'details': {
+                    'firmante': firma.nombre_firmante,
+                    'rol': firma.rol_firma,
+                    'timestamp': firma.timestamp_firma.isoformat() if firma.timestamp_firma else None
+                }
+            }), 200
+
+    except Exception as e:
+        current_app.logger.error(
+            f"Error al verificar firma: mov={movimiento_id}, rol={rol_firma}, error={str(e)}",
+            exc_info=True
+        )
+        return jsonify({
+            'success': False,
+            'message': f'Error al verificar firma: {str(e)}'
+        }), 500

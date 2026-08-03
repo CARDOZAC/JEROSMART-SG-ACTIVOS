@@ -9,6 +9,13 @@
     "VoBo_Activos_Fijos"
   ],
 
+  "comodato": [
+    "Comodante_Representante",
+    "Comodatario_Representante",
+    "Responsable_Interno_Bien",
+    "VoBo_Activos_Fijos"
+  ],
+
   "traslado": [
     "Responsable_Destino",
     "Soporte_Tecnico",
@@ -25,6 +32,12 @@
     "VoBo_Subdirectora"
   ],
 
+  "paz_y_salvo": [
+    "Funcionario",
+    "Jefe_Inmediato",
+    "VoBo_Activos_Fijos"
+  ],
+
   "reporte_dano_perdida": [
     "Responsable_Reporte",
     "Soporte_Tecnico",
@@ -33,6 +46,7 @@
   ],
 
   "_labels_spanish": {
+    "Funcionario": "Funcionario Desvinculado",
     "Firma_Solicitante_Responsable": "Firma responsable del Activo (Macro o Microresponsable)",
     "Soporte_Quien_Recibe_Entrega": "Soporte Clínica Primavera / Tercero a cargo",
     "Jefe_Inmediato": "Jefe (Inmediato)",
@@ -45,6 +59,9 @@
     "Soporte_Lider": "Soporte (Líder o Jefe área encargada)",
     "VoBo_Subdirectora": "Vo Bo Subdirector Administrativo",
     "Responsable_Reporte": "Quien Reporta (Responsable del Activo)",
-    "Jefe_Area": "Jefe del Área"
+    "Jefe_Area": "Jefe del Área",
+    "Comodante_Representante": "Representante Legal (Comodante)",
+    "Comodatario_Representante": "Representante Legal (Comodatario)",
+    "Responsable_Interno_Bien": "Responsable Interno del Bien"
   }
 }

@@ -480,14 +480,24 @@ Equipos Hospitalarios S.A.,700456789-1,Carlos Rodríguez,3201234567,Avenida 68 #
 @login_required
 def api_lista_proveedores():
     """
-    Endpoint API para obtener lista de proveedores para el wizard.
-    Retorna JSON con id y nombre.
+    Endpoint API para obtener lista de proveedores.
+    Retorna JSON con id, nombre y nit.
+    Optimizado para ser usado en selectores dinámicos (ej. wizard de movimientos).
+
+    Uso en la ruta que renderiza el wizard (ej. add_movimiento):
+    -------------------------------------------------------------
+    from app.models import Proveedor
+    from sqlalchemy import select
+
+    @movimientos_bp.route('/nuevo', methods=['GET', 'POST'])
+    def add_movimiento():
+        proveedores = db.session.scalars(select(Proveedor).order_by(Proveedor.razon_social)).all()
+        return render_template('movimientos/add_movimiento.html', proveedores=proveedores)
+    -------------------------------------------------------------
     """
     from flask import jsonify
 
-    proveedores = db.session.scalars(
-        select(Proveedor).order_by(Proveedor.razon_social)
-    ).all()
+    proveedores = db.session.execute(select(Proveedor.id, Proveedor.razon_social, Proveedor.nit).order_by(Proveedor.razon_social)).all()
 
     return jsonify([
         {

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Depreciación - JeroSmart Activos</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            color: #0066cc;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 10pt;
+            color: #666;
+        }
+
+        .summary-boxes {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            flex: 1;
+            padding: 10px;
+            margin: 0 5px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .summary-box.primary { border-color: #0066cc; }
+        .summary-box.warning { border-color: #ffa500; }
+        .summary-box.success { border-color: #28a745; }
+
+        .summary-box h3 {
+            margin: 0 0 5px 0;
+            font-size: 9pt;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .summary-box .value {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        table thead {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        table th {
+            padding: 8px 5px;
+            font-size: 8pt;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        table td {
+            padding: 6px 5px;
+            font-size: 8pt;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        table tfoot {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        table tfoot td {
+            padding: 10px 5px;
+            border-top: 2px solid #0066cc;
+            font-size: 9pt;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge-success { background-color: #28a745; }
+        .badge-warning { background-color: #ffa500; }
+        .badge-danger { background-color: #dc3545; }
+
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .text-warning {
+            color: #ffa500;
+        }
+
+        .text-success {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>REPORTE DE DEPRECIACIÓN DE ACTIVOS</h1>
+        <p>Sistema de Gestión de Activos - JeroSmart</p>
+        {% if generado %}
+        <p style="font-size: 8pt;">Generado: {{ generado }} | Usuario: {{ usuario }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Summary Boxes -->
+    <div class="summary-boxes">
+        <div class="summary-box primary">
+            <h3>Valor Comercial Total</h3>
+            <div class="value">${{ "{:,.2f}".format(totales.valor_comercial) }}</div>
+        </div>
+        <div class="summary-box warning">
+            <h3>Depreciación Acumulada</h3>
+            <div class="value">${{ "{:,.2f}".format(totales.depreciacion) }}</div>
+        </div>
+        <div class="summary-box success">
+            <h3>Valor en Libros</h3>
+            <div class="value">${{ "{:,.2f}".format(totales.valor_libros) }}</div>
+        </div>
+    </div>
+
+    <!-- Tabla de activos -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">Placa/Código</th>
+                <th style="width: 20%;">Nombre del Activo</th>
+                <th style="width: 10%;">Marca</th>
+                <th style="width: 8%;">Fecha Ingreso</th>
+                <th style="width: 7%;" class="text-center">Vida Útil</th>
+                <th style="width: 12%;" class="text-right">Valor Comercial</th>
+                <th style="width: 12%;" class="text-right">Deprec. Acum.</th>
+                <th style="width: 12%;" class="text-right">Valor Libros</th>
+                <th style="width: 9%;" class="text-center">% Deprec.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activo in activos %}
+            <tr>
+                <td>{{ activo.placa_codigo_interno or 'N/A' }}</td>
+                <td>{{ activo.nombre_activo }}</td>
+                <td>{{ activo.marca or 'N/A' }}</td>
+                <td class="text-center">
+                    {% if activo.fecha_ingreso_propio %}
+                        {{ activo.fecha_ingreso_propio.strftime('%d/%m/%Y') }}
+                    {% elif activo.fecha_ingreso_ajeno %}
+                        {{ activo.fecha_ingreso_ajeno.strftime('%d/%m/%Y') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ activo.vida_util or 'N/A' }}</td>
+                <td class="text-right">${{ "{:,.2f}".format(activo.valor_comercial) }}</td>
+                <td class="text-right text-warning">
+                    ${{ "{:,.2f}".format(activo.depreciacion_acumulada) }}
+                </td>
+                <td class="text-right text-success">
+                    ${{ "{:,.2f}".format(activo.valor_en_libros) }}
+                </td>
+                <td class="text-center">
+                    {% if activo.valor_comercial > 0 %}
+                        {% set porcentaje = (activo.depreciacion_acumulada / activo.valor_comercial * 100) %}
+                        <span class="badge badge-{% if porcentaje < 30 %}success{% elif porcentaje < 70 %}warning{% else %}danger{% endif %}">
+                            {{ "{:.1f}".format(porcentaje) }}%
+                        </span>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-right">TOTALES:</td>
+                <td class="text-right">${{ "{:,.2f}".format(totales.valor_comercial) }}</td>
+                <td class="text-right text-warning">${{ "{:,.2f}".format(totales.depreciacion) }}</td>
+                <td class="text-right text-success">${{ "{:,.2f}".format(totales.valor_libros) }}</td>
+                <td class="text-center">
+                    {% if totales.valor_comercial > 0 %}
+                        {{ "{:.1f}".format((totales.depreciacion / totales.valor_comercial * 100)) }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            <strong>Nota:</strong> Este reporte incluye únicamente activos propios con valor comercial registrado.
+            La depreciación se calcula según el método de línea recta.
+        </p>
+        <p>Total de activos en este reporte: {{ activos|length }}</p>
+    </div>
+</body>
+</html>

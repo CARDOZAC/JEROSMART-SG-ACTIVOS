@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Depreciación - JeroSmart Activos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2 text-gray-800">
+                <i class="fas fa-chart-line"></i> Reporte de Depreciación
+            </h1>
+            <p class="text-muted">Depreciación acumulada de activos propios</p>
+        </div>
+        <div>
+            <a href="{{ url_for('reportes.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Reportes
+            </a>
+            {% if activos %}
+            <form method="POST" action="{{ url_for('reportes.reporte_depreciacion') }}" style="display: inline;">
+                <input type="hidden" name="action" value="generate_pdf">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Exportar a PDF
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not activos %}
+    <!-- No hay datos -->
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Sin datos:</strong> No hay activos propios con valor comercial registrado para generar el reporte de depreciación.
+    </div>
+    {% else %}
+    <!-- Tarjetas de resumen -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Valor Comercial Total
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ "{:,.2f}".format(totales.valor_comercial) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Depreciación Acumulada
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ "{:,.2f}".format(totales.depreciacion) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Valor en Libros
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ "{:,.2f}".format(totales.valor_libros) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de activos -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table"></i> Detalle de Activos ({{ activos|length }} activos)
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm" id="tablaDepreciacion">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Placa/Código</th>
+                            <th>Nombre del Activo</th>
+                            <th>Marca</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Vida Útil (años)</th>
+                            <th class="text-right">Valor Comercial</th>
+                            <th class="text-right">Depreciación Acumulada</th>
+                            <th class="text-right">Valor en Libros</th>
+                            <th class="text-center">% Depreciado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activo in activos %}
+                        <tr>
+                            <td>{{ activo.placa_codigo_interno or 'N/A' }}</td>
+                            <td>{{ activo.nombre_activo }}</td>
+                            <td>{{ activo.marca or 'N/A' }}</td>
+                            <td>
+                                {% if activo.fecha_ingreso_propio %}
+                                    {{ activo.fecha_ingreso_propio.strftime('%d/%m/%Y') }}
+                                {% elif activo.fecha_ingreso_ajeno %}
+                                    {{ activo.fecha_ingreso_ajeno.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ activo.vida_util or 'N/A' }}</td>
+                            <td class="text-right">${{ "{:,.2f}".format(activo.valor_comercial) }}</td>
+                            <td class="text-right text-warning">
+                                ${{ "{:,.2f}".format(activo.depreciacion_acumulada) }}
+                            </td>
+                            <td class="text-right text-success">
+                                <strong>${{ "{:,.2f}".format(activo.valor_en_libros) }}</strong>
+                            </td>
+                            <td class="text-center">
+                                {% if activo.valor_comercial > 0 %}
+                                    {% set porcentaje = (activo.depreciacion_acumulada / activo.valor_comercial * 100) %}
+                                    <span class="badge badge-{% if porcentaje < 30 %}success{% elif porcentaje < 70 %}warning{% else %}danger{% endif %}">
+                                        {{ "{:.1f}".format(porcentaje) }}%
+                                    </span>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <th colspan="5" class="text-right">TOTALES:</th>
+                            <th class="text-right">${{ "{:,.2f}".format(totales.valor_comercial) }}</th>
+                            <th class="text-right text-warning">${{ "{:,.2f}".format(totales.depreciacion) }}</th>
+                            <th class="text-right text-success"><strong>${{ "{:,.2f}".format(totales.valor_libros) }}</strong></th>
+                            <th class="text-center">
+                                {% if totales.valor_comercial > 0 %}
+                                    {{ "{:.1f}".format((totales.depreciacion / totales.valor_comercial * 100)) }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de generación -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <p class="mb-0 text-muted">
+                <i class="fas fa-info-circle"></i>
+                <strong>Información:</strong>
+                Este reporte incluye únicamente activos propios con valor comercial registrado.
+                La depreciación se calcula según el método de línea recta.
+                {% if generado %}
+                <br><strong>Generado:</strong> {{ generado }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables para búsqueda y ordenamiento -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    {% if activos %}
+    $('#tablaDepreciacion').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
+        },
+        "order": [[7, "desc"]], // Ordenar por Valor en Libros descendente
+        "pageLength": 25,
+        "responsive": true
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
+<style>
+    .table td, .table th {
+        vertical-align: middle;
+    }
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.3em 0.6em;
+    }
+</style>
+{% endblock %}

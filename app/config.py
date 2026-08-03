@@ -24,35 +24,39 @@ class Config:
     # Poner en 'True' SOLO si la aplicación se ejecuta detrás de un proxy inverso confiable (nginx, AWS ELB).
     TRUST_X_FORWARDED_FOR = os.environ.get('TRUST_X_FORWARDED_FOR', 'False').lower() in ('true', '1', 't')
 
-    # --- Configuración de la Base de Datos ---
-    # URI de la base de datos - Ahora con soporte para MySQL y SQLite
-    # Formato MySQL: mysql+pymysql://usuario:password@host:puerto/nombre_db
-    # Para producción, usa variables de entorno para las credenciales
+    # --- Configuración de Email (SMTP) ---
+    # Para notificaciones automáticas (aprobaciones, alertas, etc.)
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 't')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')  # Email que envía (ej: notificaciones@empresa.com)
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')  # Contraseña o App Password
+    SUPERVISOR_EMAIL = os.environ.get('SUPERVISOR_EMAIL')  # Email del supervisor para notificaciones
 
-    DB_TYPE = os.environ.get('DB_TYPE', 'sqlite')  # 'sqlite' o 'mysql'
+    # --- Configuración de Caché de PDFs ---
+    PDF_CACHE_ENABLED = os.environ.get('PDF_CACHE_ENABLED', 'True').lower() in ('true', '1', 't')
+    PDF_CACHE_MAX_AGE_DAYS = int(os.environ.get('PDF_CACHE_MAX_AGE_DAYS', 30))  # Días antes de considerar obsoleto
 
-    if DB_TYPE == 'mysql':
-        # Configuración para MySQL
-        DB_USER = os.environ.get('DB_USER', 'activosfijos')
-        DB_PASSWORD = os.environ.get('DB_PASSWORD', 'TuPasswordSeguro123!')
-        DB_HOST = os.environ.get('DB_HOST', 'localhost')
-        DB_PORT = os.environ.get('DB_PORT', '3306')
-        DB_NAME = os.environ.get('DB_NAME', 'jerosmart_activos')
+    # --- Configuración de la Base de Datos (MySQL únicamente) ---
+    # Formato: mysql+pymysql://usuario:password@host:puerto/nombre_db
+    # Las credenciales SIEMPRE deben venir de variables de entorno (.env)
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+    DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
+    DB_PORT = os.environ.get('DB_PORT', '3306')
+    DB_NAME = os.environ.get('DB_NAME', 'jerosmart_activos')
 
-        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
-        # Configuraciones específicas de MySQL para optimizar el rendimiento
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            'pool_size': 10,  # Número de conexiones en el pool
-            'pool_recycle': 3600,  # Reciclar conexiones cada hora
-            'pool_pre_ping': True,  # Verificar conexión antes de usar
-            'max_overflow': 20,  # Conexiones adicionales si el pool está lleno
-            'echo': False  # Cambiar a True para ver las queries SQL (debug)
-        }
-    else:
-        # Configuración para SQLite (desarrollo)
-        SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'activos_fijos_v4.db'}"
-        SQLALCHEMY_ENGINE_OPTIONS = {}
+    # Configuraciones específicas de MySQL para optimizar el rendimiento
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,  # Número de conexiones en el pool
+        'pool_recycle': 3600,  # Reciclar conexiones cada hora
+        'pool_pre_ping': True,  # Verificar conexión antes de usar
+        'max_overflow': 20,  # Conexiones adicionales si el pool está lleno
+        'echo': False  # Cambiar a True para ver las queries SQL (debug)
+    }
 
     # Desactiva una característica de Flask-SQLAlchemy que no se necesita y consume recursos.
     SQLALCHEMY_TRACK_MODIFICATIONS = False

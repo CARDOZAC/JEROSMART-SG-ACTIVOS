@@ -198,6 +198,10 @@
                     <i class="bi bi-plus-circle-fill"></i>
                     Nuevo Activo
                 </a>
+                <button type="button" class="ios-btn ios-btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="bi bi-download"></i>
+                    Exportar
+                </button>
                 <a href="{{ url_for('activos.importar_activos') }}" class="ios-btn ios-btn-secondary">
                     <i class="bi bi-upload"></i>
                     Importar CSV
@@ -411,6 +415,82 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Exportación -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--ios-radius-lg); border: none; overflow: hidden;">
+            <div class="modal-header" style="border-bottom: 0.5px solid var(--ios-separator); background: var(--ios-bg-secondary);">
+                <h5 class="modal-title" style="font-weight: 600;">
+                    <i class="bi bi-download"></i> Exportar Inventario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: var(--ios-space-lg);">
+                <!-- Opciones de Exportación -->
+                <div class="mb-4">
+                    <label class="ios-label mb-3">Seleccione el rango de exportación:</label>
+
+                    <!-- Opción: Todo el Inventario -->
+                    <div class="ios-card mb-3" style="padding: var(--ios-space-md); cursor: pointer;" onclick="selectExportOption('todo')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="export_option" id="export_todo" value="todo" class="form-check-input me-3" checked>
+                            <div>
+                                <label for="export_todo" class="form-check-label mb-0" style="font-weight: 500; cursor: pointer;">
+                                    <i class="bi bi-list-ul"></i> Todo el Inventario
+                                </label>
+                                <div class="ios-text-caption mt-1">Exportar todos los activos registrados</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opción: Por Rango de Fechas -->
+                    <div class="ios-card" style="padding: var(--ios-space-md); cursor: pointer;" onclick="selectExportOption('rango')">
+                        <div class="d-flex align-items-center mb-3">
+                            <input type="radio" name="export_option" id="export_rango" value="rango" class="form-check-input me-3">
+                            <div>
+                                <label for="export_rango" class="form-check-label mb-0" style="font-weight: 500; cursor: pointer;">
+                                    <i class="bi bi-calendar-range"></i> Por Rango de Fecha de Ingreso
+                                </label>
+                                <div class="ios-text-caption mt-1">Filtrar por fecha de registro en el sistema</div>
+                            </div>
+                        </div>
+
+                        <!-- Campos de Fecha (se muestran solo si se selecciona esta opción) -->
+                        <div id="dateRangeFields" style="display: none; margin-top: var(--ios-space-md);">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="fecha_desde" class="ios-label">Fecha Desde:</label>
+                                    <input type="date" id="fecha_desde" class="ios-input" style="width: 100%;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="fecha_hasta" class="ios-label">Fecha Hasta:</label>
+                                    <input type="date" id="fecha_hasta" class="ios-input" style="width: 100%;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selección de Formato -->
+                <div class="mb-3">
+                    <label class="ios-label mb-3">Formato de exportación:</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="ios-btn ios-btn-primary flex-fill" onclick="exportInventory('excel')">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+                        </button>
+                        <button type="button" class="ios-btn ios-btn-secondary flex-fill" onclick="exportInventory('pdf')">
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 0.5px solid var(--ios-separator); background: var(--ios-bg-secondary);">
+                <button type="button" class="ios-btn ios-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -418,6 +498,62 @@
 function setFilter(fieldName, value) {
     document.getElementById(fieldName).value = value;
     document.getElementById('filterForm').submit();
+}
+
+// Función para seleccionar opción de exportación
+function selectExportOption(option) {
+    if (option === 'todo') {
+        document.getElementById('export_todo').checked = true;
+        document.getElementById('dateRangeFields').style.display = 'none';
+    } else if (option === 'rango') {
+        document.getElementById('export_rango').checked = true;
+        document.getElementById('dateRangeFields').style.display = 'block';
+    }
+}
+
+// Función para exportar inventario
+function exportInventory(format) {
+    const exportTodo = document.getElementById('export_todo').checked;
+    let url = '';
+
+    if (format === 'excel') {
+        url = "{{ url_for('activos.exportar_inventario_excel') }}";
+    } else if (format === 'pdf') {
+        url = "{{ url_for('activos.exportar_inventario_pdf') }}";
+    }
+
+    // Construir parámetros
+    const params = new URLSearchParams();
+
+    if (exportTodo) {
+        params.append('exportar_todo', 'true');
+    } else {
+        const fechaDesde = document.getElementById('fecha_desde').value;
+        const fechaHasta = document.getElementById('fecha_hasta').value;
+
+        if (!fechaDesde && !fechaHasta) {
+            alert('Por favor, seleccione al menos una fecha para el rango.');
+            return;
+        }
+
+        if (fechaDesde) {
+            params.append('fecha_desde', fechaDesde);
+        }
+        if (fechaHasta) {
+            params.append('fecha_hasta', fechaHasta);
+        }
+    }
+
+    // Redirigir a la URL de exportación
+    window.location.href = url + '?' + params.toString();
+
+    // Cerrar modal después de un breve delay
+    setTimeout(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }, 500);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

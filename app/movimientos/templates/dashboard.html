@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard de Movimientos{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-dark) 100%);
+        color: white;
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card.success {
+        background: linear-gradient(135deg, var(--accent-green) 0%, #1e7e34 100%);
+    }
+    .stat-card.warning {
+        background: linear-gradient(135deg, var(--accent-gold) 0%, #d39e00 100%);
+    }
+    .stat-card.danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        float: right;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+    .table-container {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-0">📊 Dashboard de Movimientos</h2>
+            <p class="text-muted mb-0">Resumen general del sistema de gestión de activos</p>
+        </div>
+        <div class="btn-group">
+            {% if tiene_permiso('exportar_datos') %}
+            <a href="{{ url_for('movimientos.exportar_dashboard_excel') }}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-2"></i> Exportar Estadísticas
+            </a>
+            {% endif %}
+            <a href="{{ url_for('movimientos.ver_movimientos') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i> Volver a Movimientos
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas Principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="bi bi-file-earmark-text stat-icon"></i>
+                <div class="stat-label">Total Movimientos</div>
+                <div class="stat-value">{{ stats.total_movimientos }}</div>
+                <small>Último mes: {{ stats.movimientos_mes_actual }}</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <i class="bi bi-clock-history stat-icon"></i>
+                <div class="stat-label">Pendientes Aprobación</div>
+                <div class="stat-value">{{ stats.pendientes_aprobacion }}</div>
+                <small>Requieren atención</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <i class="bi bi-check-circle stat-icon"></i>
+                <div class="stat-label">Aprobados Este Mes</div>
+                <div class="stat-value">{{ stats.aprobados_mes }}</div>
+                <small>+{{ stats.porcentaje_aprobacion }}% vs anterior</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card danger">
+                <i class="bi bi-currency-dollar stat-icon"></i>
+                <div class="stat-label">Valor Total (Mes)</div>
+                <div class="stat-value">${{ "{:,.0f}".format(stats.valor_total_mes / 1000000) }}M</div>
+                <small>Millones de COP</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Movimientos por Tipo</h5>
+                <canvas id="chartTipos"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Tendencia Últimos 6 Meses</h5>
+                <canvas id="chartTendencia"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Estado de Aprobación</h5>
+                <canvas id="chartAprobacion"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Usuarios Más Activos</h5>
+                <canvas id="chartUsuarios"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablas de Datos -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="table-container">
+                <h5 class="mb-3">Activos Más Movidos</h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Placa</th>
+                            <th>Nombre</th>
+                            <th>Movimientos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activo in stats.activos_mas_movidos %}
+                        <tr>
+                            <td><span class="badge bg-secondary">{{ activo.placa }}</span></td>
+                            <td>{{ activo.nombre|truncate(40) }}</td>
+                            <td><span class="badge bg-primary">{{ activo.cantidad }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="table-container">
+                <h5 class="mb-3">Movimientos Recientes</h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in stats.movimientos_recientes %}
+                        <tr>
+                            <td><a href="{{ url_for('movimientos.ver_movimiento', movimiento_id=mov.id) }}">#{{ mov.id }}</a></td>
+                            <td>{{ mov.tipo_movimiento }}</td>
+                            <td>{{ mov.fecha|formatdatetime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if mov.estado_aprobacion == 'Aprobado' %}
+                                <span class="badge bg-success">Aprobado</span>
+                                {% elif mov.estado_aprobacion == 'Pendiente' %}
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% else %}
+                                <span class="badge bg-danger">Rechazado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Colores del tema
+const colors = {
+    primary: '#0066cc',
+    success: '#28a745',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    info: '#17a2b8',
+    secondary: '#6c757d'
+};
+
+// Configuración común de gráficos
+const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom',
+        }
+    }
+};
+
+// 1. Gráfico de Movimientos por Tipo (Doughnut)
+const ctxTipos = document.getElementById('chartTipos').getContext('2d');
+new Chart(ctxTipos, {
+    type: 'doughnut',
+    data: {
+        labels: {{ stats.tipos_labels|tojson }},
+        datasets: [{
+            data: {{ stats.tipos_data|tojson }},
+            backgroundColor: [
+                colors.primary,
+                colors.success,
+                colors.warning,
+                colors.danger,
+                colors.info,
+                colors.secondary
+            ]
+        }]
+    },
+    options: commonOptions
+});
+
+// 2. Gráfico de Tendencia (Line)
+const ctxTendencia = document.getElementById('chartTendencia').getContext('2d');
+new Chart(ctxTendencia, {
+    type: 'line',
+    data: {
+        labels: {{ stats.meses_labels|tojson }},
+        datasets: [{
+            label: 'Movimientos',
+            data: {{ stats.meses_data|tojson }},
+            borderColor: colors.primary,
+            backgroundColor: colors.primary + '20',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        ...commonOptions,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// 3. Gráfico de Estado de Aprobación (Pie)
+const ctxAprobacion = document.getElementById('chartAprobacion').getContext('2d');
+new Chart(ctxAprobacion, {
+    type: 'pie',
+    data: {
+        labels: ['Aprobado', 'Pendiente', 'Rechazado'],
+        datasets: [{
+            data: [
+                {{ stats.aprobados or 0 }},
+                {{ stats.pendientes or 0 }},
+                {{ stats.rechazados or 0 }}
+            ],
+            backgroundColor: [
+                colors.success,
+                colors.warning,
+                colors.danger
+            ]
+        }]
+    },
+    options: commonOptions
+});
+
+// 4. Gráfico de Usuarios (Bar)
+const ctxUsuarios = document.getElementById('chartUsuarios').getContext('2d');
+new Chart(ctxUsuarios, {
+    type: 'bar',
+    data: {
+        labels: {{ stats.usuarios_labels|tojson }},
+        datasets: [{
+            label: 'Movimientos Creados',
+            data: {{ stats.usuarios_data|tojson }},
+            backgroundColor: colors.primary,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        ...commonOptions,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

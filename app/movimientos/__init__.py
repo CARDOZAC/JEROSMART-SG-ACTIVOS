@@ -5,3 +5,4 @@ movimientos_bp = Blueprint(
 )
 
 from . import routes
+from . import routes_excel  # Rutas de exportación a Excel

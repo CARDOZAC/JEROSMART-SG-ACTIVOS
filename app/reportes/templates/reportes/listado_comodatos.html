@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}Listado de Comodatos{% endblock %}
+
+{% block head_extra %}
+<style>
+    .filter-card {
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-lg);
+        padding: 24px;
+        border: 1px solid var(--ios-separator);
+        margin-bottom: 24px;
+    }
+    .table-container {
+        background: var(--ios-bg-secondary);
+        border-radius: var(--ios-radius-lg);
+        border: 1px solid var(--ios-separator);
+        overflow: hidden;
+    }
+    .comodatos-table {
+        margin: 0;
+    }
+    .comodatos-table thead {
+        background: var(--ios-bg-tertiary);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .comodatos-table th {
+        padding: 16px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--ios-label-secondary);
+        border-bottom: 2px solid var(--ios-separator);
+        white-space: nowrap;
+    }
+    .comodatos-table td {
+        padding: 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--ios-separator);
+    }
+    .comodatos-table tbody tr {
+        transition: background 0.2s;
+    }
+    .comodatos-table tbody tr:hover {
+        background: var(--ios-bg-tertiary);
+    }
+    .badge-estado {
+        padding: 6px 12px;
+        border-radius: var(--ios-radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .badge-vigente {
+        background: rgba(52, 199, 89, 0.15);
+        color: var(--ios-green);
+    }
+    .badge-proximo-vencer {
+        background: rgba(255, 149, 0, 0.15);
+        color: var(--ios-orange);
+    }
+    .badge-vencido {
+        background: rgba(255, 59, 48, 0.15);
+        color: var(--ios-red);
+    }
+    .badge-finalizado {
+        background: rgba(142, 142, 147, 0.15);
+        color: var(--ios-gray);
+    }
+    .search-box {
+        position: relative;
+    }
+    .search-box input {
+        padding-left: 40px;
+    }
+    .search-box i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ios-label-tertiary);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .empty-state i {
+        font-size: 5rem;
+        color: var(--ios-label-tertiary);
+        opacity: 0.3;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="ios-text-title mb-2">
+            <i class="bi bi-list-check me-2" style="color: var(--ios-blue);"></i>
+            Listado de Comodatos
+        </h1>
+        <p class="ios-text-caption mb-0" style="color: var(--ios-label-secondary);">
+            Gestión completa de contratos de comodato
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reportes.dashboard_comodatos') }}" class="ios-btn ios-btn-secondary">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('movimientos.add_movimiento') }}" class="ios-btn ios-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Comodato
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="filter-card">
+    <form method="GET" action="{{ url_for('reportes.listado_comodatos') }}" id="filterForm">
+        <div class="row g-3">
+            <!-- Búsqueda por texto -->
+            <div class="col-12 col-md-4">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </label>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text"
+                           name="buscar"
+                           class="form-control"
+                           placeholder="Número de contrato, comodante, NIT..."
+                           value="{{ request.args.get('buscar', '') }}">
+                </div>
+            </div>
+
+            <!-- Filtro por estado -->
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-funnel me-1"></i> Estado
+                </label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="Vigente" {% if request.args.get('estado') == 'Vigente' %}selected{% endif %}>
+                        Vigente
+                    </option>
+                    <option value="Proximo_Vencer" {% if request.args.get('estado') == 'Proximo_Vencer' %}selected{% endif %}>
+                        Próximo a Vencer
+                    </option>
+                    <option value="Vencido" {% if request.args.get('estado') == 'Vencido' %}selected{% endif %}>
+                        Vencido
+                    </option>
+                    <option value="Finalizado" {% if request.args.get('estado') == 'Finalizado' %}selected{% endif %}>
+                        Finalizado
+                    </option>
+                </select>
+            </div>
+
+            <!-- Filtro por comodante -->
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-building me-1"></i> Comodante
+                </label>
+                <select name="comodante" class="form-select">
+                    <option value="">Todos los comodantes</option>
+                    {% for comodante in comodantes_list %}
+                    <option value="{{ comodante }}" {% if request.args.get('comodante') == comodante %}selected{% endif %}>
+                        {{ comodante }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="ios-btn ios-btn-primary flex-grow-1">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{{ url_for('reportes.listado_comodatos') }}"
+                   class="ios-btn ios-btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtros de fecha -->
+        <div class="row g-3 mt-2">
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-calendar-event me-1"></i> Fecha Inicio (Desde)
+                </label>
+                <input type="date"
+                       name="fecha_inicio_desde"
+                       class="form-control"
+                       value="{{ request.args.get('fecha_inicio_desde', '') }}">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-calendar-event me-1"></i> Fecha Inicio (Hasta)
+                </label>
+                <input type="date"
+                       name="fecha_inicio_hasta"
+                       class="form-control"
+                       value="{{ request.args.get('fecha_inicio_hasta', '') }}">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-calendar-check me-1"></i> Fecha Fin (Desde)
+                </label>
+                <input type="date"
+                       name="fecha_fin_desde"
+                       class="form-control"
+                       value="{{ request.args.get('fecha_fin_desde', '') }}">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label ios-text-caption fw-semibold">
+                    <i class="bi bi-calendar-check me-1"></i> Fecha Fin (Hasta)
+                </label>
+                <input type="date"
+                       name="fecha_fin_hasta"
+                       class="form-control"
+                       value="{{ request.args.get('fecha_fin_hasta', '') }}">
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Resultados y Exportación -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="ios-text-body">
+        <strong>{{ comodatos_data|length }}</strong> comodato(s) encontrado(s)
+        {% if request.args.get('buscar') or request.args.get('estado') or request.args.get('comodante') %}
+        <span class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+            (con filtros activos)
+        </span>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reportes.exportar_comodatos_excel') }}{{ '?' + request.query_string.decode() if request.query_string else '' }}"
+           class="ios-btn ios-btn-sm ios-btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        <a href="{{ url_for('reportes.exportar_comodatos_pdf') }}{{ '?' + request.query_string.decode() if request.query_string else '' }}"
+           class="ios-btn ios-btn-sm ios-btn-danger" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+    </div>
+</div>
+
+<!-- Tabla de Comodatos -->
+{% if comodatos_data|length > 0 %}
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table comodatos-table">
+            <thead>
+                <tr>
+                    <th>
+                        <i class="bi bi-hash me-1"></i>
+                        N° Contrato
+                    </th>
+                    <th>
+                        <i class="bi bi-building me-1"></i>
+                        Comodante
+                    </th>
+                    <th>
+                        <i class="bi bi-calendar-event me-1"></i>
+                        Inicio
+                    </th>
+                    <th>
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Fin
+                    </th>
+                    <th>
+                        <i class="bi bi-hourglass-split me-1"></i>
+                        Días Rest.
+                    </th>
+                    <th>
+                        <i class="bi bi-cash-stack me-1"></i>
+                        Valor Ref.
+                    </th>
+                    <th>
+                        <i class="bi bi-info-circle me-1"></i>
+                        Estado
+                    </th>
+                    <th class="text-center">
+                        <i class="bi bi-gear me-1"></i>
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in comodatos_data %}
+                <tr>
+                    <td>
+                        <strong class="ios-text-body">{{ row.numero_contrato }}</strong>
+                    </td>
+                    <td>
+                        <div class="ios-text-body">{{ row.comodante_nombre }}</div>
+                        <div class="ios-text-caption" style="color: var(--ios-label-tertiary);">
+                            NIT: {{ row.comodante_nit }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="ios-text-caption">
+                            {{ row.fecha_inicio.strftime('%d/%m/%Y') }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="ios-text-caption">
+                            {{ row.fecha_fin.strftime('%d/%m/%Y') }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if row.dias_para_vencimiento < 0 %}
+                        <span class="badge badge-vencido">
+                            <i class="bi bi-x-circle"></i>
+                            Vencido {{ row.dias_para_vencimiento|abs }} días
+                        </span>
+                        {% elif row.dias_para_vencimiento <= 30 %}
+                        <span class="badge badge-proximo-vencer">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            {{ row.dias_para_vencimiento }} días
+                        </span>
+                        {% else %}
+                        <span class="ios-text-caption">
+                            {{ row.dias_para_vencimiento }} días
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="ios-text-body">
+                            {% if row.valor_comercial_referencial %}
+                            ${{ "{:,.2f}".format(row.valor_comercial_referencial) }}
+                            {% else %}
+                            <span style="color: var(--ios-label-tertiary);">N/A</span>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge-estado badge-{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer else 'vigente' if row.estado_comodato == 'Vigente' else 'finalizado' }}">
+                            {% if row.esta_vencido %}
+                            <i class="bi bi-x-circle"></i> Vencido
+                            {% elif row.esta_proximo_a_vencer %}
+                            <i class="bi bi-exclamation-triangle"></i> Próx. Vencer
+                            {% elif row.estado_comodato == 'Vigente' %}
+                            <i class="bi bi-check-circle"></i> Vigente
+                            {% else %}
+                            <i class="bi bi-dash-circle"></i> {{ row.estado_comodato }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('movimientos.ver_movimiento', id=row.movimiento_id) }}"
+                               class="ios-btn ios-btn-sm ios-btn-secondary"
+                               title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if row.dias_para_vencimiento <= 30 and row.dias_para_vencimiento >= 0 %}
+                            <button class="ios-btn ios-btn-sm ios-btn-warning"
+                                    onclick="iniciarRenovacion({{ row.movimiento_id }})"
+                                    title="Renovar comodato">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<!-- Estado vacío -->
+<div class="ios-card p-5">
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h5 class="ios-text-headline mb-2">No se encontraron comodatos</h5>
+        <p class="ios-text-body mb-4" style="color: var(--ios-label-secondary);">
+            {% if request.args.get('buscar') or request.args.get('estado') or request.args.get('comodante') %}
+            Intenta ajustar los filtros de búsqueda o <a href="{{ url_for('reportes.listado_comodatos') }}">limpiar filtros</a>
+            {% else %}
+            No hay contratos de comodato registrados en el sistema.
+            {% endif %}
+        </p>
+        {% if not (request.args.get('buscar') or request.args.get('estado') or request.args.get('comodante')) %}
+        <a href="{{ url_for('movimientos.add_movimiento') }}" class="ios-btn ios-btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primer Comodato
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Inicializar Select2 para los selects
+$(document).ready(function() {
+    $('select').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Seleccionar...',
+        allowClear: true
+    });
+});
+
+// Función para iniciar renovación
+function iniciarRenovacion(movimientoId) {
+    if (confirm('¿Desea iniciar el proceso de renovación para este comodato?\n\nSe abrirá el detalle del movimiento donde puede gestionar la renovación.')) {
+        window.location.href = `/movimientos/${movimientoId}`;
+    }
+}
+
+// Auto-submit del formulario cuando cambian los filtros (opcional)
+document.querySelectorAll('#filterForm select').forEach(select => {
+    select.addEventListener('change', function() {
+        // Descomentar para auto-submit:
+        // document.getElementById('filterForm').submit();
+    });
+});
+
+// Resaltar búsqueda en resultados
+const buscarTexto = "{{ request.args.get('buscar', '') }}";
+if (buscarTexto) {
+    const regex = new RegExp(`(${buscarTexto})`, 'gi');
+    document.querySelectorAll('.comodatos-table tbody td').forEach(td => {
+        if (td.textContent.match(regex)) {
+            td.innerHTML = td.innerHTML.replace(regex, '<mark style="background: var(--ios-yellow); padding: 2px 4px; border-radius: 3px;">$1</mark>');
+        }
+    });
+}
+</script>
+{% endblock %}

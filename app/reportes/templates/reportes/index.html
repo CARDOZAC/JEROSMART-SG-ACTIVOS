@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - JeroSmart Activos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2 text-gray-800">
+                <i class="fas fa-chart-bar"></i> Módulo de Reportes
+            </h1>
+            <p class="text-muted">Centro de reportes contables y de gestión</p>
+        </div>
+    </div>
+
+    <!-- Tarjetas de navegación a reportes específicos -->
+    <div class="row mb-4">
+        <!-- Reporte de Depreciación -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Reporte de Depreciación
+                            </div>
+                            <div class="h6 mb-2 text-gray-800">
+                                Consulta la depreciación acumulada de activos propios
+                            </div>
+                            <a href="{{ url_for('reportes.reporte_depreciacion') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-file-pdf"></i> Ver Reporte
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard de Comodatos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Dashboard de Comodatos
+                            </div>
+                            <div class="h6 mb-2 text-gray-800">
+                                KPIs, alertas de vencimiento y estadísticas
+                            </div>
+                            <a href="{{ url_for('reportes.dashboard_comodatos') }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-tachometer-alt"></i> Ver Dashboard
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-handshake fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listado de Comodatos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Listado de Comodatos
+                            </div>
+                            <div class="h6 mb-2 text-gray-800">
+                                Consulta y exporta comodatos con filtros avanzados
+                            </div>
+                            <a href="{{ url_for('reportes.listado_comodatos') }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-list"></i> Ver Listado
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-contract fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard de Movimientos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Movimientos de Activos
+                            </div>
+                            <div class="h6 mb-2 text-gray-800">
+                                Reportes por clase: TICs, Mobiliario, Electroindustrial
+                            </div>
+                            <a href="{{ url_for('reportes.dashboard_movimientos') }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-exchange-alt"></i> Ver Movimientos
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard de Mantenimientos -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Mantenimientos
+                            </div>
+                            <div class="h6 mb-2 text-gray-800">
+                                Reportes por clase: TICs, Mobiliario, Electroindustrial
+                            </div>
+                            <a href="{{ url_for('reportes.dashboard_mantenimientos') }}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-tools"></i> Ver Mantenimientos
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-wrench fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas de estadísticas generales -->
+    <div class="row">
+        <!-- Gráfico: Activos por Clase -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-sitemap"></i> Activos por Clase
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if activos_por_clase and activos_por_clase.data %}
+                    <canvas id="chartActivosPorClase" style="max-height: 300px;"></canvas>
+                    {% else %}
+                    <p class="text-center text-muted">No hay datos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico: Movimientos por Tipo -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-exchange-alt"></i> Movimientos por Tipo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if movimientos_por_tipo and movimientos_por_tipo.data %}
+                    <canvas id="chartMovimientosPorTipo" style="max-height: 300px;"></canvas>
+                    {% else %}
+                    <p class="text-center text-muted">No hay datos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> Información sobre Reportes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="font-weight-bold">Depreciación</h6>
+                            <p class="text-muted small">
+                                Genera reportes de depreciación acumulada para activos propios.
+                                Exporta a PDF para presentaciones contables.
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="font-weight-bold">Comodatos</h6>
+                            <p class="text-muted small">
+                                Monitorea contratos de comodato, alertas de vencimiento y
+                                estadísticas por proveedor. Exporta a Excel o PDF.
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="font-weight-bold">Estadísticas</h6>
+                            <p class="text-muted small">
+                                Visualiza la distribución de activos por clase y tipos de
+                                movimientos para análisis de gestión.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+// Gráfico: Activos por Clase
+{% if activos_por_clase and activos_por_clase.data %}
+(function() {
+    const ctx = document.getElementById('chartActivosPorClase');
+    if (!ctx) return;
+
+    const data = {{ activos_por_clase | tojson }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Cantidad de Activos',
+                data: data.data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Activos: ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+})();
+{% endif %}
+
+// Gráfico: Movimientos por Tipo
+{% if movimientos_por_tipo and movimientos_por_tipo.data %}
+(function() {
+    const ctx = document.getElementById('chartMovimientosPorTipo');
+    if (!ctx) return;
+
+    const data = {{ movimientos_por_tipo | tojson }};
+
+    // Colores para diferentes tipos de movimientos
+    const colors = [
+        'rgba(255, 99, 132, 0.6)',
+        'rgba(54, 162, 235, 0.6)',
+        'rgba(255, 206, 86, 0.6)',
+        'rgba(75, 192, 192, 0.6)',
+        'rgba(153, 102, 255, 0.6)',
+        'rgba(255, 159, 64, 0.6)'
+    ];
+
+    const borderColors = [
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)'
+    ];
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Movimientos',
+                data: data.data,
+                backgroundColor: colors.slice(0, data.labels.length),
+                borderColor: borderColors.slice(0, data.labels.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+{% endif %}
+</script>
+{% endblock %}

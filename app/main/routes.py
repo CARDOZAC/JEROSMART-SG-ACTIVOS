@@ -27,7 +27,6 @@ def index():
     stmt = (
         select(Activo, ClaseActivo)
         .outerjoin(ClaseActivo, Activo.clase_id == ClaseActivo.id)
-        .filter(Activo.fecha_ingreso_ajeno.isnot(None)) # Add this line to filter out NULL values
         .order_by(Activo.id.desc())
         .limit(5)
     )

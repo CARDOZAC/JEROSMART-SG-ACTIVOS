@@ -468,5 +468,306 @@ def eliminar_activo(id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error al eliminar el activo: {str(e)}', 'danger')
-        
+
     return redirect(url_for('activos_v2.listado'))
+
+
+# ==============================================================================
+# EXPORTACIÓN DE INVENTARIO A EXCEL Y PDF
+# ==============================================================================
+
+@activos_v2_bp.route('/exportar-inventario-excel', methods=['GET'])
+@login_required
+def exportar_inventario_excel():
+    """
+    Exporta el inventario de activos a Excel con opción de filtrar por rango de fechas.
+
+    Parámetros GET:
+    - exportar_todo: 'true' para exportar todo el inventario
+    - fecha_desde: Fecha de inicio del rango (formato YYYY-MM-DD)
+    - fecha_hasta: Fecha de fin del rango (formato YYYY-MM-DD)
+    """
+    from flask import send_file
+    from datetime import datetime, timedelta
+    from app.excel_export import exportar_inventario_excel
+    from sqlalchemy import select, and_
+
+    try:
+        # Obtener parámetros
+        exportar_todo = request.args.get('exportar_todo', 'false').lower() == 'true'
+        fecha_desde_str = request.args.get('fecha_desde', '').strip()
+        fecha_hasta_str = request.args.get('fecha_hasta', '').strip()
+
+        # Construir consulta base
+        stmt = (
+            select(Activo, ClaseActivo.nombre_clase, (Funcionario.nombres + ' ' + Funcionario.apellidos).label('funcionario_responsable'))
+            .outerjoin(ClaseActivo, Activo.clase_id == ClaseActivo.id)
+            .outerjoin(Funcionario, Activo.funcionario_id == Funcionario.id)
+        )
+
+        conditions = []
+        filtros_info = {}
+
+        # Si no es exportar todo, aplicar filtro de fechas
+        if not exportar_todo:
+            if fecha_desde_str:
+                try:
+                    fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+                    conditions.append(Activo.created_at >= fecha_desde)
+                    filtros_info['fecha_desde'] = fecha_desde_str
+                except ValueError:
+                    flash('Formato de fecha de inicio inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos_v2.listado'))
+
+            if fecha_hasta_str:
+                try:
+                    # Agregar un día completo a la fecha hasta (hasta las 23:59:59)
+                    fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+                    fecha_hasta = fecha_hasta + timedelta(days=1)
+                    conditions.append(Activo.created_at < fecha_hasta)
+                    filtros_info['fecha_hasta'] = fecha_hasta_str
+                except ValueError:
+                    flash('Formato de fecha de fin inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos_v2.listado'))
+
+        # Aplicar condiciones si existen
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
+        # Ordenar por fecha de ingreso (más recientes primero)
+        stmt = stmt.order_by(Activo.created_at.desc())
+
+        # Ejecutar consulta
+        result = db.session.execute(stmt).all()
+
+        # Procesar resultados
+        activos = []
+        for row in result:
+            activo, nombre_clase, funcionario_responsable = row
+            activo.nombre_clase = nombre_clase
+            activo.funcionario_responsable = funcionario_responsable
+
+            # Normalizar valor_comercial
+            if activo.valor_comercial is None:
+                activo.valor_comercial = 0.0
+
+            activos.append(activo)
+
+        # Verificar que haya activos para exportar
+        if not activos:
+            flash('No hay activos que cumplan con los criterios de exportación.', 'warning')
+            return redirect(url_for('activos_v2.listado'))
+
+        # Generar archivo Excel
+        excel_file = exportar_inventario_excel(activos, filtros=filtros_info)
+
+        # Generar nombre de archivo
+        if exportar_todo:
+            nombre_archivo = f"inventario_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        else:
+            nombre_archivo = f"inventario_{fecha_desde_str or 'inicio'}_{fecha_hasta_str or 'hoy'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+        # Enviar archivo
+        return send_file(
+            excel_file,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    except Exception as e:
+        flash(f'Error al generar el archivo Excel: {str(e)}', 'danger')
+        return redirect(url_for('activos_v2.listado'))
+
+
+@activos_v2_bp.route('/exportar-inventario-pdf', methods=['GET'])
+@login_required
+def exportar_inventario_pdf():
+    """
+    Exporta el inventario de activos a PDF con opción de filtrar por rango de fechas.
+
+    Parámetros GET:
+    - exportar_todo: 'true' para exportar todo el inventario
+    - fecha_desde: Fecha de inicio del rango (formato YYYY-MM-DD)
+    - fecha_hasta: Fecha de fin del rango (formato YYYY-MM-DD)
+    """
+    from flask import send_file
+    from datetime import datetime, timedelta
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from io import BytesIO
+    from sqlalchemy import select, and_
+
+    try:
+        # Obtener parámetros
+        exportar_todo = request.args.get('exportar_todo', 'false').lower() == 'true'
+        fecha_desde_str = request.args.get('fecha_desde', '').strip()
+        fecha_hasta_str = request.args.get('fecha_hasta', '').strip()
+
+        # Construir consulta base
+        stmt = (
+            select(Activo, ClaseActivo.nombre_clase, (Funcionario.nombres + ' ' + Funcionario.apellidos).label('funcionario_responsable'))
+            .outerjoin(ClaseActivo, Activo.clase_id == ClaseActivo.id)
+            .outerjoin(Funcionario, Activo.funcionario_id == Funcionario.id)
+        )
+
+        conditions = []
+        filtros_texto = []
+
+        # Si no es exportar todo, aplicar filtro de fechas
+        if not exportar_todo:
+            if fecha_desde_str:
+                try:
+                    fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+                    conditions.append(Activo.created_at >= fecha_desde)
+                    filtros_texto.append(f"Desde: {fecha_desde_str}")
+                except ValueError:
+                    flash('Formato de fecha de inicio inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos_v2.listado'))
+
+            if fecha_hasta_str:
+                try:
+                    fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+                    fecha_hasta = fecha_hasta + timedelta(days=1)
+                    conditions.append(Activo.created_at < fecha_hasta)
+                    filtros_texto.append(f"Hasta: {fecha_hasta_str}")
+                except ValueError:
+                    flash('Formato de fecha de fin inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos_v2.listado'))
+
+        # Aplicar condiciones si existen
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
+        # Ordenar por fecha de ingreso
+        stmt = stmt.order_by(Activo.created_at.desc())
+
+        # Ejecutar consulta
+        result = db.session.execute(stmt).all()
+
+        # Procesar resultados
+        activos = []
+        for row in result:
+            activo, nombre_clase, funcionario_responsable = row
+            activo.nombre_clase = nombre_clase
+            activo.funcionario_responsable = funcionario_responsable
+
+            if activo.valor_comercial is None:
+                activo.valor_comercial = 0.0
+
+            activos.append(activo)
+
+        # Verificar que haya activos
+        if not activos:
+            flash('No hay activos que cumplan con los criterios de exportación.', 'warning')
+            return redirect(url_for('activos_v2.listado'))
+
+        # Crear PDF
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+
+        # Contenedor de elementos
+        elements = []
+
+        # Estilos
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#0066CC'),
+            spaceAfter=12,
+            alignment=1  # Centro
+        )
+
+        # Título
+        titulo = Paragraph("INVENTARIO GENERAL DE ACTIVOS - JEROSMART", title_style)
+        elements.append(titulo)
+
+        # Información del reporte
+        info_style = ParagraphStyle('Info', parent=styles['Normal'], fontSize=9, alignment=1)
+        fecha_generacion = Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", info_style)
+        elements.append(fecha_generacion)
+
+        if filtros_texto:
+            filtros_info = Paragraph(f"Filtros: {' | '.join(filtros_texto)}", info_style)
+            elements.append(filtros_info)
+
+        elements.append(Spacer(1, 0.3*inch))
+
+        # Crear tabla
+        data = [['Placa', 'Nombre', 'Tipo', 'Clase', 'Estado', 'Ubicación', 'Valor', 'Fecha Ingreso']]
+
+        valor_total = 0
+        for activo in activos:
+            nombre_clase = activo.nombre_clase or ''
+            valor = activo.valor_comercial if activo.valor_comercial else 0
+            valor_total += valor
+
+            data.append([
+                activo.placa_codigo_interno[:15],  # Truncar para ajustar
+                activo.nombre_activo[:25],
+                activo.tipo_propiedad or 'Propio',
+                nombre_clase[:15],
+                activo.estado[:15],
+                (activo.ubicacion or '')[:20],
+                f"${valor:,.0f}",
+                activo.created_at.strftime('%d/%m/%Y') if activo.created_at else ''
+            ])
+
+        # Agregar fila de totales
+        data.append(['', '', '', '', '', 'TOTAL:', f"${valor_total:,.0f}", f"{len(activos)} activos"])
+
+        # Crear tabla
+        t = Table(data, colWidths=[0.8*inch, 1.8*inch, 0.7*inch, 1.0*inch, 0.9*inch, 1.3*inch, 0.9*inch, 0.9*inch])
+
+        # Estilo de tabla
+        t.setStyle(TableStyle([
+            # Encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0066CC')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+
+            # Datos
+            ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -2), 8),
+            ('GRID', (0, 0), (-1, -2), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#F5F5F5')]),
+
+            # Fila de totales
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#E6F2FF')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 9),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor('#0066CC')),
+        ]))
+
+        elements.append(t)
+
+        # Construir PDF
+        doc.build(elements)
+
+        # Preparar para envío
+        buffer.seek(0)
+
+        # Generar nombre de archivo
+        if exportar_todo:
+            nombre_archivo = f"inventario_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        else:
+            nombre_archivo = f"inventario_{fecha_desde_str or 'inicio'}_{fecha_hasta_str or 'hoy'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype='application/pdf'
+        )
+
+    except Exception as e:
+        flash(f'Error al generar el archivo PDF: {str(e)}', 'danger')
+        return redirect(url_for('activos_v2.listado'))

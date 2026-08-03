@@ -19,6 +19,19 @@ from .context_builders import build_hoja_vida_pdf_context, build_mantenimiento_p
 from .forms import CargarHistoricoBiomedicoForm
 from . import biomedicos_bp
 
+
+@biomedicos_bp.before_request
+def _requerir_autenticacion():
+    """
+    SEGURIDAD: Ninguna ruta del módulo biomédico tenía @login_required.
+    Este guard a nivel de blueprint exige sesión iniciada para TODAS las rutas.
+    """
+    if not current_user.is_authenticated:
+        if request.is_json or request.path.startswith('/biomedicos/api'):
+            return jsonify({'error': 'Autenticación requerida'}), 401
+        flash('Debes iniciar sesión para ver esta página.', 'warning')
+        return redirect(url_for('auth.login'))
+
 def _convert_to_date(date_str):
     """
     Convierte una cadena de fecha a objeto date.
@@ -221,15 +234,18 @@ def editar_mantenimiento(mantenimiento_id):
         flash('Mantenimiento no encontrado', 'error')
         return redirect(url_for('biomedicos.mantenimientos'))
 
-    # Parsear el reporte técnico JSON
-    import json
+    # Parsear el reporte técnico (la columna db.JSON ya entrega un dict;
+    # se soporta string por compatibilidad con datos antiguos)
     reporte_tecnico = {}
     if mantenimiento.atributos_reporte_json:
-        try:
-            reporte_tecnico = json.loads(mantenimiento.atributos_reporte_json)
-        except (json.JSONDecodeError, TypeError):
-            current_app.logger.warning(f"Error al parsear JSON del mantenimiento {mantenimiento_id}")
-            reporte_tecnico = {}
+        if isinstance(mantenimiento.atributos_reporte_json, dict):
+            reporte_tecnico = mantenimiento.atributos_reporte_json
+        elif isinstance(mantenimiento.atributos_reporte_json, str):
+            try:
+                reporte_tecnico = json.loads(mantenimiento.atributos_reporte_json)
+            except (json.JSONDecodeError, TypeError):
+                current_app.logger.warning(f"Error al parsear JSON del mantenimiento {mantenimiento_id}")
+                reporte_tecnico = {}
 
     # Serializar datos del mantenimiento para JavaScript
     mantenimiento_data = {
@@ -237,7 +253,7 @@ def editar_mantenimiento(mantenimiento_id):
         'activo_id': mantenimiento.activo_id,
         'activo_placa': mantenimiento.activo.placa_codigo_interno,
         'activo_nombre': mantenimiento.activo.nombre_activo,
-        'tipo_mantenimiento_id': mantenimiento.tipo_mantenimiento_id,
+        'tipo_mantenimiento_id': mantenimiento.tipo_id,
         'tipo_nombre': mantenimiento.tipo.nombre.lower() if mantenimiento.tipo else 'preventivo',
         'fecha_mantenimiento': mantenimiento.fecha_mantenimiento.strftime('%Y-%m-%d') if mantenimiento.fecha_mantenimiento else '',
         'duracion_minutos': mantenimiento.duracion_minutos or '',

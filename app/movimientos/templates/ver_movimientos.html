@@ -99,9 +99,21 @@
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h3 fw-bold mb-0">Gestión de Movimientos</h2>
-        <a href="{{ url_for('movimientos.add_movimiento') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i> Nuevo Movimiento
-        </a>
+        <div class="btn-group">
+            <a href="{{ url_for('movimientos.dashboard') }}" class="btn btn-info">
+                <i class="bi bi-bar-chart-line me-2"></i> Dashboard
+            </a>
+            {% if tiene_permiso('exportar_datos') %}
+            <a href="{{ url_for('movimientos.exportar_movimientos_excel_route', q=filtros.q, tipo=filtros.tipo) }}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-2"></i> Exportar Excel
+            </a>
+            {% endif %}
+            {% if tiene_permiso('crear_movimiento') %}
+            <a href="{{ url_for('movimientos.add_movimiento') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i> Nuevo Movimiento
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Sección de Filtros -->
@@ -165,11 +177,12 @@
                                     <a href="{{ url_for('movimientos.ver_movimiento', movimiento_id=movimiento.id) }}" class="btn btn-outline-secondary">
                                         <i class="bi bi-eye-fill me-1"></i> Ver Detalles
                                     </a>
-                                    {% set pdf_url = 'movimientos.generar_acta_pdf' %}
-                                    <a href="{{ url_for(pdf_url, movimiento_id=movimiento.id) }}" class="btn btn-outline-primary" target="_blank">
+                                    <a href="{{ url_for('movimientos.generar_acta_pdf', movimiento_id=movimiento.id) }}" class="btn btn-outline-primary" target="_blank">
                                         <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
                                     </a>
+                                    {% if tiene_permiso('eliminar_movimiento') %}
                                     <button type="button" class="btn btn-outline-danger btn-eliminar-movimiento" data-id="{{ movimiento.id }}" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -183,6 +196,62 @@
                 <p>No se encontraron movimientos que coincidan con los criterios de búsqueda.</p>
                 <a href="{{ url_for('movimientos.ver_movimientos') }}" class="btn btn-info mt-2">Borrar filtros</a>
             </div>
+        {% endif %}
+
+        <!-- Paginación -->
+        {% if pagination and pagination.total_pages > 1 %}
+        <nav aria-label="Paginación de movimientos" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ ((pagination.page - 1) * pagination.per_page + 1) }} -
+                        {{ min(pagination.page * pagination.per_page, pagination.total) }}
+                        de {{ pagination.total }} movimientos
+                    </small>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="per-page-select" style="width: auto;">
+                        <option value="10" {% if pagination.per_page == 10 %}selected{% endif %}>10 por página</option>
+                        <option value="20" {% if pagination.per_page == 20 %}selected{% endif %}>20 por página</option>
+                        <option value="50" {% if pagination.per_page == 50 %}selected{% endif %}>50 por página</option>
+                        <option value="100" {% if pagination.per_page == 100 %}selected{% endif %}>100 por página</option>
+                    </select>
+                </div>
+            </div>
+
+            <ul class="pagination pagination-lg justify-content-center">
+                <!-- Botón Anterior -->
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    {% if pagination.has_prev %}
+                    <a class="page-link" href="{{ url_for('movimientos.ver_movimientos', page=pagination.prev_num, per_page=pagination.per_page, q=filtros.q, tipo=filtros.tipo) }}">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                    {% else %}
+                    <span class="page-link"><i class="bi bi-chevron-left"></i> Anterior</span>
+                    {% endif %}
+                </li>
+
+                <!-- Números de página -->
+                {% for num in pagination.pages %}
+                <li class="page-item {% if num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('movimientos.ver_movimientos', page=num, per_page=pagination.per_page, q=filtros.q, tipo=filtros.tipo) }}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <!-- Botón Siguiente -->
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    {% if pagination.has_next %}
+                    <a class="page-link" href="{{ url_for('movimientos.ver_movimientos', page=pagination.next_num, per_page=pagination.per_page, q=filtros.q, tipo=filtros.tipo) }}">
+                        Siguiente <i class="bi bi-chevron-right"></i>
+                    </a>
+                    {% else %}
+                    <span class="page-link">Siguiente <i class="bi bi-chevron-right"></i></span>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
         {% endif %}
     </div>
 
@@ -237,6 +306,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
+        });
+    }
+
+    // Cambiar items por página
+    const perPageSelect = document.getElementById('per-page-select');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', this.value);
+            url.searchParams.set('page', '1');  // Resetear a página 1
+            window.location.href = url.toString();
         });
     }
 });

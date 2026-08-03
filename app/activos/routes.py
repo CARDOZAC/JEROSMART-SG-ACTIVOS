@@ -148,6 +148,13 @@ def _save_file(file_storage, folder_key, placa_codigo, prefix):
 @activos_bp.route('/')
 @login_required
 def ver_activos():
+    # Parámetros de paginación
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+
+    # Limitar per_page para evitar consultas muy grandes
+    per_page = min(per_page, 200)
+
     filtros = {
         'q': request.args.get('q', '').strip(),
         'tipo': request.args.get('filtro_tipo', ''),
@@ -182,7 +189,17 @@ def ver_activos():
         stmt = stmt.where(and_(*conditions))
 
     stmt = stmt.order_by(Activo.nombre_activo)
-    
+
+    # Obtener total de registros para paginación
+    count_stmt = select(func.count()).select_from(Activo)
+    if conditions:
+        count_stmt = count_stmt.where(and_(*conditions))
+    total_records = db.session.scalar(count_stmt)
+
+    # Aplicar paginación
+    offset = (page - 1) * per_page
+    stmt = stmt.offset(offset).limit(per_page)
+
     result = db.session.execute(stmt).all()
     activos = []
     # Procesamos el resultado para "enriquecer" cada objeto Activo con los datos
@@ -198,6 +215,11 @@ def ver_activos():
 
         activos.append(activo)
 
+    # Calcular información de paginación
+    total_pages = (total_records + per_page - 1) // per_page
+    has_prev = page > 1
+    has_next = page < total_pages
+
     clases = db.session.scalars(select(ClaseActivo).order_by(ClaseActivo.nombre_clase)).all()
     estados_activos = db.session.scalars(select(Activo.estado).distinct().where(Activo.estado.isnot(None) & (Activo.estado != '')).order_by(Activo.estado)).all()
 
@@ -206,7 +228,13 @@ def ver_activos():
         activos=activos,
         clases=clases,
         estados_activos=estados_activos,
-        filtros=filtros
+        filtros=filtros,
+        page=page,
+        per_page=per_page,
+        total_records=total_records,
+        total_pages=total_pages,
+        has_prev=has_prev,
+        has_next=has_next
     )
 
 def validar_atributos_dinamicos(clase_id, atributos_data):
@@ -239,7 +267,7 @@ def validar_atributos_dinamicos(clase_id, atributos_data):
             if clase_id_str == '1':
                 if attr_name == 'clasificacion_riesgo' and valor not in ['I', 'IIa', 'IIb', 'III']:
                     errores[attr_name] = f"'{attr_label}' debe ser I, IIa, IIb o III."
-                
+
                 if attr_name == 'vida_util':
                     try:
                         vida_util_num = int(valor)
@@ -248,19 +276,47 @@ def validar_atributos_dinamicos(clase_id, atributos_data):
                     except (ValueError, TypeError):
                         errores[attr_name] = f"'{attr_label}' debe ser un número entero."
 
+            # Validación para Electroindustrial (clase_id = 2)
+            elif clase_id_str == '2':
+                import re
+                # Validar formato de voltaje (ej: 220V AC, 110V, 12V DC)
+                if attr_name == 'voltaje_nominal':
+                    if not re.match(r'^\d+V(\s*(AC|DC))?$', valor.strip(), re.IGNORECASE):
+                        errores[attr_name] = f"'{attr_label}' debe tener formato válido (ej: 220V AC, 110V DC)."
+
+                # Validar corriente nominal (debe ser número positivo)
+                if attr_name == 'corriente_nominal' and valor.strip():
+                    try:
+                        corriente = float(valor)
+                        if corriente <= 0:
+                            errores[attr_name] = f"'{attr_label}' debe ser un número positivo."
+                    except (ValueError, TypeError):
+                        errores[attr_name] = f"'{attr_label}' debe ser un número válido."
+
+                # Validar cumplimiento RETIE
+                if attr_name == 'cumple_retie' and valor not in ['Sí', 'No', 'No Aplica']:
+                    errores[attr_name] = f"'{attr_label}' debe ser 'Sí', 'No' o 'No Aplica'."
+
             # Validación para TICs (clase_id = 3)
             elif clase_id_str == '3':
+                import re
                 if attr_name == 'vida_util_estimada' and valor not in ['3', '5', '7', '10']:
                     errores[attr_name] = f"'{attr_label}' debe ser 3, 5, 7 o 10 años."
+
+                # Validar formato de dirección IP
+                if attr_name == 'direccion_ip' and valor.strip():
+                    if not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', valor.strip()):
+                        errores[attr_name] = f"'{attr_label}' debe tener formato válido (ej: 192.168.1.100)."
+
+                # Validar formato de dirección MAC
+                if attr_name == 'direccion_mac' and valor.strip():
+                    if not re.match(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$', valor.strip()):
+                        errores[attr_name] = f"'{attr_label}' debe tener formato válido (ej: 00:1A:2B:3C:4D:5E)."
 
             # Validación para Muebles y Enseres (clase_id = 4)
             elif clase_id_str == '4':
                 if attr_name == 'estado_fisico' and valor not in ['Excelente', 'Bueno', 'Regular', 'Malo']:
                     errores[attr_name] = f"'{attr_label}' debe ser Excelente, Bueno, Regular o Malo."
-
-            # Se pueden agregar más validaciones específicas aquí...
-            # Ejemplo: if attr_name == 'voltaje' and not re.match(r'^\d+V$', valor):
-            #              errores[attr_name] = "Formato de voltaje inválido (ej: 110V)."
 
     return len(errores) == 0, errores
 
@@ -268,6 +324,9 @@ def validar_atributos_dinamicos(clase_id, atributos_data):
 @login_required
 @role_required('Admin')
 def add_activo():
+    """
+    Crear nuevo activo (POST protegido con CSRF automático vía Flask-WTF).
+    """
     # --- Lógica para procesar los datos del wizard ---
     if request.method == 'POST':
         try:
@@ -306,7 +365,12 @@ def add_activo():
                 except (ValueError, TypeError):
                     flash('El valor comercial debe ser un número válido.', 'danger')
                     return redirect(url_for('activos.add_activo'))
-                
+
+                # Validación de integridad: activos propios deben tener valor comercial > 0
+                if nuevo_activo.valor_comercial <= 0:
+                    flash('Los activos propios deben tener un valor comercial mayor a cero.', 'danger')
+                    return redirect(url_for('activos.add_activo'))
+
                 nuevo_activo.origen_adquisicion = request.form.get('origen_adquisicion')
                 clase_id_str = request.form.get('clase_id')
                 nuevo_activo.clase_id = int(clase_id_str) if clase_id_str and clase_id_str.isdigit() else None
@@ -325,12 +389,22 @@ def add_activo():
                         flash(f'Faltan campos obligatorios: {errores_msg}', 'danger')
                         return redirect(url_for('activos.add_activo'))
 
-                nuevo_activo.atributos_dinamicos_json = json.dumps(atributos_dinamicos_guardar)
+                # SQLAlchemy maneja la serialización JSON automáticamente
+                nuevo_activo.atributos_dinamicos_json = atributos_dinamicos_guardar
 
             elif tipo_propiedad == 'Ajeno':
                 nuevo_activo.propietario_ajeno = request.form.get('propietario_ajeno')
                 nuevo_activo.condicion_tenencia = request.form.get('condicion_tenencia')
-                
+
+                # Validación de integridad: activos ajenos deben tener propietario y condición
+                if not nuevo_activo.propietario_ajeno or not nuevo_activo.propietario_ajeno.strip():
+                    flash('Los activos ajenos deben tener un propietario especificado.', 'danger')
+                    return redirect(url_for('activos.add_activo'))
+
+                if not nuevo_activo.condicion_tenencia or not nuevo_activo.condicion_tenencia.strip():
+                    flash('Los activos ajenos deben tener una condición de tenencia especificada.', 'danger')
+                    return redirect(url_for('activos.add_activo'))
+
                 # FASE 3: Sistema de Ingreso Temporal
                 es_ingreso_temporal_str = request.form.get('es_ingreso_temporal', 'false')
                 nuevo_activo.es_ingreso_temporal = es_ingreso_temporal_str.lower() == 'true'
@@ -353,39 +427,53 @@ def add_activo():
                             flash(f"Formato de fecha de fin inválido: {fecha_fin_str}. Use YYYY-MM-DD.", 'danger')
                             return redirect(url_for('activos.add_activo'))
 
-            
-            current_app.logger.info(f"[DEBUG] A punto de agregar activo: {placa_codigo}")
+
+            current_app.logger.debug(f"A punto de agregar activo: {placa_codigo}")
             db.session.add(nuevo_activo)
-            current_app.logger.info(f"[DEBUG] A punto de hacer commit para activo: {placa_codigo}")
+            current_app.logger.debug(f"A punto de hacer commit para activo: {placa_codigo}")
             db.session.commit()
-            current_app.logger.info(f"[DEBUG] Commit exitoso para activo: {placa_codigo}")
+            current_app.logger.debug(f"Commit exitoso para activo: {placa_codigo}")
             flash('Activo agregado exitosamente.', 'success')
-            current_app.logger.info(f"[DEBUG] Flash message agregado, redirigiendo a ver_activos")
+            current_app.logger.debug(f"Flash message agregado, redirigiendo a ver_activos")
             redirect_url = url_for('activos.ver_activos')
-            current_app.logger.info(f"[DEBUG] URL de redireccion: {redirect_url}")
+            current_app.logger.debug(f"URL de redireccion: {redirect_url}")
             return redirect(redirect_url)
         
-        except ValueError as e: # Errores de validación de archivos, etc.
+        except ValueError as e:
             # Errores de validación (archivos, formato de datos)
             flash(str(e), 'danger')
-            current_app.logger.warning(f"[DEBUG] ValueError capturado: {e}")
-            # Redirige al formulario de nuevo para corregir
+            current_app.logger.warning(f"ValueError al agregar activo: {e}")
+            return redirect(url_for('activos.add_activo'))
+        except TypeError as e:
+            # Errores de conversión de tipos
+            db.session.rollback()
+            flash(f'Error en el formato de datos: {str(e)}', 'danger')
+            current_app.logger.warning(f"TypeError al agregar activo: {e}")
             return redirect(url_for('activos.add_activo'))
         except exc.IntegrityError as e:
             db.session.rollback()
-            current_app.logger.warning(f"[DEBUG] IntegrityError capturado: {e}")
-            current_app.logger.warning(f"Fallo de integridad al agregar activo (placa duplicada?): {placa_codigo}")
+            current_app.logger.warning(f"IntegrityError al agregar activo (placa duplicada?): {placa_codigo} - {e}")
             flash('Error de base de datos: La placa o código interno ya existe.', 'danger')
-            # Redirige al formulario de nuevo para corregir
+            return redirect(url_for('activos.add_activo'))
+        except exc.SQLAlchemyError as e:
+            # Otros errores de base de datos
+            db.session.rollback()
+            current_app.logger.error(f"Error de base de datos al agregar activo: {e}")
+            flash('Error de base de datos al guardar el activo. Intente nuevamente.', 'danger')
+            return redirect(url_for('activos.add_activo'))
+        except (OSError, IOError) as e:
+            # Errores de operaciones de archivos
+            db.session.rollback()
+            flash(f'Error al procesar archivos adjuntos: {str(e)}', 'danger')
+            current_app.logger.error(f"Error de archivo al agregar activo: {e}")
             return redirect(url_for('activos.add_activo'))
         except Exception as e:
+            # Captura de último recurso para errores inesperados
             db.session.rollback()
-            current_app.logger.error(f"[DEBUG] Exception general capturada: {e}")
-            current_app.logger.error(f"[DEBUG] Tipo de excepción: {type(e).__name__}")
             import traceback
-            current_app.logger.error(f"[DEBUG] Traceback completo:\n{traceback.format_exc()}")
-            flash(f'Error inesperado al procesar el formulario: {str(e)}', 'danger')
-            # Redirige al formulario de nuevo para que el usuario no pierda contexto
+            current_app.logger.error(f"Error inesperado al agregar activo: {type(e).__name__} - {e}")
+            current_app.logger.error(f"Traceback completo:\n{traceback.format_exc()}")
+            flash(f'Error inesperado al procesar el formulario. Contacte al administrador.', 'danger')
             return redirect(url_for('activos.add_activo'))
 
     # --- Lógica para mostrar el wizard de creación ---
@@ -405,18 +493,39 @@ def add_activo():
 @login_required
 def buscar_funcionarios():
     """
-    API endpoint para búsqueda dinámica de funcionarios.
-    Acepta parámetro 'q' para búsqueda por nombre, apellido o cédula.
+    API endpoint para búsqueda dinámica de funcionarios (GET - solo lectura).
+    No requiere protección CSRF ya que es una operación de solo lectura.
+
+    Acepta parámetros:
+    - 'q': texto de búsqueda por nombre, apellido o cédula
+    - 'page': número de página (default: 1)
+    - 'limit': resultados por página (default: 10, max: 50)
     """
     query = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+
+    # Limitar el límite máximo para prevenir sobrecarga
+    limit = min(limit, 50)
 
     if len(query) < 2:
-        return jsonify([])
+        return jsonify({'results': [], 'total': 0, 'page': page, 'has_more': False})
 
     # Búsqueda flexible: nombre, apellidos o cédula
     from ..models import Funcionario
-    # Se modifica la consulta para seleccionar solo las columnas necesarias
-    # y evitar el error "Unknown column 'funcionarios.estado'".
+
+    # Contar total de resultados
+    count_stmt = select(func.count()).select_from(Funcionario).where(
+        or_(
+            Funcionario.nombres.ilike(f'%{query}%'),
+            Funcionario.apellidos.ilike(f'%{query}%'),
+            Funcionario.cedula.ilike(f'%{query}%')
+        )
+    )
+    total = db.session.scalar(count_stmt)
+
+    # Consulta con paginación
+    offset = (page - 1) * limit
     stmt = select(
         Funcionario.id,
         Funcionario.nombres,
@@ -429,7 +538,7 @@ def buscar_funcionarios():
             Funcionario.apellidos.ilike(f'%{query}%'),
             Funcionario.cedula.ilike(f'%{query}%')
         )
-    ).order_by(Funcionario.nombres, Funcionario.apellidos).limit(10)
+    ).order_by(Funcionario.nombres, Funcionario.apellidos).offset(offset).limit(limit)
 
     funcionarios = db.session.execute(stmt).all()
 
@@ -444,12 +553,22 @@ def buscar_funcionarios():
         for f in funcionarios
     ]
 
-    return jsonify(resultados)
+    has_more = (page * limit) < total
+
+    return jsonify({
+        'results': resultados,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
 
 @activos_bp.route('/editar/<int:activo_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('Admin')
 def edit_activo(activo_id):
+    """
+    Editar activo existente (POST protegido con CSRF automático vía Flask-WTF).
+    """
     activo = db.session.get(Activo, activo_id)
     if not activo:
         flash('Activo no encontrado.', 'danger')
@@ -478,13 +597,27 @@ def edit_activo(activo_id):
                 except (ValueError, TypeError):
                     flash('El valor comercial debe ser un número válido.', 'danger')
                     return redirect(url_for('activos.edit_activo', activo_id=activo_id))
-                
+
+                # Validación de integridad: activos propios deben tener valor comercial > 0
+                if activo.valor_comercial <= 0:
+                    flash('Los activos propios deben tener un valor comercial mayor a cero.', 'danger')
+                    return redirect(url_for('activos.edit_activo', activo_id=activo_id))
+
                 activo.origen_adquisicion = data.get('origen_adquisicion')
                 activo.clase_id = int(data.get('clase_id')) if data.get('clase_id') else None
-                
+
             elif tipo_propiedad == 'Ajeno':
                 activo.propietario_ajeno = data.get('propietario_ajeno')
                 activo.condicion_tenencia = data.get('condicion_tenencia')
+
+                # Validación de integridad: activos ajenos deben tener propietario y condición
+                if not activo.propietario_ajeno or not activo.propietario_ajeno.strip():
+                    flash('Los activos ajenos deben tener un propietario especificado.', 'danger')
+                    return redirect(url_for('activos.edit_activo', activo_id=activo_id))
+
+                if not activo.condicion_tenencia or not activo.condicion_tenencia.strip():
+                    flash('Los activos ajenos deben tener una condición de tenencia especificada.', 'danger')
+                    return redirect(url_for('activos.edit_activo', activo_id=activo_id))
 
                 # FASE 3: Sistema de Ingreso Temporal
                 es_ingreso_temporal_str = data.get('es_ingreso_temporal', 'false')
@@ -532,7 +665,7 @@ def edit_activo(activo_id):
                         flash(f'Faltan campos obligatorios: {errores_msg}', 'danger')
                         return redirect(url_for('activos.edit_activo', activo_id=activo_id))
 
-                # MySQL almacena JSON nativamente, no necesita dumps
+                # SQLAlchemy maneja la serialización JSON automáticamente
                 activo.atributos_dinamicos_json = atributos_dinamicos
 
             # Lógica para actualizar archivos (borrar el antiguo si se sube uno nuevo)
@@ -561,12 +694,32 @@ def edit_activo(activo_id):
             # Errores de validación (archivos, formato de datos)
             flash(str(e), 'danger')
             current_app.logger.warning(f"Error de validación al editar activo: {e}")
-        except exc.IntegrityError:
+        except TypeError as e:
+            # Errores de conversión de tipos
+            db.session.rollback()
+            flash(f'Error en el formato de datos: {str(e)}', 'danger')
+            current_app.logger.warning(f"TypeError al editar activo: {e}")
+        except exc.IntegrityError as e:
             db.session.rollback()
             flash('Error de base de datos: La placa o código interno ya existe para otro activo.', 'danger')
-        except Exception as e:
+            current_app.logger.warning(f"IntegrityError al editar activo: {e}")
+        except exc.SQLAlchemyError as e:
+            # Otros errores de base de datos
             db.session.rollback()
-            flash(f'Ocurrió un error inesperado al actualizar el activo: {e}', 'danger')
+            flash('Error de base de datos al actualizar el activo. Intente nuevamente.', 'danger')
+            current_app.logger.error(f"Error de base de datos al editar activo: {e}")
+        except (OSError, IOError) as e:
+            # Errores de operaciones de archivos
+            db.session.rollback()
+            flash(f'Error al procesar archivos adjuntos: {str(e)}', 'danger')
+            current_app.logger.error(f"Error de archivo al editar activo: {e}")
+        except Exception as e:
+            # Captura de último recurso para errores inesperados
+            db.session.rollback()
+            import traceback
+            current_app.logger.error(f"Error inesperado al editar activo: {type(e).__name__} - {e}")
+            current_app.logger.error(f"Traceback:\n{traceback.format_exc()}")
+            flash(f'Error inesperado al actualizar el activo. Contacte al administrador.', 'danger')
         return redirect(url_for('activos.edit_activo', activo_id=activo_id))
     
     # --- Lógica para mostrar el wizard en modo edición ---
@@ -635,6 +788,10 @@ def edit_activo(activo_id):
 @login_required
 @role_required('Admin')
 def delete_activo(activo_id):
+    """
+    Eliminar activo (POST protegido con CSRF automático vía Flask-WTF).
+    Valida relaciones antes de permitir eliminación.
+    """
     try:
         # VALIDACIÓN COMPLETA: Verificar TODAS las relaciones antes de eliminar
         # Esto previene pérdida de trazabilidad y auditoría
@@ -680,7 +837,8 @@ def delete_activo(activo_id):
 @login_required
 def get_clases():
     """
-    API endpoint para obtener todas las clases de activos.
+    API endpoint para obtener todas las clases de activos (GET - solo lectura).
+    No requiere protección CSRF ya que es una operación de solo lectura.
     Usado por el wizard de React para popular el selector de clases.
     """
     clases = db.session.scalars(select(ClaseActivo).order_by(ClaseActivo.nombre_clase)).all()
@@ -694,6 +852,10 @@ def get_clases():
 
 @activos_bp.route('/api/clase_atributos/<int:clase_id>')
 def get_clase_atributos(clase_id):
+    """
+    API endpoint para obtener atributos dinámicos de una clase (GET - solo lectura).
+    No requiere protección CSRF ya que es una operación de solo lectura.
+    """
     return jsonify(ATRIBUTOS_POR_CLASE.get(str(clase_id), []))
 
 @activos_bp.route('/detalle/<int:activo_id>')
@@ -734,13 +896,17 @@ def detalle_activo(activo_id):
         select(HojaVidaBiomedico).where(HojaVidaBiomedico.activo_id == activo_id)
     )
 
-    # Parsear atributos dinámicos
+    # Parsear atributos dinámicos (la columna db.JSON ya entrega un dict;
+    # se soporta string por compatibilidad con datos antiguos)
     atributos_dinamicos = {}
     if activo.atributos_dinamicos_json:
-        try:
-            atributos_dinamicos = json.loads(activo.atributos_dinamicos_json)
-        except (json.JSONDecodeError, TypeError):
-            pass
+        if isinstance(activo.atributos_dinamicos_json, dict):
+            atributos_dinamicos = activo.atributos_dinamicos_json
+        elif isinstance(activo.atributos_dinamicos_json, str):
+            try:
+                atributos_dinamicos = json.loads(activo.atributos_dinamicos_json)
+            except (json.JSONDecodeError, TypeError):
+                pass
 
     return render_template(
         'detalle_activo.html',
@@ -914,7 +1080,18 @@ def importar_activos():
             activos_omitidos = 0
             errores = []
 
+            # Límite de filas para prevenir timeout en importaciones masivas
+            MAX_FILAS_IMPORTACION = 1000
+            fila_count = 0
+
             for idx, fila in enumerate(csv_reader, start=2):  # start=2 porque la fila 1 son los headers
+                fila_count += 1
+
+                # Verificar límite de filas
+                if fila_count > MAX_FILAS_IMPORTACION:
+                    errores.append(f"Límite de importación alcanzado: {MAX_FILAS_IMPORTACION} filas. Las filas restantes no fueron procesadas.")
+                    flash(f'Advertencia: Se procesaron solo las primeras {MAX_FILAS_IMPORTACION} filas. Divida el archivo para importar más activos.', 'warning')
+                    break
                 try:
                     # Validaciones básicas (solo nombre y placa son obligatorios)
                     nombre = fila.get('nombre_activo', '').strip()
@@ -1117,7 +1294,18 @@ def importar_activos_ajenos():
             activos_omitidos = 0
             errores = []
 
+            # Límite de filas para prevenir timeout en importaciones masivas
+            MAX_FILAS_IMPORTACION = 1000
+            fila_count = 0
+
             for idx, fila in enumerate(csv_reader, start=2):
+                fila_count += 1
+
+                # Verificar límite de filas
+                if fila_count > MAX_FILAS_IMPORTACION:
+                    errores.append(f"Límite de importación alcanzado: {MAX_FILAS_IMPORTACION} filas. Las filas restantes no fueron procesadas.")
+                    flash(f'Advertencia: Se procesaron solo las primeras {MAX_FILAS_IMPORTACION} filas. Divida el archivo para importar más activos.', 'warning')
+                    break
                 try:
                     placa = fila.get('placa_codigo_interno', '').strip()
                     nombre = fila.get('nombre', '').strip()
@@ -1143,7 +1331,7 @@ def importar_activos_ajenos():
                         serie=fila.get('serial', '').strip() or None,
                         modelo=fila.get('referencia', '').strip() or None, # Mapeamos 'referencia' a 'modelo'
                         tipo_propiedad='Ajeno', # Marcado como Ajeno
-                        estado='operativo', # Estado inicial por defecto
+                        estado='Operativo', # Estado inicial por defecto (mismo valor canónico que el resto del sistema)
                         valor_comercial=0.0, # Valor por defecto para activos ajenos
                         ubicacion=fila.get('ubicacion', '').strip() or 'Pendiente de Asignación' # Lee del CSV o usa valor por defecto
                     )
@@ -1180,3 +1368,305 @@ def importar_activos_ajenos():
 
     # Método GET: renderizar la plantilla de importación
     return render_template('importar_activos_ajenos.html')
+
+
+# ============================================================================
+# EXPORTACIÓN DE INVENTARIO A EXCEL Y PDF
+# ============================================================================
+
+@activos_bp.route('/exportar-inventario-excel', methods=['GET'])
+@login_required
+def exportar_inventario_excel():
+    """
+    Exporta el inventario de activos a Excel con opción de filtrar por rango de fechas.
+
+    Parámetros GET:
+    - exportar_todo: 'true' para exportar todo el inventario
+    - fecha_desde: Fecha de inicio del rango (formato YYYY-MM-DD)
+    - fecha_hasta: Fecha de fin del rango (formato YYYY-MM-DD)
+    """
+    from flask import send_file
+    from datetime import datetime
+    from ..excel_export import exportar_inventario_excel
+
+    try:
+        # Obtener parámetros
+        exportar_todo = request.args.get('exportar_todo', 'false').lower() == 'true'
+        fecha_desde_str = request.args.get('fecha_desde', '').strip()
+        fecha_hasta_str = request.args.get('fecha_hasta', '').strip()
+
+        # Construir consulta base
+        stmt = (
+            select(Activo, ClaseActivo.nombre_clase, (Funcionario.nombres + ' ' + Funcionario.apellidos).label('funcionario_responsable'))
+            .outerjoin(ClaseActivo, Activo.clase_id == ClaseActivo.id)
+            .outerjoin(Funcionario, Activo.funcionario_id == Funcionario.id)
+        )
+
+        conditions = []
+        filtros_info = {}
+
+        # Si no es exportar todo, aplicar filtro de fechas
+        if not exportar_todo:
+            if fecha_desde_str:
+                try:
+                    fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+                    conditions.append(Activo.created_at >= fecha_desde)
+                    filtros_info['fecha_desde'] = fecha_desde_str
+                except ValueError:
+                    flash('Formato de fecha de inicio inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos.ver_activos'))
+
+            if fecha_hasta_str:
+                try:
+                    # Agregar un día completo a la fecha hasta (hasta las 23:59:59)
+                    fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+                    from datetime import timedelta
+                    fecha_hasta = fecha_hasta + timedelta(days=1)
+                    conditions.append(Activo.created_at < fecha_hasta)
+                    filtros_info['fecha_hasta'] = fecha_hasta_str
+                except ValueError:
+                    flash('Formato de fecha de fin inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos.ver_activos'))
+
+        # Aplicar condiciones si existen
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
+        # Ordenar por fecha de ingreso (más recientes primero)
+        stmt = stmt.order_by(Activo.created_at.desc())
+
+        # Ejecutar consulta
+        result = db.session.execute(stmt).all()
+
+        # Procesar resultados
+        activos = []
+        for row in result:
+            activo, nombre_clase, funcionario_responsable = row
+            activo.nombre_clase = nombre_clase
+            activo.funcionario_responsable = funcionario_responsable
+
+            # Normalizar valor_comercial
+            if activo.valor_comercial is None:
+                activo.valor_comercial = 0.0
+
+            activos.append(activo)
+
+        # Verificar que haya activos para exportar
+        if not activos:
+            flash('No hay activos que cumplan con los criterios de exportación.', 'warning')
+            return redirect(url_for('activos.ver_activos'))
+
+        # Generar archivo Excel
+        excel_file = exportar_inventario_excel(activos, filtros=filtros_info)
+
+        # Generar nombre de archivo
+        if exportar_todo:
+            nombre_archivo = f"inventario_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        else:
+            nombre_archivo = f"inventario_{fecha_desde_str or 'inicio'}_{fecha_hasta_str or 'hoy'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+        # Enviar archivo
+        return send_file(
+            excel_file,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    except Exception as e:
+        current_app.logger.error(f"Error al exportar inventario a Excel: {e}", exc_info=True)
+        flash(f'Error al generar el archivo Excel: {str(e)}', 'danger')
+        return redirect(url_for('activos.ver_activos'))
+
+
+@activos_bp.route('/exportar-inventario-pdf', methods=['GET'])
+@login_required
+def exportar_inventario_pdf():
+    """
+    Exporta el inventario de activos a PDF con opción de filtrar por rango de fechas.
+
+    Parámetros GET:
+    - exportar_todo: 'true' para exportar todo el inventario
+    - fecha_desde: Fecha de inicio del rango (formato YYYY-MM-DD)
+    - fecha_hasta: Fecha de fin del rango (formato YYYY-MM-DD)
+    """
+    from flask import send_file
+    from datetime import datetime, timedelta
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from io import BytesIO
+
+    try:
+        # Obtener parámetros
+        exportar_todo = request.args.get('exportar_todo', 'false').lower() == 'true'
+        fecha_desde_str = request.args.get('fecha_desde', '').strip()
+        fecha_hasta_str = request.args.get('fecha_hasta', '').strip()
+
+        # Construir consulta base
+        stmt = (
+            select(Activo, ClaseActivo.nombre_clase, (Funcionario.nombres + ' ' + Funcionario.apellidos).label('funcionario_responsable'))
+            .outerjoin(ClaseActivo, Activo.clase_id == ClaseActivo.id)
+            .outerjoin(Funcionario, Activo.funcionario_id == Funcionario.id)
+        )
+
+        conditions = []
+        filtros_texto = []
+
+        # Si no es exportar todo, aplicar filtro de fechas
+        if not exportar_todo:
+            if fecha_desde_str:
+                try:
+                    fecha_desde = datetime.strptime(fecha_desde_str, '%Y-%m-%d')
+                    conditions.append(Activo.created_at >= fecha_desde)
+                    filtros_texto.append(f"Desde: {fecha_desde_str}")
+                except ValueError:
+                    flash('Formato de fecha de inicio inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos.ver_activos'))
+
+            if fecha_hasta_str:
+                try:
+                    fecha_hasta = datetime.strptime(fecha_hasta_str, '%Y-%m-%d')
+                    fecha_hasta = fecha_hasta + timedelta(days=1)
+                    conditions.append(Activo.created_at < fecha_hasta)
+                    filtros_texto.append(f"Hasta: {fecha_hasta_str}")
+                except ValueError:
+                    flash('Formato de fecha de fin inválido. Use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('activos.ver_activos'))
+
+        # Aplicar condiciones si existen
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
+
+        # Ordenar por fecha de ingreso
+        stmt = stmt.order_by(Activo.created_at.desc())
+
+        # Ejecutar consulta
+        result = db.session.execute(stmt).all()
+
+        # Procesar resultados
+        activos = []
+        for row in result:
+            activo, nombre_clase, funcionario_responsable = row
+            activo.nombre_clase = nombre_clase
+            activo.funcionario_responsable = funcionario_responsable
+
+            if activo.valor_comercial is None:
+                activo.valor_comercial = 0.0
+
+            activos.append(activo)
+
+        # Verificar que haya activos
+        if not activos:
+            flash('No hay activos que cumplan con los criterios de exportación.', 'warning')
+            return redirect(url_for('activos.ver_activos'))
+
+        # Crear PDF
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+
+        # Contenedor de elementos
+        elements = []
+
+        # Estilos
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#0066CC'),
+            spaceAfter=12,
+            alignment=1  # Centro
+        )
+
+        # Título
+        titulo = Paragraph("INVENTARIO GENERAL DE ACTIVOS - JEROSMART", title_style)
+        elements.append(titulo)
+
+        # Información del reporte
+        info_style = ParagraphStyle('Info', parent=styles['Normal'], fontSize=9, alignment=1)
+        fecha_generacion = Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", info_style)
+        elements.append(fecha_generacion)
+
+        if filtros_texto:
+            filtros_info = Paragraph(f"Filtros: {' | '.join(filtros_texto)}", info_style)
+            elements.append(filtros_info)
+
+        elements.append(Spacer(1, 0.3*inch))
+
+        # Crear tabla
+        data = [['Placa', 'Nombre', 'Tipo', 'Clase', 'Estado', 'Ubicación', 'Valor', 'Fecha Ingreso']]
+
+        valor_total = 0
+        for activo in activos:
+            nombre_clase = activo.nombre_clase or ''
+            valor = activo.valor_comercial if activo.valor_comercial else 0
+            valor_total += valor
+
+            data.append([
+                activo.placa_codigo_interno[:15],  # Truncar para ajustar
+                activo.nombre_activo[:25],
+                activo.tipo_propiedad or 'Propio',
+                nombre_clase[:15],
+                activo.estado[:15],
+                (activo.ubicacion or '')[:20],
+                f"${valor:,.0f}",
+                activo.created_at.strftime('%d/%m/%Y') if activo.created_at else ''
+            ])
+
+        # Agregar fila de totales
+        data.append(['', '', '', '', '', 'TOTAL:', f"${valor_total:,.0f}", f"{len(activos)} activos"])
+
+        # Crear tabla
+        t = Table(data, colWidths=[0.8*inch, 1.8*inch, 0.7*inch, 1.0*inch, 0.9*inch, 1.3*inch, 0.9*inch, 0.9*inch])
+
+        # Estilo de tabla
+        t.setStyle(TableStyle([
+            # Encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0066CC')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+
+            # Datos
+            ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -2), 8),
+            ('GRID', (0, 0), (-1, -2), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#F5F5F5')]),
+
+            # Fila de totales
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#E6F2FF')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 9),
+            ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor('#0066CC')),
+        ]))
+
+        elements.append(t)
+
+        # Construir PDF
+        doc.build(elements)
+
+        # Preparar para envío
+        buffer.seek(0)
+
+        # Generar nombre de archivo
+        if exportar_todo:
+            nombre_archivo = f"inventario_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        else:
+            nombre_archivo = f"inventario_{fecha_desde_str or 'inicio'}_{fecha_hasta_str or 'hoy'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype='application/pdf'
+        )
+
+    except Exception as e:
+        current_app.logger.error(f"Error al exportar inventario a PDF: {e}", exc_info=True)
+        flash(f'Error al generar el archivo PDF: {str(e)}', 'danger')
+        return redirect(url_for('activos.ver_activos'))

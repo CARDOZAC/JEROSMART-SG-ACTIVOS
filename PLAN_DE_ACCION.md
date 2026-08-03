@@ -131,7 +131,9 @@ valor_residual = db.Column(db.Float, default=0.0)
 vida_util_restante_meses = db.Column(db.Integer, nullable=True)
 observaciones_depreciacion = db.Column(db.Text, nullable=True)
 ```
-
+IMPORT SQL (CONSOLE.MD)
+ DNS = 00.8965 (CONSOLE.LOG) 
+ 
 **Modificar propiedad `depreciacion_acumulada` (línea 186):**
 ```python
 @property

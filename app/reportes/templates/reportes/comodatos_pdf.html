@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Comodatos - Clínica Primavera</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm 1cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #0066CC;
+        }
+
+        .header h1 {
+            font-size: 18pt;
+            color: #0066CC;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 11pt;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .header .meta-info {
+            font-size: 8pt;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .summary-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            page-break-inside: avoid;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #0066CC;
+            display: block;
+        }
+
+        .summary-label {
+            font-size: 8pt;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 8pt;
+        }
+
+        thead {
+            background: #0066CC;
+            color: white;
+        }
+
+        thead th {
+            padding: 10px 6px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 8pt;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        tbody td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background: #e3f2fd;
+        }
+
+        /* Row colors por estado */
+        tbody tr.vencido {
+            background: #ffebee !important;
+        }
+
+        tbody tr.proximo-vencer {
+            background: #fff3e0 !important;
+        }
+
+        tbody tr.vigente {
+            /* Sin background especial */
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-vigente {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-proximo-vencer {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-vencido {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-finalizado {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        .text-danger {
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        .text-warning {
+            color: #f57c00;
+            font-weight: 600;
+        }
+
+        .text-success {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .text-muted {
+            color: #999;
+        }
+
+        .footer-info {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: #999;
+            padding: 10px 0;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 12pt;
+        }
+
+        /* Page breaks */
+        .page-break {
+            page-break-before: always;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+
+        /* Evitar page breaks en elementos importantes */
+        .summary-box, thead tr {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Reporte de Contratos de Comodato</h1>
+        <div class="subtitle">Corporación Clínica Primavera - Sistema de Gestión de Activos Fijos</div>
+        <div class="meta-info">
+            Generado: {{ fecha_generacion }} por {{ usuario_generador }}
+            {% if filtros_aplicados %}
+            | Filtros: {{ filtros_aplicados }}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="summary-box">
+        <div class="summary-item">
+            <span class="summary-value">{{ metricas.total_comodatos }}</span>
+            <span class="summary-label">Total Comodatos</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-value" style="color: #2e7d32;">{{ metricas.comodatos_vigentes }}</span>
+            <span class="summary-label">Vigentes</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-value" style="color: #f57c00;">{{ metricas.comodatos_proximos_vencer }}</span>
+            <span class="summary-label">Próximos a Vencer</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-value" style="color: #c62828;">{{ metricas.comodatos_vencidos }}</span>
+            <span class="summary-label">Vencidos</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-value">${{ "{:,.2f}".format(metricas.valor_total) }}</span>
+            <span class="summary-label">Valor Total Ref.</span>
+        </div>
+    </div>
+
+    <!-- Tabla de Comodatos -->
+    {% if comodatos_data|length > 0 %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">N° Contrato</th>
+                <th style="width: 20%;">Comodante</th>
+                <th style="width: 12%;">NIT</th>
+                <th style="width: 8%;">Inicio</th>
+                <th style="width: 8%;">Fin</th>
+                <th style="width: 8%;">Días Rest.</th>
+                <th style="width: 12%;">Valor Ref.</th>
+                <th style="width: 12%;">Ubicación</th>
+                <th style="width: 10%;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in comodatos_data %}
+            <tr class="{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer else 'vigente' }}">
+                <td>
+                    <strong>{{ row.numero_contrato }}</strong>
+                </td>
+                <td>
+                    {{ row.comodante_nombre }}
+                </td>
+                <td>
+                    {{ row.comodante_nit }}
+                </td>
+                <td>
+                    {{ row.fecha_inicio.strftime('%d/%m/%Y') }}
+                </td>
+                <td>
+                    {{ row.fecha_fin.strftime('%d/%m/%Y') }}
+                </td>
+                <td>
+                    {% if row.dias_para_vencimiento < 0 %}
+                    <span class="text-danger">
+                        -{{ row.dias_para_vencimiento|abs }}
+                    </span>
+                    {% elif row.dias_para_vencimiento <= 30 %}
+                    <span class="text-warning">
+                        {{ row.dias_para_vencimiento }}
+                    </span>
+                    {% else %}
+                    {{ row.dias_para_vencimiento }}
+                    {% endif %}
+                </td>
+                <td style="text-align: right;">
+                    {% if row.valor_comercial_referencial %}
+                    ${{ "{:,.2f}".format(row.valor_comercial_referencial) }}
+                    {% else %}
+                    <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ row.ubicacion_bien[:30] }}{% if row.ubicacion_bien|length > 30 %}...{% endif %}
+                </td>
+                <td>
+                    {% if row.esta_vencido %}
+                    <span class="badge badge-vencido">Vencido</span>
+                    {% elif row.esta_proximo_a_vencer %}
+                    <span class="badge badge-proximo-vencer">Próx. Vencer</span>
+                    {% elif row.estado_comodato == 'Vigente' %}
+                    <span class="badge badge-vigente">Vigente</span>
+                    {% else %}
+                    <span class="badge badge-finalizado">{{ row.estado_comodato }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Información Adicional -->
+    {% if alertas and alertas|length > 0 %}
+    <div class="page-break"></div>
+    <div class="header" style="margin-top: 0;">
+        <h1 style="font-size: 16pt;">Alertas y Observaciones</h1>
+        <div class="subtitle" style="font-size: 10pt;">Contratos que requieren atención inmediata</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">Prioridad</th>
+                <th style="width: 15%;">N° Contrato</th>
+                <th style="width: 25%;">Comodante</th>
+                <th style="width: 12%;">Fecha Vencimiento</th>
+                <th style="width: 10%;">Días Restantes</th>
+                <th style="width: 30%;">Mensaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alerta in alertas[:50] %}
+            <tr>
+                <td>
+                    {% if alerta.tipo == 'danger' %}
+                    <span class="badge badge-vencido">ALTA</span>
+                    {% elif alerta.tipo == 'warning' %}
+                    <span class="badge badge-proximo-vencer">MEDIA</span>
+                    {% else %}
+                    <span class="badge badge-vigente">BAJA</span>
+                    {% endif %}
+                </td>
+                <td>{{ alerta.numero_contrato or 'N/A' }}</td>
+                <td>{{ alerta.comodante or 'N/A' }}</td>
+                <td>{{ alerta.fecha_vencimiento or 'N/A' }}</td>
+                <td>
+                    {% if alerta.dias_restantes is not none %}
+                        {% if alerta.dias_restantes < 0 %}
+                        <span class="text-danger">{{ alerta.dias_restantes }}</span>
+                        {% elif alerta.dias_restantes <= 30 %}
+                        <span class="text-warning">{{ alerta.dias_restantes }}</span>
+                        {% else %}
+                        {{ alerta.dias_restantes }}
+                        {% endif %}
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td style="font-size: 7.5pt;">{{ alerta.mensaje }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% else %}
+    <!-- No data state -->
+    <div class="no-data">
+        <p><strong>No se encontraron contratos de comodato</strong></p>
+        <p>No hay datos disponibles con los filtros seleccionados.</p>
+    </div>
+    {% endif %}
+
+    <!-- Footer info -->
+    <div class="footer-info">
+        Sistema de Gestión de Activos Fijos JEROSMART - Corporación Clínica Primavera
+        <br>
+        © {{ fecha_generacion.split()[0].split('-')[0] }} JEROSMART. Documento generado automáticamente.
+    </div>
+</body>
+</html>

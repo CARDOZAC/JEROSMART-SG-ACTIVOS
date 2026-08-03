@@ -36,7 +36,8 @@ class MovimientoFiltroForm(FlaskForm):
             ('Traslado', 'Acta de Traslado'),
             ('Entrada/Salida', 'Acta de Entrada/Salida'),
             ('Paz y Salvo', 'Acta de Paz y Salvo'),
-            ('Reporte de Da�o o P�rdida', 'Reporte de Da�o o P�rdida')
+            ('Reporte de Da�o o P�rdida', 'Reporte de Da�o o P�rdida'),
+            ('Comodato', 'Acta de Comodato')
         ],
         validators=[Optional()],
         render_kw={'class': 'form-select'}
@@ -340,4 +341,204 @@ def get_client_ip(request):
 
     # Limitar longitud para compatibilidad con BD (VARCHAR(45))
     return ip_address[:45]
+
+
+# ==============================================================================
+# FORMULARIO DE COMODATO
+# ==============================================================================
+
+class ComodatoForm(FlaskForm):
+    """
+    Formulario para registro de Comodatos.
+
+    CONTEXTO LEGAL Y CONTABLE:
+    El comodato es un contrato de préstamo gratuito que requiere documentación
+    detallada para cumplir con:
+    - Código Civil Colombiano (Art. 2200)
+    - NIIF para PYMES, Sección 20 (Revelación en notas)
+    - Control interno y trazabilidad de activos
+
+    Este formulario solo proporciona protección CSRF.
+    La validación de campos se hace en JavaScript y backend (routes.py).
+    """
+    # Token CSRF automático - No hay campos adicionales
+    pass
+
+
+# ==============================================================================
+# VALIDADORES ESPECÍFICOS PARA COMODATO
+# ==============================================================================
+
+def validar_fecha_comodato(fecha_inicio, fecha_fin):
+    """
+    Valida que las fechas del comodato sean coherentes.
+
+    Args:
+        fecha_inicio: Fecha de inicio del comodato (date object)
+        fecha_fin: Fecha de fin del comodato (date object)
+
+    Returns:
+        tuple: (is_valid, error_message)
+
+    Validaciones:
+    - La fecha de inicio no puede ser posterior a la fecha de fin
+    - La duración mínima debe ser 1 día
+    - La duración máxima recomendada es 5 años (1825 días)
+
+    Ejemplo:
+        >>> from datetime import date
+        >>> validar_fecha_comodato(date(2024, 1, 1), date(2024, 12, 31))
+        (True, None)
+        >>> validar_fecha_comodato(date(2024, 12, 31), date(2024, 1, 1))
+        (False, 'La fecha de inicio no puede ser posterior a la fecha de fin')
+    """
+    from datetime import date, timedelta
+
+    if not fecha_inicio or not fecha_fin:
+        return False, 'Las fechas de inicio y fin son obligatorias'
+
+    # Convertir a date si son datetime
+    if hasattr(fecha_inicio, 'date'):
+        fecha_inicio = fecha_inicio.date()
+    if hasattr(fecha_fin, 'date'):
+        fecha_fin = fecha_fin.date()
+
+    # Validar orden de fechas
+    if fecha_inicio > fecha_fin:
+        return False, 'La fecha de inicio no puede ser posterior a la fecha de fin'
+
+    # Validar duración mínima (1 día)
+    duracion = (fecha_fin - fecha_inicio).days
+    if duracion < 1:
+        return False, 'La duración del comodato debe ser de al menos 1 día'
+
+    # Alerta para duraciones muy largas (más de 5 años)
+    if duracion > 1825:  # 5 años
+        return True, 'ALERTA: El comodato tiene una duración superior a 5 años'
+
+    return True, None
+
+
+def calcular_plazo_meses(fecha_inicio, fecha_fin):
+    """
+    Calcula el plazo en meses entre dos fechas.
+
+    Args:
+        fecha_inicio: Fecha de inicio (date object)
+        fecha_fin: Fecha de fin (date object)
+
+    Returns:
+        int: Número de meses (redondeado)
+
+    Ejemplo:
+        >>> from datetime import date
+        >>> calcular_plazo_meses(date(2024, 1, 1), date(2024, 12, 31))
+        12
+        >>> calcular_plazo_meses(date(2024, 1, 1), date(2024, 7, 15))
+        6
+    """
+    if not fecha_inicio or not fecha_fin:
+        return 0
+
+    # Convertir a date si son datetime
+    if hasattr(fecha_inicio, 'date'):
+        fecha_inicio = fecha_inicio.date()
+    if hasattr(fecha_fin, 'date'):
+        fecha_fin = fecha_fin.date()
+
+    # Calcular diferencia en meses
+    meses = (fecha_fin.year - fecha_inicio.year) * 12 + (fecha_fin.month - fecha_inicio.month)
+
+    # Ajustar por días si el día final es menor que el inicial
+    if fecha_fin.day < fecha_inicio.day:
+        meses -= 1
+
+    return max(0, meses)
+
+
+def validar_nit_comodato(nit):
+    """
+    Valida el formato de un NIT para comodato.
+
+    Args:
+        nit: String con el NIT a validar
+
+    Returns:
+        tuple: (is_valid, cleaned_nit)
+
+    Formatos aceptados:
+    - XXXXXXXXX-X (formato estándar)
+    - XXXXXXXXX (sin dígito de verificación)
+
+    Ejemplo:
+        >>> validar_nit_comodato('900123456-7')
+        (True, '900123456-7')
+        >>> validar_nit_comodato('900123456')
+        (True, '900123456')
+        >>> validar_nit_comodato('invalid')
+        (False, None)
+    """
+    import re
+
+    if not nit or not isinstance(nit, str):
+        return False, None
+
+    # Limpiar espacios
+    nit_clean = nit.strip()
+
+    # Patrón 1: XXXXXXXXX-X (con dígito de verificación)
+    pattern1 = r'^\d{9}-\d$'
+    # Patrón 2: XXXXXXXXX (sin dígito de verificación)
+    pattern2 = r'^\d{9}$'
+    # Patrón 3: Formato flexible (permitir 7-10 dígitos con o sin guión)
+    pattern3 = r'^\d{7,10}(-\d)?$'
+
+    if re.match(pattern1, nit_clean) or re.match(pattern2, nit_clean) or re.match(pattern3, nit_clean):
+        return True, nit_clean
+
+    return False, None
+
+
+def validar_numero_contrato(numero_contrato):
+    """
+    Valida el formato de un número de contrato de comodato.
+
+    Args:
+        numero_contrato: String con el número de contrato
+
+    Returns:
+        tuple: (is_valid, error_message)
+
+    Validaciones:
+    - Longitud mínima: 3 caracteres
+    - Longitud máxima: 100 caracteres
+    - Caracteres permitidos: alfanuméricos, guiones, espacios
+
+    Ejemplo:
+        >>> validar_numero_contrato('COM-2024-001')
+        (True, None)
+        >>> validar_numero_contrato('AB')
+        (False, 'El número de contrato debe tener al menos 3 caracteres')
+    """
+    import re
+
+    if not numero_contrato or not isinstance(numero_contrato, str):
+        return False, 'El número de contrato es obligatorio'
+
+    # Limpiar espacios al inicio y final
+    numero_clean = numero_contrato.strip()
+
+    # Validar longitud
+    if len(numero_clean) < 3:
+        return False, 'El número de contrato debe tener al menos 3 caracteres'
+
+    if len(numero_clean) > 100:
+        return False, 'El número de contrato no puede exceder 100 caracteres'
+
+    # Validar caracteres (alfanuméricos, guiones, espacios, barras)
+    pattern = r'^[\w\s\-/]+$'
+    if not re.match(pattern, numero_clean):
+        return False, 'El número de contrato contiene caracteres no permitidos'
+
+    return True, None
 
