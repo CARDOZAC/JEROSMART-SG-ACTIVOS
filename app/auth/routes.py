@@ -9,14 +9,8 @@ from ..extensions import db, login_manager
 from ..decorators import login_required
 from . import auth_bp  # Importar el Blueprint definido en __init__.py
 
-@login_manager.user_loader
-def load_user(user_id):
-    """
-    Función que Flask-Login usa para recargar el objeto de usuario desde el ID
-    almacenado en la sesión. Es esencial para el funcionamiento de la sesión.
-    """
-    # user_id es una cadena, se debe convertir a entero para la consulta.
-    return db.session.get(User, int(user_id))
+# El user_loader de Flask-Login está definido una sola vez, en app/extensions.py.
+# Aquí había una segunda definición que lo sobrescribía al importar este módulo.
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -25,24 +19,9 @@ def login():
 
     form = LoginForm()
 
-    # DEBUG: Log del intento de login
-    if request.method == 'POST':
-        current_app.logger.info(f"[LOGIN DEBUG] Intento de login recibido")
-        current_app.logger.info(f"[LOGIN DEBUG] Email recibido: {form.email.data}")
-        current_app.logger.info(f"[LOGIN DEBUG] Form válido: {form.validate_on_submit()}")
-        if form.errors:
-            current_app.logger.error(f"[LOGIN DEBUG] Errores del formulario: {form.errors}")
-
     if form.validate_on_submit():
         stmt = select(User).where(User.email == form.email.data)
         user = db.session.scalars(stmt).first()
-
-        # DEBUG: Log del usuario encontrado
-        current_app.logger.info(f"[LOGIN DEBUG] Usuario encontrado: {user is not None}")
-        if user:
-            current_app.logger.info(f"[LOGIN DEBUG] Email del usuario: {user.email}")
-            password_ok = user.check_password(form.password.data)
-            current_app.logger.info(f"[LOGIN DEBUG] Contraseña correcta: {password_ok}")
 
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
@@ -50,11 +29,16 @@ def login():
             session['rol'] = user.rol
             session['user_id'] = user.id
             session['email'] = user.email
+            session['cargo'] = user.cargo
             current_app.logger.info(f"[LOGIN] Usuario {user.email} con rol {user.rol} inició sesión")
             return redirect(url_for('main.index'))
-        else:
-            current_app.logger.warning(f"[LOGIN DEBUG] Login fallido para email: {form.email.data}")
-            flash('Credenciales inválidas. Por favor, verifica tu correo y contraseña.', 'danger')
+
+        # No se distingue "usuario inexistente" de "contraseña incorrecta",
+        # ni en el mensaje ni en el log: hacerlo permite enumerar cuentas
+        # válidas. Se registra solo la IP para detectar intentos por fuerza
+        # bruta.
+        current_app.logger.warning(f"[LOGIN] Intento fallido desde {request.remote_addr}")
+        flash('Credenciales inválidas. Por favor, verifica tu correo y contraseña.', 'danger')
     return render_template('auth/login.html', form=form)
 
 
@@ -84,19 +68,45 @@ def forgot_password():
         stmt = select(User).where(User.email == form.email.data)
         user = db.session.scalars(stmt).first()
         if user:
-            # --- LÓGICA PARA ENVIAR EMAIL ---
-            # Aquí se implementaría la lógica de envío de correo.
-            # Por ahora, simulamos el proceso para que la app no falle.
             s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
             token = s.dumps(user.email, salt='password-reset-salt')
             reset_url = url_for('auth.reset_password', token=token, _external=True)
-            
-            # Simulación de envío de correo
-            print(f"--- SIMULACIÓN DE ENVÍO DE CORREO ---")
-            print(f"Para: {user.email}")
-            print(f"Asunto: Reseteo de Contraseña")
-            print(f"Cuerpo: Haz clic en el siguiente enlace para resetear tu contraseña: {reset_url}")
-            print(f"------------------------------------")
+
+            cuerpo = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #1c1c1e;">
+                <h2 style="font-size: 20px; margin-bottom: 8px;">Restablecer tu contraseña</h2>
+                <p style="color: #6c6c70; font-size: 15px; line-height: 1.6;">
+                    Recibimos una solicitud para restablecer la contraseña de tu cuenta.
+                    Haz clic en el botón para elegir una nueva. El enlace caduca en 1 hora.
+                </p>
+                <p style="margin: 28px 0;">
+                    <a href="{reset_url}"
+                       style="background: #007AFF; color: #fff; text-decoration: none;
+                              padding: 12px 22px; border-radius: 10px; font-weight: 600;
+                              display: inline-block;">Restablecer contraseña</a>
+                </p>
+                <p style="color: #6c6c70; font-size: 13px; line-height: 1.6;">
+                    Si no solicitaste este cambio, puedes ignorar este mensaje: tu contraseña
+                    seguirá siendo la misma.
+                </p>
+                <p style="color: #8e8e93; font-size: 12px; word-break: break-all;">
+                    Si el botón no funciona, copia esta dirección en tu navegador:<br>{reset_url}
+                </p>
+            </div>
+            """
+
+            # El envío no debe revelar al visitante si el correo existe ni
+            # tumbar la petición si el SMTP está mal configurado.
+            try:
+                from ..email_service import enviar_email
+                enviar_email(
+                    to=user.email,
+                    subject='Restablecer tu contraseña - SG Activos Fijos',
+                    html=cuerpo
+                )
+                current_app.logger.info(f"[AUTH] Enlace de restablecimiento enviado a {user.email}")
+            except Exception as e:
+                current_app.logger.error(f"[AUTH] No se pudo enviar el correo de restablecimiento: {e}")
 
         # Por seguridad, siempre mostramos el mismo mensaje, exista o no el correo.
         flash('Si tu correo está registrado, recibirás un enlace para resetear tu contraseña en breve.', 'success')

@@ -4,6 +4,12 @@
     {
       "name": "jerosmart",
       "runtimeExecutable": "venv/Scripts/python.exe",
+      "runtimeArgs": ["serve.py"],
+      "port": 5000
+    },
+    {
+      "name": "jerosmart-dev",
+      "runtimeExecutable": "venv/Scripts/python.exe",
       "runtimeArgs": ["run.py"],
       "port": 5000
     }

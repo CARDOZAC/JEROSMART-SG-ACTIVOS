@@ -200,9 +200,8 @@ def create_app(config_class=Config):
     # Llama a la función de inicialización de la configuración
     config_class.init_app(app)
 
-    # --- Registrar Comandos CLI ---
-    # Se registra el comando aquí para que Flask lo descubra.
-    app.cli.add_command(init_db_command)
+    # El comando `init-db` vive en app/db.py y lo registra init_cli().
+    # Antes estaba definido dos veces (aquí y allí), ambas con db.drop_all().
 
     return app
 
@@ -259,12 +258,3 @@ def registrar_manejadores_error(app):
         return _responder(500)
 
 
-@click.command('init-db')
-@with_appcontext
-def init_db_command():
-    """Limpia los datos existentes y crea nuevas tablas."""
-    # Aquí usamos db.drop_all() y db.create_all() para un reinicio completo.
-    # En un entorno de producción, usarías migraciones (Flask-Migrate).
-    db.drop_all()
-    db.create_all()
-    click.echo('Base de datos inicializada.')

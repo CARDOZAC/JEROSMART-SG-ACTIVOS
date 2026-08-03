@@ -340,10 +340,10 @@
                         </span>
                     </td>
                     <td>
-                        <span class="badge-estado badge-{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer else 'vigente' if row.estado_comodato == 'Vigente' else 'finalizado' }}">
+                        <span class="badge-estado badge-{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer() else 'vigente' if row.estado_comodato == 'Vigente' else 'finalizado' }}">
                             {% if row.esta_vencido %}
                             <i class="bi bi-x-circle"></i> Vencido
-                            {% elif row.esta_proximo_a_vencer %}
+                            {% elif row.esta_proximo_a_vencer() %}
                             <i class="bi bi-exclamation-triangle"></i> Próx. Vencer
                             {% elif row.estado_comodato == 'Vigente' %}
                             <i class="bi bi-check-circle"></i> Vigente

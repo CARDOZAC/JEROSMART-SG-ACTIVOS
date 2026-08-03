@@ -10,7 +10,8 @@ import weasyprint
 from sqlalchemy import select, func, and_, or_
 from ..extensions import db
 from ..models import Activo, Movimiento, MovimientoActivo, DetalleComodato, Proveedor, ClaseActivo
-from ..decorators import login_required, role_required
+from ..decorators import login_required
+from ..permissions import require_permission
 import io
 try:
     from openpyxl import Workbook
@@ -28,7 +29,7 @@ reportes_bp = Blueprint(
 
 @reportes_bp.route('/')
 @login_required
-@role_required('Admin')
+@require_permission('ver_reportes', redirigir_a='main.index')
 def index():
     """Página principal del módulo de reportes."""
     # --- Consulta para el gráfico de activos por clase ---
@@ -78,7 +79,7 @@ def index():
 
 @reportes_bp.route('/depreciacion', methods=['GET', 'POST'])
 @login_required
-@role_required('Admin')
+@require_permission('ver_reportes', redirigir_a='main.index')
 def reporte_depreciacion():
     """
     Genera y muestra un reporte de depreciación para todos los activos propios.
@@ -168,13 +169,15 @@ def dashboard_comodatos():
     hoy = date.today()
     fecha_alerta = hoy + timedelta(days=30)
 
-    # Consulta optimizada para obtener comodatos con detalles
+    # Consulta de comodatos con su movimiento asociado.
+    # NOTA: no incluir aquí `count(DISTINCT ...) OVER ()`: MySQL 8 no admite
+    # DISTINCT dentro de una función de ventana (error 1235) y la página fallaba
+    # con un 500. El total se calcula al recorrer los resultados.
     stmt = (
         select(
             DetalleComodato,
             Movimiento.fecha.label('fecha_movimiento'),
-            Movimiento.id.label('movimiento_id'),
-            func.count(func.distinct(Movimiento.id)).over().label('total_count')
+            Movimiento.id.label('movimiento_id')
         )
         .join(Movimiento, DetalleComodato.movimiento_id == Movimiento.id)
         .where(Movimiento.tipo_movimiento == 'Comodato')
@@ -604,38 +607,60 @@ def exportar_comodatos_pdf():
 
     resultados = db.session.execute(stmt).all()
 
-    # Procesar datos
-    comodatos_procesados = []
+    # La plantilla itera `comodatos_data` con objetos DetalleComodato (usa sus
+    # propiedades esta_vencido, dias_para_vencimiento, etc.) y espera además
+    # `metricas` y `alertas`. Antes se pasaban `comodatos`/`total`, nombres que
+    # la plantilla no conoce, y el PDF fallaba con UndefinedError: 'metricas'.
+    comodatos_data = []
+    alertas = []
+    vigentes = proximos = vencidos = 0
+    valor_total = 0.0
+
     for row in resultados:
         comodato = row.DetalleComodato
+        comodatos_data.append(comodato)
+
+        if comodato.valor_comercial_referencial:
+            valor_total += comodato.valor_comercial_referencial
 
         if comodato.fecha_fin < hoy:
-            estado = 'VENCIDO'
-            clase = 'vencido'
+            vencidos += 1
             dias = (hoy - comodato.fecha_fin).days
-            mensaje = f'Vencido hace {dias} días'
+            alertas.append({
+                'tipo': 'vencido',
+                'numero_contrato': comodato.numero_contrato,
+                'comodante': comodato.comodante_nombre,
+                'fecha_vencimiento': comodato.fecha_fin.strftime('%d/%m/%Y'),
+                'dias_restantes': -dias,
+                'mensaje': f'Vencido hace {dias} días'
+            })
         elif comodato.fecha_fin <= fecha_alerta:
-            estado = 'PRÓXIMO A VENCER'
-            clase = 'proximo'
+            proximos += 1
             dias = (comodato.fecha_fin - hoy).days
-            mensaje = f'Vence en {dias} días'
+            alertas.append({
+                'tipo': 'proximo',
+                'numero_contrato': comodato.numero_contrato,
+                'comodante': comodato.comodante_nombre,
+                'fecha_vencimiento': comodato.fecha_fin.strftime('%d/%m/%Y'),
+                'dias_restantes': dias,
+                'mensaje': f'Vence en {dias} días'
+            })
         else:
-            estado = 'VIGENTE'
-            clase = 'vigente'
-            dias = (comodato.fecha_fin - hoy).days
-            mensaje = f'{dias} días restantes'
+            vigentes += 1
 
-        comodatos_procesados.append({
-            'comodato': comodato,
-            'estado': estado,
-            'clase': clase,
-            'mensaje': mensaje
-        })
+    alertas.sort(key=lambda a: a['dias_restantes'])
 
     context = {
-        'comodatos': comodatos_procesados,
+        'comodatos_data': comodatos_data,
+        'alertas': alertas,
+        'metricas': {
+            'total_comodatos': len(comodatos_data),
+            'comodatos_vigentes': vigentes,
+            'comodatos_proximos_vencer': proximos,
+            'comodatos_vencidos': vencidos,
+            'valor_total': valor_total,
+        },
         'fecha_generacion': datetime.now().strftime('%d/%m/%Y %H:%M'),
-        'total': len(comodatos_procesados)
     }
 
     # Renderizar template PDF

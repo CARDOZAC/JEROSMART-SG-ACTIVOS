@@ -152,3 +152,6 @@ frontend/.vite/
 # bundle de Vite. Este sí debe versionarse.
 !app/static/dist/
 !app/static/dist/**
+
+# Logs del servidor de producción
+logs/

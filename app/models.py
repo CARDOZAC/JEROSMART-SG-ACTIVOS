@@ -172,10 +172,15 @@ class Activo(db.Model):
     # Foreign Keys
     clase_id = db.Column(db.Integer, db.ForeignKey('clases_activo.id'))
     funcionario_id = db.Column(db.Integer, db.ForeignKey('funcionarios.id', ondelete='SET NULL'))
+    # Proveedor al que se adquirió el activo. El formulario de edición ya lo
+    # pedía, pero se asignaba a un atributo no mapeado y no se guardaba nunca.
+    proveedor_id = db.Column(db.Integer, db.ForeignKey('proveedores.id', ondelete='SET NULL'),
+                             nullable=True, index=True)
 
     # Relaciones
     clase = db.relationship('ClaseActivo', back_populates='activos')
     funcionario = db.relationship('Funcionario', back_populates='activos')
+    proveedor = db.relationship('Proveedor', foreign_keys=[proveedor_id])
     usuario_verificador = db.relationship('User', foreign_keys=[usuario_ultima_verificacion_id], backref='activos_verificados')
     accesorios_activo = db.relationship('ActivoAccesorio', back_populates='activo',
                                         cascade='all, delete-orphan', lazy=True)
@@ -810,8 +815,12 @@ class MovimientoHistorico(db.Model):
     __tablename__ = 'movimiento_historico'
 
     id = db.Column(db.Integer, primary_key=True)
-    movimiento_id = db.Column(db.Integer, db.ForeignKey('movimientos.id', ondelete='CASCADE'),
-                             nullable=False, index=True)
+    # Sin ForeignKey a propósito. Con FK + ondelete='CASCADE', al borrar un
+    # movimiento se borraba también su propio registro de eliminación, de modo
+    # que los borrados no dejaban ningún rastro (justo lo contrario de lo que
+    # exige la trazabilidad). Se guarda el id como entero simple y la integridad
+    # se cuida desde la aplicación.
+    movimiento_id = db.Column(db.Integer, nullable=False, index=True)
 
     # Información del cambio
     campo_modificado = db.Column(db.String(100), nullable=False, index=True)
@@ -831,7 +840,14 @@ class MovimientoHistorico(db.Model):
     observaciones = db.Column(db.Text, nullable=True)
 
     # Relaciones
-    movimiento = db.relationship('Movimiento', back_populates='historial')
+    # Sin FK real: el join se declara explícitamente y es de solo lectura, para
+    # que SQLAlchemy no intente propagar borrados sobre el historial.
+    movimiento = db.relationship(
+        'Movimiento',
+        primaryjoin='foreign(MovimientoHistorico.movimiento_id) == Movimiento.id',
+        back_populates='historial',
+        viewonly=True
+    )
     usuario = db.relationship('User', foreign_keys=[usuario_id], backref='historial_cambios_movimientos')
 
     # Índice compuesto para consultas eficientes
@@ -901,10 +917,17 @@ class Movimiento(db.Model):
                            primaryjoin="and_(Movimiento.id==Firma.documento_id, Firma.tipo_documento=='movimiento')",
                            overlaps="firmas")
 
-    # Auditoría histórica completa
-    historial = db.relationship('MovimientoHistorico', back_populates='movimiento',
-                               cascade='all, delete-orphan', lazy='dynamic',
-                               order_by='MovimientoHistorico.timestamp.desc()')
+    # Auditoría histórica completa.
+    # SIN cascade: el historial debe sobrevivir al borrado del movimiento; si no,
+    # el propio registro que documenta la eliminación desaparecía con él.
+    historial = db.relationship(
+        'MovimientoHistorico',
+        primaryjoin='foreign(MovimientoHistorico.movimiento_id) == Movimiento.id',
+        back_populates='movimiento',
+        lazy='dynamic',
+        viewonly=True,
+        order_by='MovimientoHistorico.timestamp.desc()'
+    )
 
     # Relaciones uno a uno con los detalles por tipo de movimiento
     detalle_entrega = db.relationship('DetalleEntrega', back_populates='movimiento',
@@ -923,148 +946,9 @@ class Movimiento(db.Model):
     def __repr__(self):
         return f'<Movimiento {self.tipo_movimiento} ({self.fecha})>'
 
-    @classmethod
-    def crear_desde_form(cls, data, getlist_func, usuario_actual):
-        """
-        Crea un nuevo movimiento y todos sus detalles asociados desde datos de formulario.
-        Encapsula toda la lógica de negocio, lanzando excepciones en caso de error.
-        """
-        from flask import current_app
-        import json
-        from datetime import datetime
-        from sqlalchemy import select, func
-
-        try:
-            tipo_movimiento_form = data.get('tipo_movimiento')
-            if not tipo_movimiento_form:
-                raise ValueError("El tipo de movimiento es requerido.")
-
-            tipo_movimiento_db = 'Entrada/Salida' if tipo_movimiento_form in ['Entrada', 'Salida'] else tipo_movimiento_form
-
-            fecha_form = data.get(f'fecha_{tipo_movimiento_form.lower()}')
-            hora_form = data.get(f'hora_{tipo_movimiento_form.lower()}')
-            fecha_movimiento_dt = datetime.now()
-            if fecha_form and hora_form:
-                fecha_movimiento_dt = datetime.strptime(f'{fecha_form} {hora_form}', '%Y-%m-%d %H:%M')
-            elif fecha_form:
-                fecha_movimiento_dt = datetime.strptime(fecha_form, '%Y-%m-%d')
-
-            nuevo_movimiento = Movimiento(
-                tipo_movimiento=tipo_movimiento_db,
-                fecha=fecha_movimiento_dt,
-                usuario_id=usuario_actual.id,
-                observaciones_generales=data.get('observaciones_generales')
-            )
-            db.session.add(nuevo_movimiento)
-            db.session.flush()
-            movimiento_id = nuevo_movimiento.id
-            
-            activos_data = json.loads(data.get('activos_data', '[]'))
-            accesorios_data = json.loads(data.get('accesorios_data', '{}'))
-            firmas_data = json.loads(data.get('firmas_data', '{}'))
-
-            valor_total_movimiento = 0.0
-            for activo_info in activos_data:
-                activo_id = activo_info.get('id')
-                activo_obj = db.session.get(Activo, activo_id)
-                if not activo_obj:
-                    raise ValueError(f"Activo con ID {activo_id} no encontrado.")
-                
-                valor_total_movimiento += activo_obj.valor_en_libros
-                movimiento_activo = MovimientoActivo(
-                    movimiento_id=movimiento_id,
-                    activo_id=activo_id,
-                    valor_comercial_momento=activo_obj.valor_comercial_safe,
-                    valor_libros_momento=activo_obj.valor_en_libros,
-                    depreciacion_acumulada_momento=activo_obj.depreciacion_acumulada,
-                    ubicacion_origen=activo_obj.ubicacion
-                )
-                db.session.add(movimiento_activo)
-                db.session.flush()
-
-                if str(activo_id) in accesorios_data:
-                    for acc_info in accesorios_data[str(activo_id)]:
-                        db.session.add(Accesorio(
-                            movimiento_activo_id=movimiento_activo.id,
-                            descripcion=acc_info.get('descripcion'),
-                            cantidad=acc_info.get('cantidad')
-                        ))
-
-            UMBRAL_APROBACION = 5000000
-            if valor_total_movimiento > UMBRAL_APROBACION:
-                nuevo_movimiento.requiere_aprobacion = True
-                nuevo_movimiento.estado_aprobacion = 'Pendiente'
-            else:
-                nuevo_movimiento.requiere_aprobacion = False
-                nuevo_movimiento.estado_aprobacion = 'Aprobado'
-                nuevo_movimiento.aprobado_por_id = usuario_actual.id
-                nuevo_movimiento.fecha_aprobacion = datetime.now()
-
-            # Lógica de detalles
-            if tipo_movimiento_form == 'Entrega':
-                fecha_oc_dt = None
-                if data.get('entrega_contrato_fecha'):
-                    fecha_oc_dt = datetime.strptime(data.get('entrega_contrato_fecha'), '%Y-%m-%d').date()
-                
-                proveedor_id_raw = data.get('proveedor_id')
-                proveedor_id_final = None
-                if proveedor_id_raw and proveedor_id_raw.strip():
-                    if proveedor_id_raw.isdigit():
-                        proveedor_id_final = int(proveedor_id_raw)
-                    elif proveedor_id_raw.upper() == 'NO APLICA':
-                        proveedor_id_final = db.session.scalar(select(Proveedor.id).filter(func.upper(Proveedor.razon_social) == 'NO APLICA'))
-
-                detalle = DetalleEntrega(
-                    movimiento_id=movimiento_id,
-                    proveedor_id=proveedor_id_final,
-                    factura=data.get('entrega_factura'),
-                    orden_compra_contrato=data.get('entrega_contrato_nro'),
-                    fecha_oc_contrato=fecha_oc_dt,
-                    tipo_contrato=data.get('tipo_contrato'),
-                    valor_contrato=float(data.get('valor_contrato')) if data.get('valor_contrato') and str(data.get('valor_contrato')).replace('.', '', 1).replace('-', '').isdigit() else None,
-                    objeto_contrato=data.get('entrega_objeto_contrato'),
-                    tipo_elementos=json.dumps(getlist_func('entrega_tipo_elementos')),
-                    requiere_montaje='requiere_montaje' in data,
-                    requiere_capacitacion='requiere_capacitacion' in data,
-                    incluye_accesorios='incluye_accesorios' in data,
-                    tipo_transporte=data.get('tipo_transporte'),
-                    tipo_asignacion=data.get('tipo_asignacion'),
-                    lugar_entrega_actual=data.get('lugar_entrega_actual'),
-                    quien_entrega_nombre=data.get('entrega_responsable_nombre'),
-                    quien_entrega_cedula=data.get('entrega_responsable_cc'),
-                    quien_entrega_cargo=data.get('entrega_responsable_cargo'),
-                    quien_entrega_area=data.get('entrega_responsable_area'),
-                    quien_entrega_centro_costo=data.get('quien_entrega_centro_costo'),
-                    quien_recibe_nombre=data.get('recibe_responsable_nombre'),
-                    quien_recibe_cedula=data.get('recibe_responsable_cc'),
-                    quien_recibe_cargo=data.get('recibe_responsable_cargo'),
-                    quien_recibe_area=data.get('recibe_responsable_area'),
-                    quien_recibe_centro_costo=data.get('recibe_responsable_centro_costo'),
-                    garantia_meses=int(data.get('garantia_meses')) if data.get('garantia_meses') and data.get('garantia_meses').isdigit() else None
-                )
-                db.session.add(detalle)
-            # Add other detail types here... (elif DetalleTraslado, etc.)
-            
-            for rol, firma_b64 in firmas_data.items():
-                if firma_b64:
-                    db.session.add(Firma(
-                        documento_id=movimiento_id,
-                        tipo_documento='movimiento',
-                        rol_firma=rol,
-                        firma_base64=firma_b64
-                    ))
-
-            db.session.commit()
-            return nuevo_movimiento
-        
-        except (ValueError, json.JSONDecodeError) as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error de validación o JSON creando movimiento: {e}")
-            raise
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error de base de datos creando movimiento: {e}")
-            raise
+    # Nota: aquí existía `crear_desde_form`, una copia de la lógica de creación
+    # de movimientos que solo implementaba el detalle de 'Entrega' y que ninguna
+    # ruta llamaba. La implementación viva está en movimientos/routes.add_movimiento.
 
 
 
@@ -1526,9 +1410,14 @@ class DetalleComodato(db.Model):
             return date.today() > self.fecha_fin
         return False
 
-    @property
     def esta_proximo_a_vencer(self, dias_alerta=30):
-        """Verifica si el comodato está próximo a vencer (dentro de los próximos N días)."""
+        """
+        Verifica si el comodato vence dentro de los próximos `dias_alerta` días.
+
+        Es un método, no una property: una property no acepta argumentos, así
+        que `comodato.esta_proximo_a_vencer(60)` fallaba con
+        "TypeError: 'bool' object is not callable".
+        """
         dias = self.dias_para_vencimiento
         if dias is not None:
             return 0 < dias <= dias_alerta
@@ -2003,9 +1892,15 @@ class AtributoValor(db.Model):
 SQLAlchemy Events actúan como triggers de base de datos a nivel de aplicación.
 Estos eventos se ejecutan automáticamente cuando ocurren ciertos cambios.
 """
+import logging
+
 from sqlalchemy import event, inspect
 from sqlalchemy.orm.attributes import PASSIVE_NO_RESULT, flag_modified # Import here for use in trigger
 from sqlalchemy.orm.base import LoaderCallableStatus
+
+# Los listeners usan este logger en lugar de print(): así los mensajes quedan
+# en el log de la aplicación y no se pierden en la consola del servidor.
+_logger = logging.getLogger(__name__)
 
 # TRIGGER 1: Actualizar estado y responsable de activo al entregarlo
 # ==============================================================================
@@ -2037,7 +1932,7 @@ def actualizar_estado_activo_entrega(mapper, connection, target):
 
         session.commit()
     except Exception as e:
-        print(f"[TRIGGER ERROR] actualizar_estado_activo_entrega: {e}")
+        _logger.error(f"[TRIGGER] actualizar_estado_activo_entrega: {e}")
         session.rollback()
     finally:
         session.close()
@@ -2080,7 +1975,7 @@ def actualizar_ubicacion_activo_traslado(mapper, connection, target):
 
         session.commit()
     except Exception as e:
-        print(f"[TRIGGER ERROR] actualizar_ubicacion_activo_traslado: {e}")
+        _logger.error(f"[TRIGGER] actualizar_ubicacion_activo_traslado: {e}")
         session.rollback()
     finally:
         session.close()
@@ -2098,64 +1993,42 @@ def actualizar_ultimo_mantenimiento_activo(mapper, connection, target):
     if target.estado != 'Completado':
         return
 
-    from sqlalchemy.orm import Session
-    session = Session(bind=connection)
+    # Este listener corre DURANTE el flush de la sesión principal. Antes abría
+    # una Session propia y llamaba a set_atributo_valor(), que internamente hace
+    # db.session.commit(): un commit de la sesión global en mitad del flush de
+    # otra transacción, causa de errores intermitentes del tipo
+    # "Session is already flushing". Ahora se usa SQL Core sobre la misma
+    # conexión, sin sesiones ni commits anidados: el cambio se confirma con la
+    # transacción que lo originó.
+    from sqlalchemy import select as sa_select, update as sa_update
 
     try:
-        activo = session.get(Activo, target.activo_id)
-        if activo:
-            # Obtener el usuario actual para la auditoría
-            usuario_id = None
-            try:
-                if current_user and current_user.is_authenticated:
-                    usuario_id = current_user.id
-            except: # Fuera de un contexto de request
-                pass
+        fecha = target.fecha_mantenimiento
+        fecha_str = fecha.isoformat() if hasattr(fecha, 'isoformat') else str(fecha)
 
-            # Usar el método del modelo que ya incluye validación y auditoría
-            # Esto actualiza el sistema EAV nuevo
-            activo.set_atributo_valor('ultimo_mantenimiento', target.fecha_mantenimiento, usuario_id=usuario_id)
+        atributos = connection.execute(
+            sa_select(Activo.__table__.c.atributos_dinamicos_json)
+            .where(Activo.__table__.c.id == target.activo_id)
+        ).scalar()
 
-            # --- Mantenimiento del sistema JSON legado (transitorio) ---
-            # Aunque el objetivo es eliminarlo, se mantiene sincronizado por ahora.
-            # Nota: El método set_atributo_valor ya realiza un commit para el EAV.
-            # La lógica JSON se ejecuta dentro de la misma transacción del trigger.
-            if not activo.atributos_dinamicos_json:
-                activo.atributos_dinamicos_json = {}
-            
-            # Convertir a string para asegurar serialización JSON
-            fecha_str = target.fecha_mantenimiento.isoformat() if hasattr(target.fecha_mantenimiento, 'isoformat') else str(target.fecha_mantenimiento)
-            activo.atributos_dinamicos_json['ultimo_mantenimiento'] = fecha_str
-            
-            # Marcar el campo JSON como modificado
-            flag_modified(activo, "atributos_dinamicos_json")
-            
-            session.commit()
+        if not isinstance(atributos, dict):
+            atributos = {}
+        atributos = {**atributos, 'ultimo_mantenimiento': fecha_str}
 
+        connection.execute(
+            sa_update(Activo.__table__)
+            .where(Activo.__table__.c.id == target.activo_id)
+            .values(atributos_dinamicos_json=atributos)
+        )
     except Exception as e:
-        print(f"[TRIGGER ERROR] actualizar_ultimo_mantenimiento_activo: {e}")
-        session.rollback()
-    finally:
-        session.close()
+        # No se relanza: un fallo actualizando este dato derivado no debe
+        # anular el registro del mantenimiento.
+        _logger.error(f"[TRIGGER] actualizar_ultimo_mantenimiento_activo: {e}")
 
 
-# TRIGGER 3: Auditoría de cambios de estado de activo
-# ==============================================================================
-@event.listens_for(Activo.estado, 'set')
-def auditar_cambio_estado_activo(target, value, oldvalue, initiator):
-    """
-    Cuando cambia el estado de un activo, registrar en logs.
-    """
-    # La forma correcta de evitar que este evento se dispare durante la carga inicial
-    # (como en init_db.py) es verificar si el valor anterior era 'PASSIVE_NO_RESULT'.
-    # Esto indica que el atributo no tenía un valor previo.
-    if not es_valor_centinela(oldvalue) and oldvalue != value:
-        from datetime import datetime
-        # Usamos inspect para obtener el valor anterior de forma segura, aunque oldvalue ya lo tiene.
-        history = inspect(target).attrs.estado.history
-        print(f"[AUDIT] {datetime.now()} - Activo {target.placa_codigo_interno or '(nuevo)'}: "
-              f"Estado cambió de '{history.deleted[0] if history.deleted else 'Inicial'}' a '{value}'")
-        # Aquí podrías guardar en una tabla de auditoría
+# TRIGGER 3: eliminado. Escuchaba 'set' sobre Activo.estado solo para imprimir
+# el cambio por consola, duplicando el trabajo del TRIGGER 10, que sí registra
+# ese mismo cambio en la tabla de auditoría.
 
 
 # TRIGGER 4: Prevenir eliminación de activo con mantenimientos pendientes
@@ -2191,7 +2064,7 @@ def validar_eliminar_activo(mapper, connection, target):
     except ValueError:
         raise
     except Exception as e:
-        print(f"[TRIGGER ERROR] validar_eliminar_activo: {e}")
+        _logger.error(f"[TRIGGER] validar_eliminar_activo: {e}")
     finally:
         session.close()
 
@@ -2234,7 +2107,7 @@ def validar_activo_disponible(mapper, connection, target):
     except ValueError:
         raise
     except Exception as e:
-        print(f"[TRIGGER ERROR] validar_activo_disponible: {e}")
+        _logger.error(f"[TRIGGER] validar_activo_disponible: {e}")
     finally:
         session.close()
 
@@ -2247,8 +2120,8 @@ def log_firma_creada(mapper, connection, target):
     Registrar en log cuando se crea una firma digital.
     """
     from datetime import datetime
-    print(f"[FIRMA] {datetime.now()} - Nueva firma: {target.tipo_documento} #{target.documento_id} "
-          f"por rol '{target.rol_firma}'")
+    _logger.info(f"[FIRMA] Nueva firma: {target.tipo_documento} #{target.documento_id} "
+                 f"por rol '{target.rol_firma}'")
 
 
 # ==============================================================================
@@ -2476,7 +2349,7 @@ def auditar_creacion_activo(mapper, connection, target):
         session.add(historial)
         session.commit()
     except Exception as e:
-        print(f"[AUDIT ERROR] auditar_creacion_activo: {e}")
+        _logger.error(f"[AUDIT] auditar_creacion_activo: {e}")
         session.rollback()
     finally:
         session.close()
@@ -2513,7 +2386,7 @@ def auditar_eliminacion_activo(mapper, connection, target):
         session.add(historial)
         session.commit()
     except Exception as e:
-        print(f"[AUDIT ERROR] auditar_eliminacion_activo: {e}")
+        _logger.error(f"[AUDIT] auditar_eliminacion_activo: {e}")
         session.rollback()
     finally:
         session.close()

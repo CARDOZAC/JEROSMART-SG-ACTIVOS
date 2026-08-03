@@ -294,21 +294,20 @@ def editar(id):
         form.fecha_compra.data = activo.created_at
         form.valor_compra.data = activo.valor_comercial
 
-        # Fetch the proveedor_id from the associated DetalleEntrega
-        proveedor_id_from_movimiento = None
-        # Find the earliest 'Entrega' movement for this activo
-        # This assumes an activo has one primary 'Entrega' movement for its acquisition
-        movimiento_activo_record = (db.session.query(MovimientoActivo)
-                                    .filter_by(activo_id=activo.id)
-                                    .join(Movimiento)
-                                    .filter(Movimiento.tipo_movimiento == 'Entrega')
-                                    .order_by(Movimiento.fecha.asc())
-                                    .first())
-
-        if movimiento_activo_record and movimiento_activo_record.movimiento.detalle_entrega:
-            proveedor_id_from_movimiento = movimiento_activo_record.movimiento.detalle_entrega.proveedor_id
-        
-        form.proveedor_id.data = proveedor_id_from_movimiento
+        # El proveedor se toma del propio activo. Para los registros anteriores
+        # a que existiera esa columna, se deduce del acta de Entrega con la que
+        # se adquirió.
+        if activo.proveedor_id:
+            form.proveedor_id.data = activo.proveedor_id
+        else:
+            movimiento_activo_record = (db.session.query(MovimientoActivo)
+                                        .filter_by(activo_id=activo.id)
+                                        .join(Movimiento)
+                                        .filter(Movimiento.tipo_movimiento == 'Entrega')
+                                        .order_by(Movimiento.fecha.asc())
+                                        .first())
+            if movimiento_activo_record and movimiento_activo_record.movimiento.detalle_entrega:
+                form.proveedor_id.data = movimiento_activo_record.movimiento.detalle_entrega.proveedor_id
 
     # Obtener atributos actuales del activo para mostrar en el formulario
     atributos_actuales = activo.atributos_dinamicos_json if activo.atributos_dinamicos_json else {}
@@ -461,6 +460,27 @@ def eliminar_activo(id):
         return redirect(url_for('activos_v2.listado'))
 
     activo = Activo.query.get_or_404(id)
+
+    # Mismas validaciones que activos.delete_activo: sin ellas, MySQL frena el
+    # borrado con un IntegrityError críptico (la FK de movimiento_activos es
+    # RESTRICT) y los activos con solo historial perderían su trazabilidad.
+    from app.models import AuditoriaActivo, HojaVidaBiomedico
+    comprobaciones = [
+        (MovimientoActivo, 'movimientos', MovimientoActivo.activo_id),
+        (Mantenimiento, 'mantenimientos', Mantenimiento.activo_id),
+        (AuditoriaActivo, 'auditorías', AuditoriaActivo.activo_id),
+        (HojaVidaBiomedico, 'hojas de vida', HojaVidaBiomedico.activo_id),
+    ]
+    for modelo, nombre, campo in comprobaciones:
+        cantidad = db.session.query(func.count()).select_from(modelo).filter(campo == id).scalar()
+        if cantidad:
+            flash(
+                f'No se puede eliminar el activo porque tiene {cantidad} {nombre} asociado(s). '
+                f'Para activos con historial, use "Dar de Baja" en lugar de eliminar.',
+                'danger'
+            )
+            return redirect(url_for('activos_v2.listado'))
+
     try:
         db.session.delete(activo)
         db.session.commit()

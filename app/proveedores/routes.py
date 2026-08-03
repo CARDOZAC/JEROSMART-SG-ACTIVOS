@@ -10,7 +10,7 @@ import csv
 import os
 from werkzeug.utils import secure_filename
 
-from app import db
+from app.extensions import db
 from app.models import Proveedor
 from app.proveedores.forms import ProveedorForm
 from app.decorators import login_required, role_required

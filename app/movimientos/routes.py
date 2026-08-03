@@ -53,6 +53,27 @@ from ..models import (
 # Importar el blueprint desde __init__.py (evitar duplicación)
 from . import movimientos_bp
 
+
+def _parsear_json_lista(valor):
+    """
+    Normaliza a lista un valor de una columna db.JSON.
+
+    Los registros nuevos guardan listas nativas, pero los antiguos guardaban un
+    string JSON dentro de la columna JSON. Se aceptan ambos para no romper los
+    PDF de los movimientos ya existentes.
+    """
+    if valor is None or valor == '':
+        return []
+    if isinstance(valor, list):
+        return valor
+    if isinstance(valor, str):
+        try:
+            resultado = json.loads(valor)
+            return resultado if isinstance(resultado, list) else [resultado]
+        except (json.JSONDecodeError, TypeError):
+            return []
+    return [valor]
+
 # =====================================================================
 # VISTAS PRINCIPALES (Renderizado de plantillas)
 # =====================================================================
@@ -107,8 +128,15 @@ def dashboard():
     meses_labels = []
     meses_data = []
 
+    # Se retrocede mes a mes con aritmética de calendario. Restar i*30 días
+    # desalinea los meses (enero tiene 31 días) y podía repetir o saltarse uno.
     for i in range(5, -1, -1):
-        mes = (hoy.replace(day=1) - timedelta(days=i*30)).replace(day=1)
+        año, mes_num = hoy.year, hoy.month - i
+        while mes_num <= 0:
+            mes_num += 12
+            año -= 1
+        mes = hoy.replace(year=año, month=mes_num, day=1,
+                          hour=0, minute=0, second=0, microsecond=0)
         siguiente_mes = (mes + timedelta(days=32)).replace(day=1)
 
         cantidad = db.session.query(func.count(Movimiento.id))\
@@ -166,17 +194,11 @@ def dashboard():
         .limit(5)\
         .all()
 
-    # Calcular porcentaje de aprobación (vs mes anterior)
-    mes_anterior = (primer_dia_mes - timedelta(days=1)).replace(day=1)
-    aprobados_mes_anterior = db.session.query(func.count(Movimiento.id))\
-        .filter(
-            Movimiento.estado_aprobacion == 'Aprobado',
-            Movimiento.fecha >= mes_anterior,
-            Movimiento.fecha < primer_dia_mes
-        )\
-        .scalar() or 1  # Evitar división por cero
-
-    porcentaje_aprobacion = int(((aprobados_mes - aprobados_mes_anterior) / max(aprobados_mes_anterior, 1)) * 100)
+    # Porcentaje real de aprobación: aprobados sobre el total de movimientos.
+    # Antes esto calculaba la variación respecto al mes anterior y la mostraba
+    # como si fuera un porcentaje de aprobación; además, con 0 aprobados el mes
+    # anterior el resultado se disparaba (3 vs 0 daba "200%").
+    porcentaje_aprobacion = int((aprobados / total_movimientos) * 100) if total_movimientos else 0
 
     # ====== CONSOLIDAR STATS ======
     stats = {
@@ -525,7 +547,11 @@ def add_movimiento():
                         if data.get('valor_contrato') and str(data.get('valor_contrato')).replace('.', '', 1).replace('-', '').isdigit() \
                         else None,
                     objeto_contrato=data.get('entrega_objeto_contrato'),
-                    tipo_elementos=json.dumps(request.form.getlist('entrega_tipo_elementos')),
+                    # Columna db.JSON: se asigna la lista directamente. Antes se
+                    # guardaba json.dumps(...), es decir un string JSON dentro de
+                    # una columna JSON, lo que impedía consultarla con las
+                    # funciones nativas de MySQL.
+                    tipo_elementos=request.form.getlist('entrega_tipo_elementos'),
                     requiere_montaje='requiere_montaje' in data,
                     requiere_capacitacion='requiere_capacitacion' in data,
                     incluye_accesorios='incluye_accesorios' in data,
@@ -566,8 +592,9 @@ def add_movimiento():
                     hora_traslado=data.get('hora_traslado'),
                     caracteristica=data.get('traslado_caracteristica'),
                     lugar_destino=data.get('traslado_lugar_destino'),  # ✅ Corregido nombre de campo
-                    tipo_traslado_json=json.dumps(request.form.getlist('traslado_tipo')),  # ✅ Corregido: sin []
-                    accesorios_generales_json=data.get('accesorios_generales_json', '[]'),
+                    # Columnas db.JSON: se asignan listas, no strings JSON.
+                    tipo_traslado_json=request.form.getlist('traslado_tipo'),
+                    accesorios_generales_json=_parsear_json_lista(data.get('accesorios_generales_json')),
                     ubicacion_inicial=data.get('traslado_ubicacion_inicial'),
                     ubicacion_final=data.get('traslado_ubicacion_final'),  # ✅ Corregido nombre de campo
                     origen_responsable_nombre=data.get('origen_responsable_nombre'),  # ✅ Corregido
@@ -1156,9 +1183,9 @@ def generar_acta_pdf(movimiento_id):
             if tipo == 'Traslado':
                 try:
                     # Usamos getattr para evitar errores si el campo no existe en un modelo antiguo
-                    detalles.tipo_traslado_parsed = json.loads(getattr(detalles, 'tipo_traslado_json', '[]') or '[]')
+                    detalles.tipo_traslado_parsed = _parsear_json_lista(getattr(detalles, 'tipo_traslado_json', None))
                     # Nuevo: Parsear accesorios generales para el PDF de traslado
-                    context['accesorios'] = json.loads(getattr(detalles, 'accesorios_generales_json', '[]') or '[]')
+                    context['accesorios'] = _parsear_json_lista(getattr(detalles, 'accesorios_generales_json', None))
                 except json.JSONDecodeError as e:
                     current_app.logger.error(f"[PDF Generation] Error parseando tipo_traslado_json: {e}")
                     detalles.tipo_traslado_parsed = []
@@ -1167,7 +1194,7 @@ def generar_acta_pdf(movimiento_id):
             # Para Entrega: procesar tipo_elementos
             if hasattr(detalles, 'tipo_elementos') and detalles.tipo_elementos:
                 try:
-                    detalles.tipo_elementos_parsed = json.loads(detalles.tipo_elementos)
+                    detalles.tipo_elementos_parsed = _parsear_json_lista(detalles.tipo_elementos)
                 except json.JSONDecodeError as e:
                     current_app.logger.error(f"[PDF Generation] Error parseando tipo_elementos: {e}")
                     detalles.tipo_elementos_parsed = {}
@@ -1206,8 +1233,8 @@ def generar_acta_pdf(movimiento_id):
                 context["hora_traslado"] = detalles.hora_traslado
                 context["caracteristica"] = detalles.caracteristica
                 context["lugar_destino"] = detalles.lugar_destino
-                context["tipo_traslado"] = json.loads(detalles.tipo_traslado_json or '[]')
-                context["accesorios"] = json.loads(detalles.accesorios_generales_json or '[]')
+                context["tipo_traslado"] = _parsear_json_lista(detalles.tipo_traslado_json)
+                context["accesorios"] = _parsear_json_lista(detalles.accesorios_generales_json)
                 context["responsable_actual"] = detalles.origen_responsable_nombre
                 context["cedula_origen"] = detalles.origen_responsable_cc
                 context["cargo_origen"] = detalles.origen_responsable_cargo

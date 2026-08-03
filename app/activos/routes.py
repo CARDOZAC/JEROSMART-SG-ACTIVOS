@@ -132,17 +132,24 @@ def _save_file(file_storage, folder_key, placa_codigo, prefix):
             raise ValueError(f"El archivo es demasiado grande (máximo {MAX_FILE_SIZE // (1024*1024)}MB)")
         file_storage.seek(0)
         
-        # Construir la ruta completa para guardar el archivo
+        # OJO: current_app.config[folder_key] es una ruta ABSOLUTA
+        # (C:\...\uploads\loan_contracts), no un nombre de subcarpeta. Antes se
+        # pasaba tal cual a os.path.join, que descarta el primer argumento
+        # cuando el segundo es absoluto, y en la BD terminaba guardándose la
+        # ruta absoluta completa: al mover el proyecto o desplegar en Linux,
+        # todos los enlaces a facturas y contratos quedaban rotos.
+        # Aquí se deriva el nombre de la subcarpeta y se guarda la ruta
+        # RELATIVA, con separadores '/' para que sea portable.
         upload_base_dir = current_app.config['UPLOAD_FOLDER']
-        subfolder_name = current_app.config[folder_key] # Ej. 'loan_contracts'
+        subfolder_name = os.path.basename(os.path.normpath(current_app.config[folder_key]))
         target_full_dir = os.path.join(upload_base_dir, subfolder_name)
         os.makedirs(target_full_dir, exist_ok=True) # Asegurar que el directorio exista
 
         filename = secure_filename(f"{prefix}_{placa_codigo}_{file_storage.filename}")
         filepath = os.path.join(target_full_dir, filename)
         file_storage.save(filepath)
-        # Retorna la ruta relativa para ser guardada en la BD
-        return os.path.join(subfolder_name, filename)
+        # Ruta relativa a UPLOAD_FOLDER, que es lo que se almacena en la BD
+        return f"{subfolder_name}/{filename}"
     return None
 
 @activos_bp.route('/')

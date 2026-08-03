@@ -275,7 +275,7 @@
         </thead>
         <tbody>
             {% for row in comodatos_data %}
-            <tr class="{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer else 'vigente' }}">
+            <tr class="{{ 'vencido' if row.esta_vencido else 'proximo-vencer' if row.esta_proximo_a_vencer() else 'vigente' }}">
                 <td>
                     <strong>{{ row.numero_contrato }}</strong>
                 </td>
@@ -317,7 +317,7 @@
                 <td>
                     {% if row.esta_vencido %}
                     <span class="badge badge-vencido">Vencido</span>
-                    {% elif row.esta_proximo_a_vencer %}
+                    {% elif row.esta_proximo_a_vencer() %}
                     <span class="badge badge-proximo-vencer">Próx. Vencer</span>
                     {% elif row.estado_comodato == 'Vigente' %}
                     <span class="badge badge-vigente">Vigente</span>

@@ -486,6 +486,76 @@ def seed_demo(forzar):
     click.echo(f"{'='*70}\n")
 
 
+@activos.command('normalizar-rutas-archivos')
+@click.option('--dry-run', is_flag=True, help='Muestra los cambios sin aplicarlos.')
+@with_appcontext
+def normalizar_rutas_archivos(dry_run):
+    """
+    Convierte a relativas las rutas absolutas de archivos adjuntos.
+
+    Por un fallo en `_save_file`, las rutas de facturas, órdenes de compra y
+    contratos se guardaban como rutas absolutas de Windows
+    (C:\\...\\uploads\\invoices\\x.pdf). Eso rompe los enlaces al mover el
+    proyecto o desplegar en otro sistema. Este comando las deja como
+    'invoices/x.pdf'.
+    """
+    import os
+
+    campos = ['ruta_orden_compra', 'ruta_factura', 'ruta_contrato_arriendo', 'ruta_foto_activo']
+    base = os.path.normpath(current_app.config['UPLOAD_FOLDER'])
+
+    click.echo(f"\n{'='*70}")
+    click.echo('NORMALIZACION DE RUTAS DE ARCHIVOS ADJUNTOS')
+    click.echo(f"{'='*70}")
+    click.echo(f'Carpeta base: {base}\n')
+    if dry_run:
+        click.echo('MODO SIMULACION: no se guardaran cambios.\n')
+
+    corregidas = 0
+    for activo in Activo.query.all():
+        for campo in campos:
+            valor = getattr(activo, campo, None)
+            if not valor:
+                continue
+
+            # Absoluta si tiene unidad de disco (C:) o empieza por separador
+            if not (os.path.isabs(valor) or ':' in valor[:3]):
+                continue
+
+            normalizada = os.path.normpath(valor)
+            if normalizada.lower().startswith(base.lower()):
+                relativa = os.path.relpath(normalizada, base)
+            else:
+                # No cuelga de UPLOAD_FOLDER: se conservan las dos últimas
+                # partes (subcarpeta/archivo), que es el formato esperado.
+                partes = normalizada.replace('\\', '/').split('/')
+                relativa = '/'.join(partes[-2:])
+
+            relativa = relativa.replace('\\', '/')
+            click.echo(f'  {activo.placa_codigo_interno} · {campo}')
+            click.echo(f'      antes:   {valor}')
+            click.echo(f'      despues: {relativa}')
+            if not dry_run:
+                setattr(activo, campo, relativa)
+            corregidas += 1
+
+    if not dry_run and corregidas:
+        db.session.commit()
+
+    click.echo(f"\n{'='*70}")
+    click.echo(f'Rutas corregidas: {corregidas}')
+    if dry_run and corregidas:
+        click.echo('Ejecuta sin --dry-run para aplicar los cambios.')
+    click.echo(f"{'='*70}\n")
+
+
 def init_cli(app):
     """Registra los comandos CLI en la aplicación Flask."""
+    # El módulo se llama cli_db y no db a propósito: un submódulo llamado
+    # `app.db` se enlaza como atributo del paquete al importarlo y tapa la
+    # instancia SQLAlchemy que `app/__init__.py` exporta con ese mismo nombre,
+    # rompiendo cualquier `from app import db`.
+    from .cli_db import init_db_command
+
     app.cli.add_command(activos)
+    app.cli.add_command(init_db_command)

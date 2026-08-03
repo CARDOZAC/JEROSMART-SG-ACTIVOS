@@ -275,7 +275,7 @@
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <strong class="ios-text-body">{{ item.numero_contrato }}</strong>
-                                <span class="badge-estado badge-{{ 'vencido' if item.esta_vencido else 'proximo-vencer' if item.esta_proximo_a_vencer else 'vigente' }}">
+                                <span class="badge-estado badge-{{ 'vencido' if item.esta_vencido else 'proximo-vencer' if item.esta_proximo_a_vencer() else 'vigente' }}">
                                     {{ item.estado_visual }}
                                 </span>
                             </div>
