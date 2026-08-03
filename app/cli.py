@@ -486,6 +486,71 @@ def seed_demo(forzar):
     click.echo(f"{'='*70}\n")
 
 
+@activos.command('normalizar-json')
+@click.option('--dry-run', is_flag=True, help='Muestra los cambios sin aplicarlos.')
+@with_appcontext
+def normalizar_json(dry_run):
+    """
+    Convierte a arrays los campos JSON que se guardaron como cadena.
+
+    Algunas columnas db.JSON recibían json.dumps(...), de modo que MySQL
+    almacenaba el texto "[\\"a\\",\\"b\\"]" en lugar del array ["a","b"]. Eso
+    impide usar las funciones JSON nativas (JSON_CONTAINS, ->>). El código ya
+    escribe listas; este comando arregla los registros anteriores.
+    """
+    from sqlalchemy import text
+
+    objetivos = [
+        ('detalles_entrega', 'tipo_elementos'),
+        ('detalles_traslado', 'tipo_traslado_json'),
+        ('detalles_traslado', 'accesorios_generales_json'),
+        ('activos', 'atributos_dinamicos_json'),
+        ('mantenimientos', 'atributos_reporte_json'),
+    ]
+
+    click.echo(f"\n{'='*70}")
+    click.echo('NORMALIZACION DE COLUMNAS JSON')
+    click.echo(f"{'='*70}\n")
+    if dry_run:
+        click.echo('MODO SIMULACION: no se guardaran cambios.\n')
+
+    total = 0
+    for tabla, columna in objetivos:
+        try:
+            afectadas = db.session.execute(text(
+                f"SELECT COUNT(*) FROM `{tabla}` "
+                f"WHERE `{columna}` IS NOT NULL AND JSON_TYPE(`{columna}`) = 'STRING'"
+            )).scalar()
+        except Exception as e:
+            click.echo(f'  {tabla}.{columna}: no se pudo inspeccionar ({type(e).__name__})')
+            continue
+
+        if not afectadas:
+            click.echo(f'  {tabla}.{columna}: sin filas afectadas')
+            continue
+
+        click.echo(f'  {tabla}.{columna}: {afectadas} fila(s) por convertir')
+        total += afectadas
+
+        if not dry_run:
+            # JSON_UNQUOTE devuelve el texto interno y CAST lo reinterpreta
+            # como documento JSON.
+            db.session.execute(text(
+                f"UPDATE `{tabla}` "
+                f"SET `{columna}` = CAST(JSON_UNQUOTE(`{columna}`) AS JSON) "
+                f"WHERE `{columna}` IS NOT NULL AND JSON_TYPE(`{columna}`) = 'STRING'"
+            ))
+
+    if not dry_run and total:
+        db.session.commit()
+
+    click.echo(f"\n{'='*70}")
+    click.echo(f'Filas normalizadas: {total}')
+    if dry_run and total:
+        click.echo('Ejecuta sin --dry-run para aplicar los cambios.')
+    click.echo(f"{'='*70}\n")
+
+
 @activos.command('normalizar-rutas-archivos')
 @click.option('--dry-run', is_flag=True, help='Muestra los cambios sin aplicarlos.')
 @with_appcontext

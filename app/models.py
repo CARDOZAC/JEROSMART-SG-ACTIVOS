@@ -189,9 +189,17 @@ class Activo(db.Model):
                                 uselist=False, cascade='all, delete-orphan')
     mantenimientos = db.relationship('Mantenimiento', back_populates='activo',
                                     cascade='all, delete-orphan', lazy=True)
-    # FASE 1.2: Auditoría histórica completa
-    historial = db.relationship('ActivoHistorico', back_populates='activo',
-                               cascade='all, delete-orphan', lazy='dynamic', order_by='ActivoHistorico.timestamp.desc()')
+    # FASE 1.2: Auditoría histórica completa.
+    # SIN cascade y de solo lectura: el historial debe sobrevivir al borrado del
+    # activo, incluido el registro que documenta esa misma eliminación.
+    historial = db.relationship(
+        'ActivoHistorico',
+        primaryjoin='foreign(ActivoHistorico.activo_id) == Activo.id',
+        back_populates='activo',
+        lazy='dynamic',
+        viewonly=True,
+        order_by='ActivoHistorico.timestamp.desc()'
+    )
 
     # FASE 2.1: Relaciones para Atributos Dinámicos (EAV)
     categoria = db.relationship('CategoriaActivo', back_populates='activos')
@@ -755,8 +763,10 @@ class ActivoHistorico(db.Model):
     __tablename__ = 'activo_historico'
 
     id = db.Column(db.Integer, primary_key=True)
-    activo_id = db.Column(db.Integer, db.ForeignKey('activos.id', ondelete='CASCADE'),
-                         nullable=False, index=True)
+    # Sin ForeignKey, por el mismo motivo que en MovimientoHistorico: con
+    # ON DELETE CASCADE, al borrar un activo desaparecía todo su historial y con
+    # él el propio registro que documentaba la eliminación.
+    activo_id = db.Column(db.Integer, nullable=False, index=True)
 
     # Información del cambio
     campo_modificado = db.Column(db.String(100), nullable=False, index=True)
@@ -776,7 +786,12 @@ class ActivoHistorico(db.Model):
     observaciones = db.Column(db.Text, nullable=True)
 
     # Relaciones
-    activo = db.relationship('Activo', back_populates='historial')
+    activo = db.relationship(
+        'Activo',
+        primaryjoin='foreign(ActivoHistorico.activo_id) == Activo.id',
+        back_populates='historial',
+        viewonly=True
+    )
     usuario = db.relationship('User', foreign_keys=[usuario_id], backref='historial_cambios_activos')
 
     # Índice compuesto para consultas eficientes por activo y fecha
@@ -1691,7 +1706,8 @@ class AtributoDefinicion(db.Model):
         if self.opciones_json and self.tipo_dato == self.TIPO_LISTA:
             try:
                 return json.loads(self.opciones_json)
-            except:
+            except (json.JSONDecodeError, TypeError):
+                _logger.warning(f"opciones_json inválido en el atributo '{self.nombre}'")
                 return []
         return None
 
@@ -1910,32 +1926,35 @@ def actualizar_estado_activo_entrega(mapper, connection, target):
     Cuando se crea un DetalleEntrega, actualizar el estado de los activos
     involucrados a 'Operativo' y asignarlos al funcionario receptor si aplica.
     """
-    from sqlalchemy.orm import Session
-    session = Session(bind=connection)
+    # SQL Core sobre la conexión del flush: sin Session propia ni commit, para
+    # no confirmar nada en mitad de la transacción que disparó el evento.
+    from sqlalchemy import select as sa_select, update as sa_update
 
     try:
-        # Obtener movimiento y funcionario responsable del movimiento general
-        movimiento = session.get(Movimiento, target.movimiento_id)
-        if not movimiento:
+        funcionario_id_receptor = connection.execute(
+            sa_select(Movimiento.__table__.c.funcionario_id)
+            .where(Movimiento.__table__.c.id == target.movimiento_id)
+        ).scalar()
+
+        ids_activos = connection.execute(
+            sa_select(MovimientoActivo.__table__.c.activo_id)
+            .where(MovimientoActivo.__table__.c.movimiento_id == target.movimiento_id)
+        ).scalars().all()
+
+        if not ids_activos:
             return
 
-        funcionario_id_receptor = movimiento.funcionario_id
+        valores = {'estado': 'Operativo'}
+        if funcionario_id_receptor:
+            valores['funcionario_id'] = funcionario_id_receptor
 
-        # Actualizar estado y responsable de todos los activos involucrados
-        for ma in movimiento.activos:
-            activo = session.get(Activo, ma.activo_id)
-            if activo:
-                # Cambia el estado a 'Operativo' o 'Asignado' según la lógica de negocio
-                activo.estado = 'Operativo'
-                if funcionario_id_receptor:
-                    activo.funcionario_id = funcionario_id_receptor
-
-        session.commit()
+        connection.execute(
+            sa_update(Activo.__table__)
+            .where(Activo.__table__.c.id.in_(ids_activos))
+            .values(**valores)
+        )
     except Exception as e:
         _logger.error(f"[TRIGGER] actualizar_estado_activo_entrega: {e}")
-        session.rollback()
-    finally:
-        session.close()
 
 
 # TRIGGER 1: Actualizar ubicación de activo al trasladarlo
@@ -1946,39 +1965,46 @@ def actualizar_ubicacion_activo_traslado(mapper, connection, target):
     Cuando se crea un DetalleTraslado, actualizar la ubicación de los activos
     a la ubicación final del traslado.
     """
-    from sqlalchemy.orm import Session
-    session = Session(bind=connection)
+    if not target.ubicacion_final:
+        return
+
+    # SQL Core sobre la conexión del flush: sin Session propia ni commit.
+    from sqlalchemy import select as sa_select, update as sa_update
 
     try:
-        # Obtener movimiento
-        movimiento = session.get(Movimiento, target.movimiento_id)
-        if not movimiento or not target.ubicacion_final:
-            return
-
-        # Buscar el ID del nuevo funcionario responsable si se proporcionó un CC
+        # Nuevo responsable: por cédula si se indicó, si no el del movimiento
         nuevo_responsable_id = None
         if target.nuevo_responsable_cc:
-            funcionario = session.query(Funcionario).filter_by(cedula=target.nuevo_responsable_cc).first()
-            if funcionario:
-                nuevo_responsable_id = funcionario.id
+            nuevo_responsable_id = connection.execute(
+                sa_select(Funcionario.__table__.c.id)
+                .where(Funcionario.__table__.c.cedula == target.nuevo_responsable_cc)
+            ).scalar()
 
-        # Actualizar ubicación y responsable de todos los activos involucrados
-        for ma in movimiento.activos:
-            activo = session.get(Activo, ma.activo_id)
-            if activo:
-                activo.ubicacion = target.ubicacion_final
-                if nuevo_responsable_id:
-                    activo.funcionario_id = nuevo_responsable_id
-                # Si no se encuentra por CC pero el movimiento tiene un funcionario_id general, usar ese
-                elif movimiento.funcionario_id:
-                    activo.funcionario_id = movimiento.funcionario_id
+        if nuevo_responsable_id is None:
+            nuevo_responsable_id = connection.execute(
+                sa_select(Movimiento.__table__.c.funcionario_id)
+                .where(Movimiento.__table__.c.id == target.movimiento_id)
+            ).scalar()
 
-        session.commit()
+        ids_activos = connection.execute(
+            sa_select(MovimientoActivo.__table__.c.activo_id)
+            .where(MovimientoActivo.__table__.c.movimiento_id == target.movimiento_id)
+        ).scalars().all()
+
+        if not ids_activos:
+            return
+
+        valores = {'ubicacion': target.ubicacion_final}
+        if nuevo_responsable_id:
+            valores['funcionario_id'] = nuevo_responsable_id
+
+        connection.execute(
+            sa_update(Activo.__table__)
+            .where(Activo.__table__.c.id.in_(ids_activos))
+            .values(**valores)
+        )
     except Exception as e:
         _logger.error(f"[TRIGGER] actualizar_ubicacion_activo_traslado: {e}")
-        session.rollback()
-    finally:
-        session.close()
 
 
 # TRIGGER 2: Actualizar último mantenimiento en Activo
@@ -2143,7 +2169,8 @@ def obtener_ip_y_user_agent():
             ip = request.remote_addr
             user_agent = request.headers.get('User-Agent', '')[:500]
             return ip, user_agent
-    except:
+    except RuntimeError:
+        # Fuera de un contexto de petición (comandos CLI, tareas de fondo)
         pass
     return None, None
 
@@ -2155,7 +2182,8 @@ def obtener_usuario_actual():
     try:
         if current_user and current_user.is_authenticated:
             return current_user.id
-    except:
+    except (RuntimeError, AttributeError):
+        # Sin contexto de petición o sin usuario cargado
         pass
     return None
 
@@ -2326,33 +2354,28 @@ def auditar_creacion_activo(mapper, connection, target):
     """
     Registra la creación de un nuevo activo en el sistema.
     """
-    from sqlalchemy.orm import Session
-    session = Session(bind=connection)
+    # INSERT por SQL Core en la conexión del flush: el registro se confirma con
+    # la misma transacción que creó el activo, sin sesiones ni commits anidados.
+    from sqlalchemy import insert as sa_insert
 
     try:
         ip_address, user_agent = obtener_ip_y_user_agent()
-        usuario_id = obtener_usuario_actual()
-
-        historial = ActivoHistorico(
-            activo_id=target.id,
-            campo_modificado='ACTIVO_COMPLETO',
-            valor_anterior=None,
-            valor_nuevo=f'Creado: {target.nombre_activo} ({target.placa_codigo_interno})',
-            usuario_id=usuario_id,
-            timestamp=datetime.utcnow(),
-            ip_address=ip_address,
-            user_agent=user_agent,
-            tipo_operacion='CREATE',
-            observaciones='Activo registrado en el sistema'
+        connection.execute(
+            sa_insert(ActivoHistorico.__table__).values(
+                activo_id=target.id,
+                campo_modificado='ACTIVO_COMPLETO',
+                valor_anterior=None,
+                valor_nuevo=f'Creado: {target.nombre_activo} ({target.placa_codigo_interno})',
+                usuario_id=obtener_usuario_actual(),
+                timestamp=datetime.utcnow(),
+                ip_address=ip_address,
+                user_agent=user_agent,
+                tipo_operacion='CREATE',
+                observaciones='Activo registrado en el sistema'
+            )
         )
-
-        session.add(historial)
-        session.commit()
     except Exception as e:
         _logger.error(f"[AUDIT] auditar_creacion_activo: {e}")
-        session.rollback()
-    finally:
-        session.close()
 
 
 # TRIGGER 14: Auditoría de eliminación de activos
@@ -2363,30 +2386,24 @@ def auditar_eliminacion_activo(mapper, connection, target):
     Registra la eliminación de un activo del sistema.
     IMPORTANTE: Este registro se crea ANTES de eliminar para que quede en historial.
     """
-    from sqlalchemy.orm import Session
-    session = Session(bind=connection)
+    # INSERT por SQL Core en la conexión del flush, sin sesiones anidadas.
+    from sqlalchemy import insert as sa_insert
 
     try:
         ip_address, user_agent = obtener_ip_y_user_agent()
-        usuario_id = obtener_usuario_actual()
-
-        historial = ActivoHistorico(
-            activo_id=target.id,
-            campo_modificado='ACTIVO_COMPLETO',
-            valor_anterior=f'Eliminado: {target.nombre_activo} ({target.placa_codigo_interno})',
-            valor_nuevo=None,
-            usuario_id=usuario_id,
-            timestamp=datetime.utcnow(),
-            ip_address=ip_address,
-            user_agent=user_agent,
-            tipo_operacion='DELETE',
-            observaciones='Activo eliminado del sistema'
+        connection.execute(
+            sa_insert(ActivoHistorico.__table__).values(
+                activo_id=target.id,
+                campo_modificado='ACTIVO_COMPLETO',
+                valor_anterior=f'Eliminado: {target.nombre_activo} ({target.placa_codigo_interno})',
+                valor_nuevo=None,
+                usuario_id=obtener_usuario_actual(),
+                timestamp=datetime.utcnow(),
+                ip_address=ip_address,
+                user_agent=user_agent,
+                tipo_operacion='DELETE',
+                observaciones='Activo eliminado del sistema'
+            )
         )
-
-        session.add(historial)
-        session.commit()
     except Exception as e:
         _logger.error(f"[AUDIT] auditar_eliminacion_activo: {e}")
-        session.rollback()
-    finally:
-        session.close()

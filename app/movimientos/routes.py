@@ -1174,30 +1174,20 @@ def generar_acta_pdf(movimiento_id):
         # ========================================================================
         # PASO 6: Procesar detalles y datos JSON
         # ========================================================================
-        context = {} # Iniciar un contexto limpio
+        # Nota: aquí se inicializaba `context = {}` y se le asignaba
+        # context['accesorios'], pero el PASO 7 reasigna `context` por completo,
+        # así que aquello era código muerto. Solo se enriquece `detalles`.
         if not detalles:
             current_app.logger.warning(f"[PDF Generation] No hay detalles específicos para movimiento {movimiento_id}")
-
-        if detalles:
+        else:
             # Para Traslado: procesar tipo_traslado_json
             if tipo == 'Traslado':
-                try:
-                    # Usamos getattr para evitar errores si el campo no existe en un modelo antiguo
-                    detalles.tipo_traslado_parsed = _parsear_json_lista(getattr(detalles, 'tipo_traslado_json', None))
-                    # Nuevo: Parsear accesorios generales para el PDF de traslado
-                    context['accesorios'] = _parsear_json_lista(getattr(detalles, 'accesorios_generales_json', None))
-                except json.JSONDecodeError as e:
-                    current_app.logger.error(f"[PDF Generation] Error parseando tipo_traslado_json: {e}")
-                    detalles.tipo_traslado_parsed = []
-                    context['accesorios'] = []
+                # getattr por si el campo no existe en un registro antiguo
+                detalles.tipo_traslado_parsed = _parsear_json_lista(getattr(detalles, 'tipo_traslado_json', None))
 
             # Para Entrega: procesar tipo_elementos
-            if hasattr(detalles, 'tipo_elementos') and detalles.tipo_elementos:
-                try:
-                    detalles.tipo_elementos_parsed = _parsear_json_lista(detalles.tipo_elementos)
-                except json.JSONDecodeError as e:
-                    current_app.logger.error(f"[PDF Generation] Error parseando tipo_elementos: {e}")
-                    detalles.tipo_elementos_parsed = {}
+            if getattr(detalles, 'tipo_elementos', None):
+                detalles.tipo_elementos_parsed = _parsear_json_lista(detalles.tipo_elementos)
 
         # ========================================================================
         # PASO 7: Preparar contexto para la plantilla

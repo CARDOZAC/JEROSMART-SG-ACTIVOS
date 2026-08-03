@@ -526,11 +526,11 @@ def exportar_comodatos_excel():
         max_length = 0
         column = col[0].column_letter
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
+            # str() en ambos lados: antes se medía con str(...) pero se asignaba
+            # len(cell.value), que falla en celdas numéricas y dejaba el ancho sin
+            # ajustar porque el bare except se tragaba el TypeError.
+            if cell.value is not None:
+                max_length = max(max_length, len(str(cell.value)))
         adjusted_width = min(max_length + 2, 50)
         ws1.column_dimensions[column].width = adjusted_width
 
@@ -990,11 +990,11 @@ def exportar_movimientos_excel():
         max_length = 0
         column = col[0].column_letter
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
+            # str() en ambos lados: antes se medía con str(...) pero se asignaba
+            # len(cell.value), que falla en celdas numéricas y dejaba el ancho sin
+            # ajustar porque el bare except se tragaba el TypeError.
+            if cell.value is not None:
+                max_length = max(max_length, len(str(cell.value)))
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column].width = adjusted_width
 
@@ -1283,11 +1283,11 @@ def exportar_mantenimientos_excel():
         max_length = 0
         column = col[0].column_letter
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
+            # str() en ambos lados: antes se medía con str(...) pero se asignaba
+            # len(cell.value), que falla en celdas numéricas y dejaba el ancho sin
+            # ajustar porque el bare except se tragaba el TypeError.
+            if cell.value is not None:
+                max_length = max(max_length, len(str(cell.value)))
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column].width = adjusted_width
 

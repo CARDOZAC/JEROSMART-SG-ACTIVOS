@@ -83,31 +83,11 @@ class Config:
     LOAN_CONTRACT_FOLDER = str(BASE_DIR / 'uploads' / 'loan_contracts')
 
     # --- Constantes de la Aplicación ---
-    ATRIBUTOS_POR_CLASE = {
-        '1': [
-            {'name': 'registro_invima', 'label': 'Registro Invima', 'type': 'text', 'required': False},
-            {'name': 'clasificacion_riesgo', 'label': 'Clasificación de Riesgo', 'type': 'select',
-             'options': ['I', 'IIa', 'IIb', 'III'], 'required': False},
-            {'name': 'vida_util', 'label': 'Vida Útil (años)', 'type': 'number', 'required': False},
-            {'name': 'ultimo_mantenimiento', 'label': 'Último Mantenimiento', 'type': 'date', 'required': False}
-        ],
-        '2': [
-            {'name': 'especificaciones_tecnicas', 'label': 'Especificaciones Técnicas (Electr.)', 'type': 'textarea', 'required': False}
-        ],
-        '3': [
-            {'name': 'procesador', 'label': 'Procesador', 'type': 'text', 'required': False},
-            {'name': 'disco_duro', 'label': 'Disco Duro', 'type': 'text', 'required': False},
-            {'name': 'ram', 'label': 'RAM', 'type': 'text', 'required': False},
-            {'name': 'sistema_operativo', 'label': 'Sistema Operativo', 'type': 'text', 'required': False},
-            {'name': 'especificaciones_tecnicas', 'label': 'Especificaciones Técnicas (TICs)', 'type': 'textarea', 'required': False}
-        ],
-        '4': [
-            {'name': 'tipo_adquisicion', 'label': 'Tipo de Adquisición', 'type': 'select',
-             'options': ['Compra', 'Donación', 'Comodato'], 'required': False},
-            {'name': 'fecha_ingreso', 'label': 'Fecha de Ingreso', 'type': 'date', 'required': False},
-            {'name': 'especificaciones_tecnicas', 'label': 'Especificaciones (Material, Dimensiones, etc.)', 'type': 'textarea', 'required': False}
-        ]
-    }
+    # ATRIBUTOS_POR_CLASE se eliminó de aquí: era una tercera copia, más
+    # pobre que las otras dos (a la clase 1 le faltaban 'fabricante' y
+    # 'frecuencia_mantenimiento', entre otros), de modo que un mismo activo
+    # pasaba o no la validación según qué módulo la ejecutara.
+    # Fuente única: app/activos_v2/atributos_dinamicos.py
 
     ROLES_POR_MOVIMIENTO = {
         'Entrega': [
