@@ -27,7 +27,7 @@ echo.
 echo Si viste el mensaje "La contrasena funciona correctamente"
 echo ya puedes iniciar sesion con:
 echo.
-echo Email:      activosfijos@clinicaprimavera.com
+echo Email:      activosfijos@jerosmart.local
 echo Contrasena: 12345
 echo.
 echo ========================================

@@ -141,3 +141,14 @@ temp_migrate*.py
 query
 nul
 *.db
+
+# --- Frontend (Vite) ---
+# Las dependencias se reinstalan con `npm install`; el bundle compilado en
+# app/static/dist SÍ se versiona para que desplegar no requiera Node.
+frontend/node_modules/
+frontend/.vite/
+
+# Excepción: la regla genérica `dist/` (plantilla de Python) capturaba el
+# bundle de Vite. Este sí debe versionarse.
+!app/static/dist/
+!app/static/dist/**

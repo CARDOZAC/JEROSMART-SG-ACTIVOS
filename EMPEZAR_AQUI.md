@@ -83,7 +83,7 @@ Haz clic en el icono 🐬 (delfín azul)
 ```
 
 - Haz clic en tu conexión
-- Escribe tu contraseña: `JeroNimoDaviLex9824.`
+- Escribe tu contraseña: `<la contraseña de tu archivo .env>`
 - Dale Enter
 
 #### 3. Abre el Script
@@ -226,7 +226,7 @@ LIMIT 5;
 
 **Solución:**
 1. Verifica la contraseña en: `C:\Users\david\JEROSMART ACTIVOS\.env`
-2. Debe ser: `JeroNimoDaviLex9824.`
+2. Debe ser: `<la contraseña de tu archivo .env>`
 
 ---
 

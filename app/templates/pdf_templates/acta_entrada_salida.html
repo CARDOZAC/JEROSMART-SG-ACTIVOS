@@ -419,10 +419,10 @@
     <div class="document-header">
         <div class="header-main-row">
             <div class="header-logo">
-                <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo">
+                <img src="{{ url_for('static', filename=org.logo) }}" alt="Logo">
             </div>
             <div class="header-info">
-                <h1>CORPORACION CLINICA PRIMAVERA</h1>
+                <h1>{{ org.nombre }}</h1>
                 <p>NIT: 900213617-3</p>
             </div>
             <div class="header-metadata">
@@ -456,7 +456,7 @@
         
         <!-- INTRO -->
         <p class="intro-para">
-            Para la Corporación Clínica Primavera, el control de los activos fijos es crucial. Por eso, el área o el funcionario encargado implementará la firma del acta para asegurar la integridad de todos los elementos bajo su cuidado y responsabilidad para facilitar el trabajo de la entidad.
+            Para la {{ org.nombre }}, el control de los activos fijos es crucial. Por eso, el área o el funcionario encargado implementará la firma del acta para asegurar la integridad de todos los elementos bajo su cuidado y responsabilidad para facilitar el trabajo de la entidad.
         </p>
         
         <!-- DATOS SOLICITANTE -->
@@ -481,7 +481,7 @@
             <div class="field-row">
                 <div class="field-group w100">
                     <span class="field-label">Sede:</span>
-                    <div class="field-input">{{ detalles.sede | default_empty('CORPORACION CLINICA PRIMAVERA') }}</div>
+                    <div class="field-input">{{ detalles.sede | default_empty('{{ org.nombre }}') }}</div>
                 </div>
             </div>
 
@@ -509,7 +509,7 @@
         
         <!-- NOTA 1 -->
         <p class="note-text">
-            <b>Nota:</b> La siguiente sección se diligenciará únicamente en caso de que el activo corresponda a un bien ajeno entregado en comodato, pertenezca a un tercero o a un funcionario vinculado a la Corporación Clínica Primavera.
+            <b>Nota:</b> La siguiente sección se diligenciará únicamente en caso de que el activo corresponda a un bien ajeno entregado en comodato, pertenezca a un tercero o a un funcionario vinculado a la {{ org.nombre }}.
         </p>
         
         <!-- DATOS TERCERO -->
@@ -671,7 +671,7 @@
                         {% endif %}
                     </div>
                     <div class="sig-line">
-                        <div class="sig-role">Soporte Clinica Primavera / Tercero a cargo</div>
+                        <div class="sig-role">Soporte {{ org.nombre }} / Tercero a cargo</div>
                         <div class="sig-name"><b>Nombre:</b></div>
                         {% if firma_obj and firma_obj.firma_svg %}
                         <div class="audit-meta">
@@ -751,7 +751,7 @@
         <div class="clause-block">
             <div class="clause-heading">Clausula de Compromiso Funcionario Responsable</div>
             <div class="clause-body">
-                Declaro haber recibido los activos detallados en este documento, los cuales son propiedad de la Corporación Clínica Primavera y quedan bajo mi directa responsabilidad para el cumplimiento de mis funciones laborales. Me comprometo a seguir los procedimientos establecidos para la administración de activos y, en caso de pérdida o robo, presentaré la denuncia correspondiente. Asumo la responsabilidad por la correcta administración y conservación de estos activos, entendiendo que el incumplimiento de las normas de conservación se considerará una falta a mis obligaciones.
+                Declaro haber recibido los activos detallados en este documento, los cuales son propiedad de la {{ org.nombre }} y quedan bajo mi directa responsabilidad para el cumplimiento de mis funciones laborales. Me comprometo a seguir los procedimientos establecidos para la administración de activos y, en caso de pérdida o robo, presentaré la denuncia correspondiente. Asumo la responsabilidad por la correcta administración y conservación de estos activos, entendiendo que el incumplimiento de las normas de conservación se considerará una falta a mis obligaciones.
             </div>
         </div>
         

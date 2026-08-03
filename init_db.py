@@ -48,7 +48,7 @@ def seed_data():
         # Usuario administrador
         # ========================
         admin_user = User(
-            email='activosfijos@clinicaprimavera.com',
+            email='activosfijos@jerosmart.local',
             cargo='Administrador',
             area='IT',
             rol=ROLES.ADMIN
@@ -360,7 +360,7 @@ def init_db_app(app):
         seed_data()
 
         print(f"\n=== Base de datos '{db_path}' creada y poblada exitosamente ===")
-        print("   Admin de prueba -> usuario: 'activosfijos@clinicaprimavera.com'  |  contrasena: '12345'")
+        print("   Admin de prueba -> usuario: 'activosfijos@jerosmart.local'  |  contrasena: '12345'")
 
 
 # ------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 // Versión 4.2 - Refactorizado con useReducer y validación robusta
 // ============================================================================
 
-const { useState, useEffect, useCallback, useReducer, useMemo, useRef } = React;
+import React, { useState, useEffect, useCallback, useReducer, useMemo, useRef } from 'react';
 
 // ============================================================================
 // REGLAS DE VALIDACIÓN
@@ -907,5 +907,4 @@ const SearchableSelect = React.memo(({ label, name, value, onChange, options, re
     );
 });
 
-// Exponer AssetWizard globalmente para que pueda ser usado desde el HTML
-window.AssetWizard = AssetWizard;
+export default AssetWizard;

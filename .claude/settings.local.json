@@ -10,7 +10,6 @@
       "Bash(estructura_bd_mysql.txt)",
       "Bash(set DB_TYPE=mysql)",
       "Bash(set DB_USER=root)",
-      "Bash(set DB_PASSWORD=JeroNimoDaviLex9824.)",
       "Bash(set:*)",
       "Bash(venvScriptspython.exe actualizar_ubicaciones.py \"C:\\Users\\david\\Downloads\\ajenos200.csv\")",
       "Bash(netstat:*)",
@@ -23,7 +22,9 @@
       "Bash(move:*)",
       "Bash(./venv/Scripts/python.exe -c ' *)",
       "Bash(./venv/Scripts/python.exe -m compileall -q app)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(npm --version)",
+      "Bash(where node *)"
     ],
     "deny": [],
     "ask": []

@@ -542,7 +542,7 @@
                                     <div class="col-md-6"><label for="fecha_Entrada" class="form-label">Fecha</label><input type="date" name="fecha_Entrada" id="fecha_Entrada" class="form-control"></div>
                                     <div class="col-md-6"><label for="hora_Entrada" class="form-label">Hora</label><input type="time" name="hora_Entrada" id="hora_Entrada" class="form-control"></div>
                                     <div class="col-md-6"><label for="ciudad_es" class="form-label">Ciudad</label><input type="text" name="ciudad_es" id="ciudad_es" class="form-control" value="Villavicencio"></div>
-                                    <div class="col-md-6"><label for="sede_es" class="form-label">Sede</label><input type="text" name="sede_es" id="sede_es" class="form-control" value="CORPORACION CLINICA PRIMAVERA"></div>
+                                    <div class="col-md-6"><label for="sede_es" class="form-label">Sede</label><input type="text" name="sede_es" id="sede_es" class="form-control" value="{{ org.nombre }}"></div>
                                     <hr class="my-3">
                                     <h6 class="text-secondary">Datos del Solicitante</h6>
                                     <div class="col-md-6 autocomplete-container">
@@ -1079,9 +1079,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configuración de firmas según tipo de movimiento
     const firmasRequeridas = {
-        'Entrada/Salida': ['Responsable_del_activo', 'Jefe_inmediato_del_responsable', 'VoBo_activos_fijos', 'soporte_clinica_primavera/tercero_a_cargo'],
+        'Entrada/Salida': ['Responsable_del_activo', 'Jefe_inmediato_del_responsable', 'VoBo_activos_fijos', 'soporte_soporte_tecnico/tercero_a_cargo'],
         'Traslado': ['Responsable_Actual', 'Responsable_Nuevo', 'Jefe_inmediato_del_responsable_nuevo', 'VoBo_activos_fijos'],
-        'Entrega': ['Funcionario_Entrega', 'jefe_inmediato_funcionario_entrega', 'Funcionario_Recibe', 'jefe_inmediato_quien_recibe', 'VoBo_activos_fijos', 'soporte_clinica_primavera'],
+        'Entrega': ['Funcionario_Entrega', 'jefe_inmediato_funcionario_entrega', 'Funcionario_Recibe', 'jefe_inmediato_quien_recibe', 'VoBo_activos_fijos', 'soporte_soporte_tecnico'],
         'Reporte de Daño o Pérdida': ['Responsable_Reporte', 'Soporte_Tecnico', 'Jefe_Area', 'VoBo_Activos_Fijos']
     };
 

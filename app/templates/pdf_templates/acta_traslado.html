@@ -320,10 +320,10 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+                    <img src="{{ url_for('static', filename=org.logo) }}" alt="Logo" class="logo-img">
                 </td>
                 <td class="header-center" rowspan="2">
-                    <div class="title1">CORPORACION CLINICA PRIMAVERA</div>
+                    <div class="title1">{{ org.nombre }}</div>
                     <div class="title2">NIT: 900213617-3</div>
                     <div class="title3">TRASLADO DE ACTIVOS FIJOS</div>
                 </td>
@@ -344,7 +344,7 @@
         <div class="intro-section">
             <div class="intro-title">Lineamientos para el Traslado Interno de Activos Fijos</div>
             <div class="intro-text">
-                El área de activos fijos de la Corporación Clínica Primavera ha desarrollado los siguientes lineamientos para el traslado de equipos dentro de la institución, buscando fortalecer el control y la vigilancia de los bienes muebles tales como equipos biomedicos, equipos de la telecomunicación e información, equipos electroindustriales y enseres de la entidad, con el fin de salvaguardar su integridad.
+                El área de activos fijos de la {{ org.nombre }} ha desarrollado los siguientes lineamientos para el traslado de equipos dentro de la institución, buscando fortalecer el control y la vigilancia de los bienes muebles tales como equipos biomedicos, equipos de la telecomunicación e información, equipos electroindustriales y enseres de la entidad, con el fin de salvaguardar su integridad.
             </div>
         </div>
 

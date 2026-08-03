@@ -12,11 +12,11 @@ def reset_admin_password():
         from app.models import User
 
         # Buscar el usuario admin
-        admin = User.query.filter_by(email='activosfijos@clinicaprimavera.com').first()
+        admin = User.query.filter_by(email='activosfijos@jerosmart.local').first()
 
         if not admin:
             print("❌ No se encontró el usuario administrador.")
-            print("   Email buscado: activosfijos@clinicaprimavera.com")
+            print("   Email buscado: activosfijos@jerosmart.local")
             print("\n📋 Usuarios existentes en la base de datos:")
             users = User.query.all()
             if users:

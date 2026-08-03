@@ -33,7 +33,7 @@ def init_db_simple():
 
             print("\n-> Creando usuario administrador...")
             admin_user = User(
-                email='activosfijos@clinicaprimavera.com',
+                email='activosfijos@jerosmart.local',
                 cargo='Administrador',
                 area='IT',
                 rol='Admin'
@@ -52,7 +52,7 @@ def init_db_simple():
             print("  3. TICs                   -> Módulo de Mantenimientos")
             print("  4. Muebles y Enseres      -> Módulo de Mantenimientos")
             print("\nCredenciales de acceso:")
-            print("  Usuario: activosfijos@clinicaprimavera.com")
+            print("  Usuario: activosfijos@jerosmart.local")
             print("  Contrasena: 12345")
             print("\nAhora puedes importar tus activos usando:")
             print("  - Wizard de importacion CSV")

@@ -292,10 +292,10 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+                    <img src="{{ url_for('static', filename=org.logo) }}" alt="Logo" class="logo-img">
                 </td>
                 <td class="header-center" rowspan="2">
-                    <div class="title1">CORPORACION CLINICA PRIMAVERA</div>
+                    <div class="title1">{{ org.nombre }}</div>
                     <div class="title2">NIT: 900213617-3</div>
                     <div class="title3">PAZ Y SALVO ACTIVOS FIJOS</div>
                     <div class="subtitle">Políticas internas</div>
@@ -315,7 +315,7 @@
         
         <!-- Policy Text -->
         <div class="policy-text">
-            Mediante el presente documento, la Corporación Clínica Primavera certifica al empleado/a en trámite de desvinculación. A quien se le asigne alguna clase o tipo de activo fijo o ajeno debe devolverlo en óptimas condiciones los cuales fueron entregados al momento de su ingreso a la institución. Si los elementos han sido verificados y se encuentran en óptimas condiciones, se procederá a realizar el formato, si hay algún tipo de novedad o negativa ante los activos asignados se verificará, investigará y se concluirá si se debe hacer algún pago o reposición del activo dañado o perdido en su defecto.
+            Mediante el presente documento, la {{ org.nombre }} certifica al empleado/a en trámite de desvinculación. A quien se le asigne alguna clase o tipo de activo fijo o ajeno debe devolverlo en óptimas condiciones los cuales fueron entregados al momento de su ingreso a la institución. Si los elementos han sido verificados y se encuentran en óptimas condiciones, se procederá a realizar el formato, si hay algún tipo de novedad o negativa ante los activos asignados se verificará, investigará y se concluirá si se debe hacer algún pago o reposición del activo dañado o perdido en su defecto.
         </div>
         
         <!-- Basic Info Section -->
@@ -410,7 +410,7 @@
             </tr>
             <tr>
                 <td class="observations-text">
-                    El(La) funcionario/a se encuentra a paz y salvo con la Corporación Clinica Primavera.
+                    El(La) funcionario/a se encuentra a paz y salvo con la {{ org.nombre }}.
                 </td>
             </tr>
         </table>

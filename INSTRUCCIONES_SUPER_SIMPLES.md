@@ -37,7 +37,7 @@ Es como cuando instalas un DLC (contenido descargable) en un videojuego - agrega
 ```
 
 1. Haz clic en tu conexión (probablemente se llama "Local instance MySQL80")
-2. Te pedirá tu contraseña: `JeroNimoDaviLex9824.`
+2. Te pedirá tu contraseña: `<la contraseña de tu archivo .env>`
 3. Dale Enter
 
 ---
@@ -161,7 +161,7 @@ Presiona **Enter**
 Enter password:
 ```
 
-Escribe: `JeroNimoDaviLex9824.`
+Escribe: `<la contraseña de tu archivo .env>`
 Presiona **Enter**
 
 **NOTA:** La contraseña NO se ve mientras escribes (es normal)
@@ -207,7 +207,7 @@ Cópiame todo lo que salga en rojo y te ayudo.
 **Significa:** La contraseña está mal
 
 **Solución:**
-- Verifica que la contraseña sea: `JeroNimoDaviLex9824.` (con el punto al final)
+- Verifica que la contraseña sea: `<la contraseña de tu archivo .env>` (con el punto al final)
 - O me dices cuál es tu contraseña real de MySQL
 
 ---

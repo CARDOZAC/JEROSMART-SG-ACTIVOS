@@ -46,7 +46,7 @@ with app.app_context():
         print(f"\nTotal de usuarios: {len(users)}")
 
         # Probar contraseña del admin
-        admin = User.query.filter_by(email='activosfijos@clinicaprimavera.com').first()
+        admin = User.query.filter_by(email='activosfijos@jerosmart.local').first()
         if admin:
             print("\n" + "=" * 70)
             print("PRUEBA DE CONTRASEÑA ADMIN")

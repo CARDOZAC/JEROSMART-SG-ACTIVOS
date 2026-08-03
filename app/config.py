@@ -61,6 +61,16 @@ class Config:
     # Desactiva una característica de Flask-SQLAlchemy que no se necesita y consume recursos.
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # --- Identidad de la Organización ---
+    # Datos que encabezan las actas PDF y los reportes. Se configuran por
+    # variables de entorno para que la aplicación no quede atada a ningún
+    # cliente concreto: antes el nombre, el NIT y el logo estaban escritos
+    # directamente en las plantillas.
+    ORG_NOMBRE = os.environ.get('ORG_NOMBRE', 'JeroSmart')
+    ORG_NIT = os.environ.get('ORG_NIT', '')
+    ORG_LOGO = os.environ.get('ORG_LOGO', 'img/logosmartjero.png')
+    ORG_SEDE = os.environ.get('ORG_SEDE', '')
+
     # --- Configuración de Rutas de Archivos ---
     # Se usa pathlib para una gestión de rutas moderna y robusta.
     # Convertidas a strings para compatibilidad con os.path en Windows

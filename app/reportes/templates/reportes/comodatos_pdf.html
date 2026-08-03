@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Comodatos - Clínica Primavera</title>
+    <title>Reporte de Comodatos - {{ org.nombre }}</title>
     <style>
         @page {
             size: A4 landscape;
@@ -224,7 +224,7 @@
     <!-- Header -->
     <div class="header">
         <h1>Reporte de Contratos de Comodato</h1>
-        <div class="subtitle">Corporación Clínica Primavera - Sistema de Gestión de Activos Fijos</div>
+        <div class="subtitle">{{ org.nombre }} - Sistema de Gestión de Activos Fijos</div>
         <div class="meta-info">
             Generado: {{ fecha_generacion }} por {{ usuario_generador }}
             {% if filtros_aplicados %}
@@ -394,7 +394,7 @@
 
     <!-- Footer info -->
     <div class="footer-info">
-        Sistema de Gestión de Activos Fijos JEROSMART - Corporación Clínica Primavera
+        Sistema de Gestión de Activos Fijos JEROSMART - {{ org.nombre }}
         <br>
         © {{ fecha_generacion.split()[0].split('-')[0] }} JEROSMART. Documento generado automáticamente.
     </div>

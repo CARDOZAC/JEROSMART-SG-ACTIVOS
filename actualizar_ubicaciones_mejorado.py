@@ -30,7 +30,7 @@ from datetime import datetime
 # Configurar variables de entorno para MySQL ANTES de importar app
 os.environ['DB_TYPE'] = 'mysql'
 os.environ['DB_USER'] = 'root'
-os.environ['DB_PASSWORD'] = 'JeroNimoDaviLex9824.'
+# La credencial se lee de .env; no se escribe en el código.
 os.environ['DB_NAME'] = 'jerosmart_activos'
 os.environ['DB_HOST'] = 'localhost'
 os.environ['DB_PORT'] = '3306'

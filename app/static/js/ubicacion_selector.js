@@ -4,7 +4,7 @@
 // =====================================================================
 
 /**
- * Lista maestra de ubicaciones de la Clínica Primavera
+ * Lista maestra de ubicaciones de la JeroSmart
  * Organizada por áreas para facilitar mantenimiento
  */
 const UBICACIONES_CLINICA = [

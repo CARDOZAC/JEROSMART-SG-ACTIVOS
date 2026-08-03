@@ -2005,6 +2005,7 @@ Estos eventos se ejecutan automáticamente cuando ocurren ciertos cambios.
 """
 from sqlalchemy import event, inspect
 from sqlalchemy.orm.attributes import PASSIVE_NO_RESULT, flag_modified # Import here for use in trigger
+from sqlalchemy.orm.base import LoaderCallableStatus
 
 # TRIGGER 1: Actualizar estado y responsable de activo al entregarlo
 # ==============================================================================
@@ -2148,7 +2149,7 @@ def auditar_cambio_estado_activo(target, value, oldvalue, initiator):
     # La forma correcta de evitar que este evento se dispare durante la carga inicial
     # (como en init_db.py) es verificar si el valor anterior era 'PASSIVE_NO_RESULT'.
     # Esto indica que el atributo no tenía un valor previo.
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         from datetime import datetime
         # Usamos inspect para obtener el valor anterior de forma segura, aunque oldvalue ya lo tiene.
         history = inspect(target).attrs.estado.history
@@ -2286,11 +2287,31 @@ def obtener_usuario_actual():
     return None
 
 
+def es_valor_centinela(valor):
+    """
+    Indica si `valor` es un centinela interno de SQLAlchemy y no un dato real.
+
+    Los eventos 'set' entregan como valor anterior un miembro de
+    LoaderCallableStatus (NO_VALUE, PASSIVE_NO_RESULT, NEVER_SET...) cuando el
+    atributo nunca tuvo valor, que es justo lo que ocurre al construir un objeto
+    nuevo. Comprobar solo PASSIVE_NO_RESULT dejaba pasar NO_VALUE, y eso
+    provocaba dos fallos: `json.dumps(NO_VALUE)` lanzaba TypeError al crear un
+    activo con atributos dinámicos, y el resto de listeners guardaban la cadena
+    "LoaderCallableStatus.NO_VALUE" como valor anterior en la auditoría.
+    """
+    return isinstance(valor, LoaderCallableStatus)
+
+
 def registrar_cambio_activo(activo, campo, valor_anterior, valor_nuevo, tipo_operacion='UPDATE', observaciones=None):
     """
     Registra un cambio en el historial de auditoría del activo.
     """
     from sqlalchemy.orm import Session
+
+    # Alta del objeto: no hay valor anterior que auditar. La creación ya queda
+    # registrada por el listener 'after_insert'.
+    if es_valor_centinela(valor_anterior):
+        return
 
     # Convertir valores a string para almacenar en TEXT
     valor_anterior_str = str(valor_anterior) if valor_anterior is not None else None
@@ -2331,7 +2352,7 @@ def auditar_cambio_placa(target, value, oldvalue, initiator):
     Registra cambios en la placa/código interno del activo.
     Campo CRÍTICO para trazabilidad legal.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         registrar_cambio_activo(
             target, 'placa_codigo_interno', oldvalue, value,
             tipo_operacion='UPDATE',
@@ -2347,7 +2368,7 @@ def auditar_cambio_funcionario(target, value, oldvalue, initiator):
     Registra cambios en el funcionario responsable del activo.
     Campo CRÍTICO para trazabilidad de responsabilidades.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         registrar_cambio_activo(
             target, 'funcionario_id', oldvalue, value,
             tipo_operacion='UPDATE',
@@ -2363,7 +2384,7 @@ def auditar_cambio_ubicacion(target, value, oldvalue, initiator):
     Registra cambios en la ubicación física del activo.
     Campo CRÍTICO para inventario físico y conciliación.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         registrar_cambio_activo(
             target, 'ubicacion', oldvalue, value,
             tipo_operacion='UPDATE',
@@ -2379,7 +2400,7 @@ def auditar_cambio_estado_activo_historico(target, value, oldvalue, initiator):
     Registra cambios en el estado del activo.
     Campo CRÍTICO para ciclo de vida del activo.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         registrar_cambio_activo(
             target, 'estado', oldvalue, value,
             tipo_operacion='UPDATE',
@@ -2395,7 +2416,7 @@ def auditar_cambio_conciliacion(target, value, oldvalue, initiator):
     Registra cambios en el estado de conciliación física.
     Campo CRÍTICO para sistema anti-activos fantasma.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         registrar_cambio_activo(
             target, 'estado_conciliacion', oldvalue, value,
             tipo_operacion='VERIFICACION',
@@ -2411,7 +2432,7 @@ def auditar_cambio_atributos_dinamicos(target, value, oldvalue, initiator):
     Registra cambios en los atributos dinámicos JSON del activo.
     Campo CRÍTICO para propiedades específicas por clase de activo.
     """
-    if oldvalue is not PASSIVE_NO_RESULT and oldvalue != value:
+    if not es_valor_centinela(oldvalue) and oldvalue != value:
         import json
         # Convertir a string formateado para comparación legible
         valor_anterior_str = json.dumps(oldvalue, sort_keys=True) if oldvalue else None

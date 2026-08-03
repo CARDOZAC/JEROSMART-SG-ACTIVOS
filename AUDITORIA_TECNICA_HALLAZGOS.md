@@ -27,7 +27,8 @@ Cada hallazgo tiene un ID (`FIX-xx` = ya corregido en esta sesión, `TASK-xx` = 
 
 ### ✅ TASK-01 🔴 — Credenciales reales de MySQL versionadas en git *(resuelto a nivel de repo)*
 - **Archivo:** `.env` (estaba trackeado en git)
-- Contenía `DB_USER=root` / `DB_PASSWORD=Jeronimo2024.` y un `SECRET_KEY` placeholder (`cambia-por-clave-segura-...`). Con ese placeholder, **cualquiera que leyera el repo podía firmar cookies de sesión válidas** y suplantar a un Admin: era tan grave como la contraseña expuesta.
+- Contenía `DB_USER=root` con la contraseña de root en texto plano (aquí redactada) y un `SECRET_KEY` placeholder (`cambia-por-clave-segura-...`). Con ese placeholder, **cualquiera que leyera el repo podía firmar cookies de sesión válidas** y suplantar a un Admin: era tan grave como la contraseña expuesta.
+- ⚠️ La misma contraseña de root aparece en texto plano en otros archivos **versionados**: `.env.ejemplo`, `actualizar_ubicaciones.bat`, `eliminar_activos_ajenos.bat` y `.claude/settings.local.json`. Al rotar la credencial hay que limpiarlos todos, no solo el `.env`.
 - **Aplicado:**
   - `git rm --cached .env` — el archivo sigue en disco pero ya no se versiona (`.env` ya figuraba en `.gitignore`, por eso nunca debió estar trackeado).
   - `SECRET_KEY` real de 64 hex generado con `secrets.token_hex(32)` y escrito en `.env`. *(Efecto esperado: las sesiones abiertas se invalidan, hay que volver a iniciar sesión.)*

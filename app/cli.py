@@ -341,6 +341,151 @@ def estadisticas_conciliacion():
     click.echo(f"\n{'='*70}\n")
 
 
+@activos.command('seed-demo')
+@click.option('--forzar', is_flag=True,
+              help='Crea los activos aunque ya existan otros en la base de datos.')
+@with_appcontext
+def seed_demo(forzar):
+    """
+    Crea 8 activos de ejemplo: 2 biomédicos, 2 electro-industriales,
+    2 muebles y enseres y 2 equipos de TI.
+
+    Es idempotente: los activos cuya placa ya exista se omiten.
+    """
+    from .models import ClaseActivo
+
+    # Atributos dinámicos coherentes con ATRIBUTOS_POR_CLASE de cada módulo.
+    DEMO = [
+        # ---------- Equipo Biomédico (clase 1) ----------
+        dict(placa='BIO-0001', nombre='Monitor de Signos Vitales', clase='Equipo Biomédico',
+             marca='Mindray', modelo='ePM 12M', serie='MIN-EPM12-4417',
+             ubicacion='Sala de Observación', valor=18500000.0,
+             atributos={'registro_invima': '2023DM-0011245', 'clasificacion_riesgo': 'IIb',
+                        'clasificacion_biomedica': 'Diagnóstico', 'fabricante': 'Mindray',
+                        'pais_origen': 'China', 'vida_util': '10',
+                        'frecuencia_mantenimiento': 'Semestral', 'requiere_calibracion': 'Sí',
+                        'voltaje_operacion': '110V AC', 'potencia': '150'}),
+        dict(placa='BIO-0002', nombre='Bomba de Infusión Volumétrica', clase='Equipo Biomédico',
+             marca='B. Braun', modelo='Infusomat Space', serie='BRA-INF-90233',
+             ubicacion='Hospitalización Piso 2', valor=9200000.0,
+             atributos={'registro_invima': '2022DM-0009871', 'clasificacion_riesgo': 'IIb',
+                        'clasificacion_biomedica': 'Tratamiento y Mantenimiento de la Vida',
+                        'fabricante': 'B. Braun', 'pais_origen': 'Alemania', 'vida_util': '8',
+                        'frecuencia_mantenimiento': 'Semestral', 'requiere_calibracion': 'Sí',
+                        'voltaje_operacion': '110V AC', 'potencia': '45'}),
+
+        # ---------- Equipo Electro-Industrial (clase 2) ----------
+        dict(placa='IND-0001', nombre='Planta Eléctrica de Emergencia 60 KVA', clase='Equipo Electro-Industrial',
+             marca='Cummins', modelo='C60D6', serie='CUM-60KVA-2210',
+             ubicacion='Cuarto de Máquinas', valor=78000000.0,
+             atributos={'voltaje_nominal': '220V AC', 'corriente_nominal': '157.5',
+                        'potencia_nominal': '60 kVA', 'cumple_retie': 'Sí',
+                        'certificado_conformidad': 'CC-RETIE-2022-4471',
+                        'especificaciones_tecnicas': 'Motor diésel 4 tiempos, tablero de '
+                                                     'transferencia automática, tanque 200 L.'}),
+        dict(placa='IND-0002', nombre='Compresor de Aire Medicinal', clase='Equipo Electro-Industrial',
+             marca='Atlas Copco', modelo='GA 15 VSD', serie='ATC-GA15-77120',
+             ubicacion='Cuarto Técnico', valor=42300000.0,
+             atributos={'voltaje_nominal': '220V AC', 'corriente_nominal': '41.2',
+                        'potencia_nominal': '15 kW', 'cumple_retie': 'Sí',
+                        'certificado_conformidad': 'CC-RETIE-2023-1188',
+                        'especificaciones_tecnicas': 'Compresor de tornillo con variador de '
+                                                     'velocidad y secador integrado.'}),
+
+        # ---------- Muebles y Enseres (clase 4) ----------
+        dict(placa='MUE-0001', nombre='Escritorio Ejecutivo en L', clase='Muebles y Enseres',
+             marca='Office Line', modelo='EJ-160L', serie='OFL-160L-0455',
+             ubicacion='Oficina Administrativa', valor=1350000.0,
+             atributos={'tipo_mueble': 'Escritorio', 'material': 'Madera',
+                        'dimensiones': '75cm x 160cm x 80cm', 'color': 'Wengue',
+                        'estado_fisico': 'Bueno', 'tipo_adquisicion': 'Compra',
+                        'especificaciones_tecnicas': 'Superficie en melamina de 25 mm con '
+                                                     'pasacables y archivador de 3 gavetas.'}),
+        dict(placa='MUE-0002', nombre='Archivador Metálico de 4 Gavetas', clase='Muebles y Enseres',
+             marca='Metalúrgica Nacional', modelo='AR-4G', serie='MTN-AR4G-1902',
+             ubicacion='Archivo Central', valor=890000.0,
+             atributos={'tipo_mueble': 'Archivador', 'material': 'Metal',
+                        'dimensiones': '132cm x 47cm x 62cm', 'color': 'Gris',
+                        'estado_fisico': 'Excelente', 'tipo_adquisicion': 'Compra',
+                        'especificaciones_tecnicas': 'Cuatro gavetas con rieles telescópicos '
+                                                     'y cerradura central.'}),
+
+        # ---------- TICs (clase 3) ----------
+        dict(placa='TIC-0001', nombre='Computador Portátil Corporativo', clase='TICs',
+             marca='Lenovo', modelo='ThinkPad T14 Gen 4', serie='LNV-T14-8821JK',
+             ubicacion='Oficina de Sistemas', valor=5400000.0,
+             atributos={'tipo_equipo': 'Portátil', 'procesador': 'Intel Core i7 1355U',
+                        'ram': '16GB DDR5', 'almacenamiento': 'SSD 512GB NVMe',
+                        'sistema_operativo': 'Windows 11 Pro',
+                        'licencia_software': 'OEM-W11P-77213', 'direccion_ip': '192.168.1.45',
+                        'direccion_mac': '3C:52:82:1A:9F:04', 'vida_util_estimada': '5'}),
+        dict(placa='TIC-0002', nombre='Servidor de Aplicaciones en Rack', clase='TICs',
+             marca='Dell', modelo='PowerEdge R650', serie='DEL-R650-30512',
+             ubicacion='Centro de Cómputo', valor=32700000.0,
+             atributos={'tipo_equipo': 'Servidor', 'procesador': 'Intel Xeon Silver 4310',
+                        'ram': '64GB DDR4 ECC', 'almacenamiento': '2 x SSD 960GB RAID 1',
+                        'sistema_operativo': 'Ubuntu Server 22.04 LTS',
+                        'licencia_software': 'N/A (software libre)',
+                        'direccion_ip': '192.168.1.10',
+                        'direccion_mac': 'B0:7B:25:C4:11:87', 'vida_util_estimada': '7'}),
+    ]
+
+    click.echo(f"\n{'='*70}")
+    click.echo('CREACION DE ACTIVOS DE EJEMPLO')
+    click.echo(f"{'='*70}\n")
+
+    existentes = db.session.scalar(db.select(db.func.count(Activo.id)))
+    if existentes and not forzar:
+        click.echo(f'La base de datos ya tiene {existentes} activo(s).')
+        click.echo('Usa --forzar si aun asi quieres agregar los de ejemplo.')
+        return
+
+    # Mapear nombre de clase -> id, sin asumir los identificadores
+    clases = {c.nombre_clase: c.id for c in db.session.scalars(db.select(ClaseActivo))}
+
+    creados = omitidos = 0
+    for item in DEMO:
+        if db.session.scalar(db.select(Activo).where(Activo.placa_codigo_interno == item['placa'])):
+            click.echo(f"  OMITIDO  {item['placa']}: la placa ya existe")
+            omitidos += 1
+            continue
+
+        clase_id = clases.get(item['clase'])
+        if clase_id is None:
+            click.echo(f"  ERROR    {item['placa']}: no existe la clase '{item['clase']}'")
+            omitidos += 1
+            continue
+
+        db.session.add(Activo(
+            nombre_activo=item['nombre'],
+            placa_codigo_interno=item['placa'],
+            marca=item['marca'],
+            modelo=item['modelo'],
+            serie=item['serie'],
+            ubicacion=item['ubicacion'],
+            valor_comercial=item['valor'],
+            estado='Operativo',
+            tipo_propiedad='Propio',
+            origen_adquisicion='Compra',
+            clase_id=clase_id,
+            estado_conciliacion='Pendiente',
+            atributos_dinamicos_json=item['atributos'],
+        ))
+        creados += 1
+        click.echo(f"  CREADO   {item['placa']}  {item['nombre']}")
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        click.echo(f'\nERROR al guardar: {e}')
+        return
+
+    click.echo(f"\n{'='*70}")
+    click.echo(f'Activos creados: {creados} | omitidos: {omitidos}')
+    click.echo(f"{'='*70}\n")
+
+
 def init_cli(app):
     """Registra los comandos CLI en la aplicación Flask."""
     app.cli.add_command(activos)

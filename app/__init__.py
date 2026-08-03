@@ -158,6 +158,41 @@ def create_app(config_class=Config):
     app.register_blueprint(biomedicos_bp, url_prefix='/biomedicos')
     app.register_blueprint(mantenimientos_bp, url_prefix='/mantenimientos')
 
+    # --- Identidad de la organización disponible en todas las plantillas ---
+    @app.context_processor
+    def inyectar_organizacion():
+        """Expone `org` en las plantillas (nombre, NIT, logo y sede)."""
+        return {
+            'org': {
+                'nombre': app.config.get('ORG_NOMBRE', 'JeroSmart'),
+                'nit': app.config.get('ORG_NIT', ''),
+                'logo': app.config.get('ORG_LOGO', 'img/logosmartjero.png'),
+                'sede': app.config.get('ORG_SEDE', ''),
+            }
+        }
+
+    # --- Helper de estáticos con invalidación de caché ---
+    @app.template_global('static_v')
+    def static_v(filename):
+        """
+        Igual que url_for('static', ...) pero añade ?v=<mtime> al final.
+
+        Los bundles compilados por Vite tienen nombre fijo (wizard-activos.js),
+        así que sin esto el navegador podría seguir sirviendo una versión vieja
+        tras un despliegue. Usar la fecha de modificación evita tener que leer
+        el manifest de Vite desde Jinja.
+        """
+        from flask import url_for
+        url = url_for('static', filename=filename)
+        try:
+            ruta = os.path.join(app.static_folder, filename.replace('/', os.sep))
+            return f"{url}?v={int(os.path.getmtime(ruta))}"
+        except OSError:
+            # El archivo no existe todavía (p. ej. no se ha ejecutado el build).
+            # Se devuelve la URL sin versionar en lugar de romper el render.
+            app.logger.warning(f"[static_v] No se encontró el archivo estático: {filename}")
+            return url
+
     # --- Manejadores de Error ---
     registrar_manejadores_error(app)
 

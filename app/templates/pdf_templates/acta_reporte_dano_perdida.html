@@ -220,10 +220,10 @@
     <table class="header-table">
         <tr>
             <td class="logo-cell">
-                <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+                <img src="{{ url_for('static', filename=org.logo) }}" alt="Logo" class="logo-img">
             </td>
             <td class="header-center">
-                <div class="title1">CORPORACIÓN CLINICA PRIMAVERA</div>
+                <div class="title1">{{ org.nombre }}</div>
                 <div class="title2">GESTIÓN DE ACTIVOS FIJOS</div>
                 <div class="title3">REPORTE DE DAÑO O PÉRDIDA DE ACTIVO FIJO</div>
             </td>
@@ -241,7 +241,7 @@
         <div class="intro-title">INFORMACIÓN DEL REPORTE</div>
         <div class="intro-text">
             El presente documento tiene como finalidad reportar formalmente un incidente relacionado con daño o pérdida
-            de un activo fijo propiedad de la Corporación Clínica Primavera. La información contenida permitirá
+            de un activo fijo propiedad de la {{ org.nombre }}. La información contenida permitirá
             gestionar adecuadamente las acciones correctivas o preventivas necesarias para mitigar el impacto del incidente.
         </div>
     </div>
@@ -505,7 +505,7 @@
 
     <!-- FOOTER -->
     <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 6pt; text-align: center; color: #666;">
-        Documento generado electrónicamente por el Sistema de Gestión de Activos Fijos | Corporación Clínica Primavera<br>
+        Documento generado electrónicamente por el Sistema de Gestión de Activos Fijos | {{ org.nombre }}<br>
         Fecha de generación: {{ fecha_actual }} | Este documento tiene validez legal conforme a la Ley 527 de 1999
     </div>
 </body>

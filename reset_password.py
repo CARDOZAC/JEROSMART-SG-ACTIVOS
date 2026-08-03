@@ -26,14 +26,14 @@ with app.app_context():
     print()
 
     # Buscar admin
-    admin = User.query.filter_by(email='activosfijos@clinicaprimavera.com').first()
+    admin = User.query.filter_by(email='activosfijos@jerosmart.local').first()
 
     if not admin:
         print("❌ Usuario admin no encontrado")
         print("\nCreando usuario admin...")
 
         admin = User(
-            email='activosfijos@clinicaprimavera.com',
+            email='activosfijos@jerosmart.local',
             cargo='Administrador',
             area='IT',
             rol='Admin'
@@ -60,7 +60,7 @@ with app.app_context():
     print("CREDENCIALES DE ACCESO")
     print("=" * 70)
     print(f"URL:        http://localhost:5000")
-    print(f"Email:      activosfijos@clinicaprimavera.com")
+    print(f"Email:      activosfijos@jerosmart.local")
     print(f"Contraseña: 12345")
     print("=" * 70)
     print()

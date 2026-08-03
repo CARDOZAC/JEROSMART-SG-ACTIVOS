@@ -183,11 +183,11 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="{{ url_for('static', filename='img/logo_primavera.png') }}" alt="Logo" class="logo-img">
+                    <img src="{{ url_for('static', filename=org.logo) }}" alt="Logo" class="logo-img">
                 </td>
                 <td class="header-center" rowspan="2">
-                    <div class="title1">CORPORACIÓN CLÍNICA PRIMAVERA</div>
-                    <div class="title2">NIT 900.213.617-3</div>
+                    <div class="title1">{{ org.nombre }}</div>
+                    <div class="title2">NIT {{ org.nit }}</div>
                     <div class="title3">ACTA DE COMODATO DE ACTIVOS FIJOS</div>
                 </td>
                 <td class="header-right">
