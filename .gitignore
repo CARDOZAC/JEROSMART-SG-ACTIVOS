@@ -132,3 +132,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# --- JeroSmart: archivos locales del proyecto ---
+# Archivos subidos por usuarios (facturas, contratos, firmas, fotos, caché PDF)
+uploads/
+# Scripts temporales de migración y artefactos sueltos
+temp_migrate*.py
+query
+nul
+*.db

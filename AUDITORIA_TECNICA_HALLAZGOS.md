@@ -25,20 +25,34 @@ Cada hallazgo tiene un ID (`FIX-xx` = ya corregido en esta sesión, `TASK-xx` = 
 - Columnas `db.JSON` mapean al tipo nativo `JSON` de MySQL 5.7+. ✔
 - `db.CheckConstraint` en `DocumentoAdjunto` requiere **MySQL ≥ 8.0.16** (antes se ignora silenciosamente). ✔ si tu servidor es 8.x.
 
-### TASK-01 🔴 — Credenciales reales de MySQL versionadas en git
-- **Archivo:** `.env` (aparece como *modified* en `git status`, o sea está trackeado)
-- Contiene `DB_USER=root` / `DB_PASSWORD=Jeronimo2024.` y `SECRET_KEY` placeholder. Cualquiera con acceso al repo tiene la contraseña de root de MySQL.
-- **Acción:**
-  1. `git rm --cached .env` y añadir `.env` a `.gitignore`.
-  2. Rotar la contraseña de MySQL y crear un usuario dedicado (no `root`) con permisos solo sobre `jerosmart_activos`.
-  3. Generar `SECRET_KEY` real: `python -c "import secrets; print(secrets.token_hex(32))"`.
-  4. Purgar el `.env` del historial (`git filter-repo` o BFG) si el repo se comparte.
+### ✅ TASK-01 🔴 — Credenciales reales de MySQL versionadas en git *(resuelto a nivel de repo)*
+- **Archivo:** `.env` (estaba trackeado en git)
+- Contenía `DB_USER=root` / `DB_PASSWORD=Jeronimo2024.` y un `SECRET_KEY` placeholder (`cambia-por-clave-segura-...`). Con ese placeholder, **cualquiera que leyera el repo podía firmar cookies de sesión válidas** y suplantar a un Admin: era tan grave como la contraseña expuesta.
+- **Aplicado:**
+  - `git rm --cached .env` — el archivo sigue en disco pero ya no se versiona (`.env` ya figuraba en `.gitignore`, por eso nunca debió estar trackeado).
+  - `SECRET_KEY` real de 64 hex generado con `secrets.token_hex(32)` y escrito en `.env`. *(Efecto esperado: las sesiones abiertas se invalidan, hay que volver a iniciar sesión.)*
+  - `DB_TYPE` eliminado del `.env` (ya no se lee tras FIX-02).
+  - Nuevo **`.env.example`** versionado, con la plantilla de variables y el SQL para crear un usuario MySQL dedicado.
+  - `.gitignore` ampliado: `uploads/`, `temp_migrate*.py`, `query`, `nul`, `*.db`.
+- **Pendiente (requiere tu acción, no la puedo hacer yo):**
+  1. **Rotar la contraseña de MySQL** y migrar de `root` a un usuario dedicado:
+     ```sql
+     CREATE USER 'jerosmart'@'localhost' IDENTIFIED BY '<password-fuerte>';
+     GRANT ALL PRIVILEGES ON jerosmart_activos.* TO 'jerosmart'@'localhost';
+     FLUSH PRIVILEGES;
+     ```
+     y actualizar `DB_USER`/`DB_PASSWORD` en `.env`.
+  2. **Purgar el `.env` del historial** con `git filter-repo` o BFG — sigue siendo recuperable en commits anteriores. Mientras no se purgue, la contraseña vieja debe considerarse comprometida.
 
-### TASK-02 🟡 — Sincronizar el esquema MySQL con los modelos (Alembic)
-- Hay evidencia de columnas que existen en el modelo pero no en la BD (o viceversa):
-  - `app/funcionarios/routes.py:133` tiene el comentario *"eliminar la referencia a 'Funcionario.estado' que no existe en la BD"*, pero `Funcionario.estado` **sí existe en el modelo** (`app/models.py:62`) y las rutas `/funcionarios/api/lista` y `/funcionarios/api/search` filtran por `Funcionario.estado == 'Activo'`. Si la columna falta en MySQL → `OperationalError 1054 (Unknown column)` en esos endpoints.
-  - Scripts sueltos como `agregar_columna_updated_by.py`, `crear_tablas_faltantes_mysql.sql`, `temp_migrate*.py` sugieren migraciones aplicadas a mano.
-- **Acción:** con el `.env` apuntando a MySQL ejecutar `flask db migrate -m "sync modelos"` + revisar el script generado + `flask db upgrade`. Después, borrar los scripts temporales (`temp_migrate.py`, `temp_migrate_auto.py`, `query`, `nul`).
+### ✅ TASK-02 🟡 — Esquema MySQL sincronizado con los modelos
+- **Diagnóstico real (MySQL 8.0.44, 36 tablas):**
+  - La BD estaba en la revisión Alembic `052bdc72c29f` con **una migración sin aplicar**. Faltaba por completo la tabla **`movimiento_historico`** → todo el módulo `audit_helper.py` fallaba en silencio (sus `except` tragaban el error): **no se estaba registrando ninguna auditoría de movimientos**, ni creación, ni aprobación, ni eliminación.
+  - `Funcionario.estado` **sí existe** en la BD (`SHOW COLUMNS` lo confirma). El comentario de `app/funcionarios/routes.py:133` que afirmaba lo contrario era obsoleto y despistaba; se corrigió. Los endpoints `/funcionarios/api/lista` y `/api/search` funcionan.
+- **Aplicado:** `flask db upgrade` → `052bdc72c29f` → `a1b2c3d4e5f6` (tabla `movimiento_historico` + 5 índices) y luego → `b58456050078` (TASK-03). Head actual: **`b58456050078`**.
+- **Deriva restante (verificada con `alembic.autogenerate.compare_metadata`, toda cosmética, sin impacto funcional):**
+  - 3 tablas huérfanas en la BD que ningún modelo declara: `activos_legacy_historial`, `activos_fotos`, `activos_legacy_temporal`. **Las 3 están vacías (0 filas).** No las borré: eliminar tablas es irreversible y podrían usarlas scripts externos. Decisión tuya.
+  - Diferencias de nombres de índices/FK y comentarios en `hojas_vida_equipos` y `mantenimientos_biomedicos_documentos` (creadas con SQL a mano vs. definición del modelo), y una columna extra inofensiva `mantenimientos_biomedicos_documentos.updated_at`.
+  - ⚠️ **No ejecutes `flask db migrate` a ciegas:** el autogenerate propone `DROP TABLE` sobre esas 3 tablas legacy. Por eso la migración de TASK-03 se escribió a mano.
 
 ---
 
@@ -106,29 +120,17 @@ Cada hallazgo tiene un ID (`FIX-xx` = ya corregido en esta sesión, `TASK-xx` = 
 
 ## 3. Bugs pendientes (hacer parte por parte)
 
-### TASK-03 🔴 — `edit_activo` escribe en columnas que NO existen → pérdida silenciosa de datos
-- **Archivo:** `app/activos/routes.py:646-650`
-- ```python
-  for field in ['nit_propietario', 'telefono_propietario', 'email_propietario',
-                'fecha_inicio_contrato', 'fecha_fin_contrato', 'numero_contrato',
-                'observaciones_contrato']:
-      setattr(activo, field, data.get(field) or None)
-  activo.costo_mensual = float(costo_mensual_str) if costo_mensual_str else None
-  ```
-  Ninguno de esos 8 campos es columna de `Activo` (`app/models.py:113-158`). `setattr` sobre un modelo SQLAlchemy con un nombre no mapeado crea un atributo de instancia **que nunca se persiste**: el usuario llena el formulario de contrato del activo ajeno, ve "actualizado con éxito" y los datos se pierden.
-- Consecuencia en cadena: `app/main/routes.py` (`index` e `inventario_ajenos`) hace `hasattr(activo, 'fecha_fin_contrato')` / `activo.costo_mensual` esperando estas columnas → las **alertas de vencimiento de contrato siempre están vacías** y el KPI de costo mensual usa el estimado del 10%.
-- **Acción:** agregar las columnas al modelo `Activo`:
-  ```python
-  nit_propietario = db.Column(db.String(50))
-  telefono_propietario = db.Column(db.String(50))
-  email_propietario = db.Column(db.String(100))
-  fecha_inicio_contrato = db.Column(db.Date)
-  fecha_fin_contrato = db.Column(db.Date)
-  numero_contrato = db.Column(db.String(100))
-  observaciones_contrato = db.Column(db.Text)
-  costo_mensual = db.Column(db.Float)
-  ```
-  generar migración Alembic, y en `main/routes.py` tipar la comparación con `date` en vez de parsear strings con múltiples formatos.
+### ✅ TASK-03 🔴 — `edit_activo` escribía en columnas inexistentes → pérdida silenciosa de datos *(resuelto)*
+- **Archivos:** `app/models.py`, `app/activos/routes.py`, `app/main/routes.py`, migración `b58456050078`
+- **El bug:** el formulario de contrato del activo ajeno hacía `setattr(activo, field, ...)` sobre 8 nombres que no eran columnas de `Activo`. `setattr` sobre un atributo no mapeado crea un atributo de instancia que SQLAlchemy ignora: el usuario llenaba NIT, teléfono, fechas y costo del contrato, veía *"Activo actualizado exitosamente"* y **los datos no llegaban nunca a la base de datos**.
+- **Consecuencia en cadena:** el dashboard de activos ajenos leía esos campos con `hasattr(...)` envuelto en `except: pass`, así que las **alertas de vencimiento de contrato salían siempre vacías** y el KPI de costo mensual caía siempre al estimado del 10% del valor comercial. Los `except` mudos son la razón de que el bug llevara tanto tiempo sin detectarse.
+- **Aplicado:**
+  1. **8 columnas reales** en el modelo `Activo`: `nit_propietario`, `telefono_propietario`, `email_propietario`, `numero_contrato`, `fecha_inicio_contrato` (Date), `fecha_fin_contrato` (Date, indexada), `observaciones_contrato`, `costo_mensual`.
+  2. **Migración `b58456050078`** escrita a mano (no autogenerada, ver TASK-02) y **aplicada**.
+  3. **Parseo real en `edit_activo`:** las fechas se convierten con `strptime(...).date()` en vez de asignar el string crudo del formulario a una columna `Date`; se valida que `fecha_fin >= fecha_inicio` y que `costo_mensual` sea numérico, con mensaje de error al usuario en vez de fallo silencioso.
+  4. **Dashboard reescrito** (`main/routes.py`): las alertas ahora se filtran **en SQL** sobre la columna `Date` indexada (`WHERE fecha_fin_contrato BETWEEN hoy AND hoy+30`) en lugar de traer todos los activos ajenos y parsear strings en Python con 3 formatos y `except: pass`. Se eliminaron 4 bare-except de paso.
+  5. **Propiedades nuevas** en `Activo`: `dias_para_vencimiento_contrato`, `contrato_vencido`, `contrato_proximo_a_vencer(dias_alerta=30)`.
+- **Verificado end-to-end:** escritura → `commit` → `expire_all` → relectura devuelve los valores correctos; `dias_para_vencimiento_contrato = 20` y `contrato_proximo_a_vencer(30) = True` sobre un contrato de prueba (datos de prueba revertidos después).
 
 ### TASK-04 🔴 — `activos_v2.editar` asigna `activo.proveedor_id` (columna inexistente)
 - **Archivo:** `app/activos_v2/routes.py:259`

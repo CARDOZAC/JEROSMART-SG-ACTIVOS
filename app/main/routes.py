@@ -67,37 +67,33 @@ def index():
         for tipo, count in movimientos_por_tipo_results
     ]
 
-    # NUEVO: Alertas de activos ajenos próximos a vencer
-    from datetime import datetime, timedelta
+    # Alertas de activos ajenos con contrato próximo a vencer (30 días)
+    from datetime import date, timedelta
 
-    alertas_activos_ajenos = []
-    stmt_ajenos = select(Activo).where(Activo.tipo_propiedad == 'Ajeno')
-    activos_ajenos = db.session.execute(stmt_ajenos).scalars().all()
+    hoy = date.today()
+    limite_alerta = hoy + timedelta(days=30)
 
-    hoy = datetime.now()
-    for activo in activos_ajenos:
-        try:
-            if hasattr(activo, 'fecha_fin_contrato') and activo.fecha_fin_contrato:
-                for formato in ['%Y-%m-%d', '%d/%m/%Y']:
-                    try:
-                        fecha_fin = datetime.strptime(activo.fecha_fin_contrato.split()[0], formato)
-                        break
-                    except:
-                        continue
-                else:
-                    continue
+    # Se filtra en SQL sobre la columna Date, sin parsear strings en Python.
+    activos_por_vencer = db.session.scalars(
+        select(Activo)
+        .where(
+            Activo.tipo_propiedad == 'Ajeno',
+            Activo.fecha_fin_contrato.isnot(None),
+            Activo.fecha_fin_contrato >= hoy,
+            Activo.fecha_fin_contrato <= limite_alerta
+        )
+        .order_by(Activo.fecha_fin_contrato.asc())
+        .limit(5)
+    ).all()
 
-                dias_restantes = (fecha_fin - hoy).days
-                if 0 < dias_restantes <= 30:  # Solo próximos 30 días para el dashboard principal
-                    alertas_activos_ajenos.append({
-                        'nombre_activo': activo.nombre_activo,
-                        'propietario_ajeno': activo.propietario_ajeno,
-                        'dias_restantes': dias_restantes
-                    })
-        except:
-            pass
-
-    alertas_activos_ajenos = sorted(alertas_activos_ajenos, key=lambda x: x['dias_restantes'])[:5]  # Top 5
+    alertas_activos_ajenos = [
+        {
+            'nombre_activo': a.nombre_activo,
+            'propietario_ajeno': a.propietario_ajeno,
+            'dias_restantes': a.dias_para_vencimiento_contrato
+        }
+        for a in activos_por_vencer
+    ]
 
     return render_template(
         'index.html',
@@ -118,8 +114,6 @@ def inventario_ajenos():
     Dashboard profesional de activos ajenos (comodato, arriendo, leasing).
     Incluye KPIs, alertas de vencimiento y estadísticas por proveedor.
     """
-    from datetime import datetime, timedelta
-
     # Obtener todos los activos ajenos
     stmt = (
         select(Activo)
@@ -135,58 +129,26 @@ def inventario_ajenos():
     total_comodato = sum(1 for a in activos_ajenos if a.condicion_tenencia == 'Comodato')
 
     # KPI 3: Costo mensual total (solo arriendos y leasing)
-    # NOTA: Si aún no has ejecutado la migración, usa valor_comercial/10 como estimado
-    costo_mensual_total = 0
+    # Si el activo no tiene costo_mensual registrado se estima en 10% del valor comercial.
+    costo_mensual_total = 0.0
     for activo in activos_ajenos:
         if activo.condicion_tenencia in ['Arriendo', 'Leasing']:
-            # Intentar obtener costo_mensual si existe, sino estimar
-            try:
-                if hasattr(activo, 'costo_mensual') and activo.costo_mensual:
-                    costo_mensual_total += activo.costo_mensual
-                elif activo.valor_comercial:
-                    # Estimado: 10% del valor comercial mensual
-                    costo_mensual_total += activo.valor_comercial * 0.1
-            except:
-                pass
+            if activo.costo_mensual:
+                costo_mensual_total += activo.costo_mensual
+            elif activo.valor_comercial:
+                costo_mensual_total += activo.valor_comercial * 0.1
 
     # ALERTAS: Contratos próximos a vencer (90 días)
-    alertas = []
-    hoy = datetime.now()
-
-    for activo in activos_ajenos:
-        # Intentar obtener fecha_fin_contrato si existe
-        fecha_fin_str = None
-        try:
-            if hasattr(activo, 'fecha_fin_contrato'):
-                fecha_fin_str = activo.fecha_fin_contrato
-        except:
-            pass
-
-        if fecha_fin_str:
-            try:
-                # Parsear fecha (soportar varios formatos)
-                for formato in ['%Y-%m-%d', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S']:
-                    try:
-                        fecha_fin = datetime.strptime(fecha_fin_str.split()[0], formato)
-                        break
-                    except:
-                        continue
-                else:
-                    continue  # Si ningún formato funcionó, skip
-
-                dias_restantes = (fecha_fin - hoy).days
-
-                # Solo incluir si está entre 0 y 90 días
-                if 0 < dias_restantes <= 90:
-                    alertas.append({
-                        'nombre_activo': activo.nombre_activo,
-                        'propietario_ajeno': activo.propietario_ajeno or 'No especificado',
-                        'fecha_fin_contrato': fecha_fin.strftime('%d/%m/%Y'),
-                        'dias_restantes': dias_restantes
-                    })
-            except Exception as e:
-                current_app.logger.warning(f"Error procesando fecha de contrato para activo {activo.id}: {e}")
-                pass
+    alertas = [
+        {
+            'nombre_activo': activo.nombre_activo,
+            'propietario_ajeno': activo.propietario_ajeno or 'No especificado',
+            'fecha_fin_contrato': activo.fecha_fin_contrato.strftime('%d/%m/%Y'),
+            'dias_restantes': activo.dias_para_vencimiento_contrato
+        }
+        for activo in activos_ajenos
+        if activo.contrato_proximo_a_vencer(dias_alerta=90)
+    ]
 
     # Ordenar alertas por días restantes (más urgentes primero)
     alertas_ordenadas = sorted(alertas, key=lambda x: x['dias_restantes'])

@@ -137,6 +137,17 @@ class Activo(db.Model):
     propietario_ajeno = db.Column(db.String(200))
     contacto_propietario = db.Column(db.String(100))
     fecha_ingreso_ajeno = db.Column(db.DateTime, nullable=True)
+
+    # ===== Datos de contrato del activo ajeno (comodato / arriendo / leasing) =====
+    # Alimentan el dashboard de activos ajenos: alertas de vencimiento y costo mensual.
+    nit_propietario = db.Column(db.String(50))
+    telefono_propietario = db.Column(db.String(50))
+    email_propietario = db.Column(db.String(100))
+    numero_contrato = db.Column(db.String(100))
+    fecha_inicio_contrato = db.Column(db.Date, nullable=True)
+    fecha_fin_contrato = db.Column(db.Date, nullable=True, index=True)
+    observaciones_contrato = db.Column(db.Text)
+    costo_mensual = db.Column(db.Float)
     ruta_orden_compra = db.Column(db.String(500))
     ruta_factura = db.Column(db.String(500))
     ruta_contrato_arriendo = db.Column(db.String(500))
@@ -229,6 +240,27 @@ class Activo(db.Model):
     def valor_en_libros(self):
         """Calcula el valor actual del activo en los libros contables."""
         return (self.valor_comercial or 0) - self.depreciacion_acumulada
+
+    @property
+    def dias_para_vencimiento_contrato(self):
+        """
+        Días restantes hasta el vencimiento del contrato del activo ajeno.
+        Negativo si ya venció, None si no hay fecha de fin registrada.
+        """
+        if not self.fecha_fin_contrato:
+            return None
+        return (self.fecha_fin_contrato - date.today()).days
+
+    @property
+    def contrato_vencido(self):
+        """True si el contrato del activo ajeno ya venció."""
+        dias = self.dias_para_vencimiento_contrato
+        return dias is not None and dias < 0
+
+    def contrato_proximo_a_vencer(self, dias_alerta=30):
+        """True si el contrato vence dentro de los próximos `dias_alerta` días."""
+        dias = self.dias_para_vencimiento_contrato
+        return dias is not None and 0 <= dias <= dias_alerta
 
     def __repr__(self):
         return f'<Activo {self.nombre_activo} ({self.placa_codigo_interno})>'

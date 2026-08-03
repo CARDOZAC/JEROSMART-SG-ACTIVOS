@@ -642,12 +642,40 @@ def edit_activo(activo_id):
                     activo.fecha_inicio_temporal = None
                     activo.fecha_fin_temporal = None
 
-                # --- CAMPOS ADICIONALES PARA ACTIVOS AJENOS ---
-                for field in ['nit_propietario', 'telefono_propietario', 'email_propietario', 'fecha_inicio_contrato', 'fecha_fin_contrato', 'numero_contrato', 'observaciones_contrato']:
-                    setattr(activo, field, data.get(field) or None)
+                # --- DATOS DEL CONTRATO DEL ACTIVO AJENO ---
+                from datetime import datetime as _dt
 
-                costo_mensual_str = data.get('costo_mensual')
-                activo.costo_mensual = float(costo_mensual_str) if costo_mensual_str else None
+                for field in ['nit_propietario', 'telefono_propietario', 'email_propietario',
+                              'numero_contrato', 'observaciones_contrato']:
+                    setattr(activo, field, (data.get(field) or '').strip() or None)
+
+                # Las fechas de contrato son columnas Date: hay que convertirlas,
+                # no asignar el string crudo del formulario.
+                for field in ['fecha_inicio_contrato', 'fecha_fin_contrato']:
+                    valor_str = (data.get(field) or '').strip()
+                    if not valor_str:
+                        setattr(activo, field, None)
+                        continue
+                    try:
+                        setattr(activo, field, _dt.strptime(valor_str, '%Y-%m-%d').date())
+                    except ValueError:
+                        flash(f"Formato de fecha inválido en '{field}': {valor_str}. Use YYYY-MM-DD.", 'danger')
+                        return redirect(url_for('activos.edit_activo', activo_id=activo_id))
+
+                if (activo.fecha_inicio_contrato and activo.fecha_fin_contrato
+                        and activo.fecha_fin_contrato < activo.fecha_inicio_contrato):
+                    flash('La fecha de fin del contrato no puede ser anterior a la de inicio.', 'danger')
+                    return redirect(url_for('activos.edit_activo', activo_id=activo_id))
+
+                costo_mensual_str = (data.get('costo_mensual') or '').strip()
+                if costo_mensual_str:
+                    try:
+                        activo.costo_mensual = float(costo_mensual_str)
+                    except ValueError:
+                        flash('El costo mensual debe ser un número válido.', 'danger')
+                        return redirect(url_for('activos.edit_activo', activo_id=activo_id))
+                else:
+                    activo.costo_mensual = None
 
             # --- ATRIBUTOS DINÁMICOS (APLICA A AMBOS TIPOS SI TIENEN CLASE) ---
             if activo.clase_id:

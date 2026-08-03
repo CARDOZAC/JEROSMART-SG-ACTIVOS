@@ -129,8 +129,7 @@ def buscar_funcionarios():
         return jsonify([])
 
     search_term = f'%{term}%'
-    # Se modifica la consulta para seleccionar solo las columnas necesarias
-    # y eliminar la referencia a 'Funcionario.estado' que no existe en la BD.
+    # Se seleccionan solo las columnas necesarias para el autocompletado.
     stmt = (
         select(
             Funcionario.id,
