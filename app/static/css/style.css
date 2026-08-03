@@ -3,11 +3,11 @@
    ========================================================================== */
 /* Paleta de colores renovada: Profesional, limpia y moderna */
 :root {
-  /* --- Paleta de Colores Principal (LIGHT MODE) --- */
-  --color-background: #f4f7f9;       /* Un gris azulado muy claro, para el fondo general */
+  /* --- Paleta de Colores Principal (tema claro único) --- */
+  --color-background: #ffffff;      /* Fondo general blanco */
   --color-surface: #ffffff;         /* Blanco puro para tarjetas y superficies principales */
-  --color-secondary-surface: #f8f9fa; /* Un blanco ligeramente apagado para variedad */
-  --color-border: #dee2e6;          /* Gris claro para bordes sutiles */
+  --color-secondary-surface: #f7f7f9; /* Relleno sutil para zonas secundarias */
+  --color-border: #e3e3e8;          /* Gris claro para bordes sutiles */
 
   /* --- Paleta de Texto --- */
   --text-primary: #343a40;          /* Gris oscuro para títulos y texto principal */
@@ -35,41 +35,7 @@
   --transition-speed: 0.3s;         /* Velocidad de transición unificada */
 }
 
-/* ==========================================================================
-   DARK MODE VARIABLES
-   ========================================================================== */
-[data-theme="dark"] {
-  /* --- Paleta de Colores Principal (DARK MODE) --- */
-  --color-background: #0d1117;      /* Fondo oscuro principal */
-  --color-surface: #161b22;         /* Superficies y tarjetas */
-  --color-secondary-surface: #1c2128; /* Superficies secundarias */
-  --color-border: #30363d;          /* Bordes sutiles */
-
-  /* --- Paleta de Texto --- */
-  --text-primary: #e6edf3;          /* Texto principal claro */
-  --text-secondary: #8b949e;        /* Texto secundario */
-  --text-on-accent: #ffffff;        /* Sin cambios */
-
-  /* --- Paleta de Acentos (ajustados para dark) --- */
-  --accent-blue: #58a6ff;           /* Azul más claro para contraste */
-  --accent-blue-soft: #1c2d4a;      /* Azul oscuro suave */
-  --accent-blue-dark: #79c0ff;      /* Azul más brillante */
-  --accent-green: #3fb950;          /* Verde brillante */
-  --accent-gold: #ffc107;           /* Sin cambios */
-
-  /* --- Variables de Estado --- */
-  --color-success: #3fb950;
-  --color-warning: #d29922;
-  --color-danger: #f85149;
-  --color-info: #58a6ff;
-
-  /* --- Sombras (más oscuras) --- */
-  --shadow-color-rgb: 0, 0, 0;
-  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* Transición suave al cambiar de tema */
+/* Transición suave de color en superficies */
 body, .card, .stat-card, .action-card, .navbar-custom {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -171,7 +137,6 @@ body {
     border-color: #146c43 !important;
 }
 
-
 /* Cards y elementos de la interfaz */
 .card {
     border: none;
@@ -245,7 +210,6 @@ body {
 .clear-btn:hover {
     opacity: 1;
 }
-
 
 /* Footer personalizado */
 .footer-custom {
@@ -329,7 +293,6 @@ body {
   position: relative;
   overflow: hidden;
 }
-.stat-card:hover {
 .stat-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--card-shadow-hover);
@@ -680,72 +643,5 @@ body {
   .wizard-navigation .btn {
     width: 100%;
   }
-}
-
-/* ==========================================================================
-   DARK MODE TOGGLE BUTTON
-   ========================================================================== */
-.theme-toggle {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  width: 60px;
-  height: 32px;
-  background-color: var(--color-border);
-  border-radius: 50px;
-  padding: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border: none;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.theme-toggle:hover {
-  background-color: var(--accent-blue-soft);
-}
-
-[data-theme="dark"] .theme-toggle {
-  background-color: var(--accent-blue-dark);
-}
-
-.theme-toggle-slider {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  background-color: var(--color-surface);
-  border-radius: 50%;
-  transition: transform 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="dark"] .theme-toggle-slider {
-  transform: translateX(28px);
-}
-
-.theme-toggle i {
-  font-size: 14px;
-  transition: opacity 0.2s ease;
-}
-
-.theme-toggle .bi-sun-fill {
-  color: var(--accent-gold);
-  opacity: 1;
-}
-
-.theme-toggle .bi-moon-stars-fill {
-  color: var(--accent-blue);
-  opacity: 0;
-  position: absolute;
-}
-
-[data-theme="dark"] .theme-toggle .bi-sun-fill {
-  opacity: 0;
-}
-
-[data-theme="dark"] .theme-toggle .bi-moon-stars-fill {
-  opacity: 1;
 }
 

@@ -20,7 +20,10 @@
       "Bash(.venvScriptspython.exe analizar_activos_faltantes.py)",
       "Bash(cd:*)",
       "Bash(if not exist \"app\\biomedicos\\templates\" mkdir \"app\\biomedicos\\templates\")",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(./venv/Scripts/python.exe -c ' *)",
+      "Bash(./venv/Scripts/python.exe -m compileall -q app)",
+      "Bash(git add *)"
     ],
     "deny": [],
     "ask": []

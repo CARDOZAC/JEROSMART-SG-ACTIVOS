@@ -17,11 +17,14 @@
                         'SF Pro Text', 'Inter', 'Segoe UI', 'Roboto',
                         'Helvetica Neue', Arial, sans-serif;
 
-  /* --- Colores iOS (Light Mode) --- */
-  --ios-bg-primary: #F2F2F7;           /* iOS Gray 6 */
-  --ios-bg-secondary: #FFFFFF;         /* Pure White */
-  --ios-bg-tertiary: #FAFAFA;          /* Off White */
-  --ios-bg-grouped: #F2F2F7;           /* Grouped Background */
+  /* --- Colores de fondo (tema claro único) --- */
+  /* El fondo de la aplicación es blanco puro. Las tarjetas se distinguen por
+     su borde (--ios-separator), no por contraste de fondo, porque las sombras
+     del sistema son intencionalmente casi imperceptibles. */
+  --ios-bg-primary: #FFFFFF;           /* Fondo de página */
+  --ios-bg-secondary: #FFFFFF;         /* Tarjetas y superficies elevadas */
+  --ios-bg-tertiary: #F7F7F9;          /* Rellenos sutiles: inputs, cabeceras de tabla */
+  --ios-bg-grouped: #FFFFFF;           /* Fondo de secciones agrupadas */
 
   /* --- Colores de Texto iOS --- */
   --ios-label-primary: #000000;        /* Primary Text */
@@ -135,37 +138,6 @@
 /* ==========================================================================
    3. MODO OSCURO iOS (Dark Mode)
    ========================================================================== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ios-bg-primary: #000000;
-    --ios-bg-secondary: #1C1C1E;
-    --ios-bg-tertiary: #2C2C2E;
-    --ios-bg-grouped: #000000;
-
-    --ios-label-primary: #FFFFFF;
-    --ios-label-secondary: #EBEBF5;
-    --ios-label-tertiary: #EBEBF599;
-    --ios-label-quaternary: #EBEBF54D;
-
-    --ios-separator: #54545899;
-    --ios-separator-opaque: #38383A;
-  }
-}
-
-[data-theme="dark"] {
-  --ios-bg-primary: #000000;
-  --ios-bg-secondary: #1C1C1E;
-  --ios-bg-tertiary: #2C2C2E;
-  --ios-bg-grouped: #000000;
-
-  --ios-label-primary: #FFFFFF;
-  --ios-label-secondary: #EBEBF5;
-  --ios-label-tertiary: #EBEBF599;
-  --ios-label-quaternary: #EBEBF54D;
-
-  --ios-separator: #54545899;
-  --ios-separator-opaque: #38383A;
-}
 
 /* ==========================================================================
    4. ESTILOS BASE iOS

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full" data-theme="light">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,19 +33,6 @@
 
     <!-- SIN EFECTOS VISUALES - Aplicar ÚLTIMO para sobrescribir todo -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/sin-efectos-visuales.css') }}">
-
-    <!-- Initialize theme BEFORE page render to prevent flash -->
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (prefersDark) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
-    </script>
 
     {% block head_extra %}{% endblock %}
 </head>
@@ -107,17 +94,9 @@
 
                     <!-- User & Mobile Menu -->
                     <div class="d-flex align-items-center gap-2">
-                        <!-- Dark Mode Toggle -->
-                        <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar entre modo claro y oscuro">
-                            <div class="theme-toggle-slider">
-                                <i class="bi bi-sun-fill"></i>
-                                <i class="bi bi-moon-stars-fill"></i>
-                            </div>
-                        </button>
-
                         {% if current_user.is_authenticated %}
                         <span class="d-none d-lg-block ios-text-caption me-2">
-                            Hola, <strong class="ios-text-body">{{ session['username'] }}</strong>
+                            Hola, <strong class="ios-text-body">{{ current_user.email.split('@')[0] }}</strong>
                         </span>
                         <a href="{{ url_for('auth.logout') }}" class="ios-btn ios-btn-secondary ios-btn-sm">
                             <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>

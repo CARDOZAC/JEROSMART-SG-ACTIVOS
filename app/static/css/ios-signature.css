@@ -354,30 +354,6 @@
 /* ========================================================================
    DARK MODE (opcional)
    ======================================================================== */
-@media (prefers-color-scheme: dark) {
-    .ios-signature-container {
-        background: rgba(28, 28, 30, 0.75);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .signature-label {
-        color: #FFFFFF;
-    }
-
-    .signature-canvas-wrapper {
-        background: #1C1C1E;
-        border-color: #38383A;
-    }
-
-    .signature-placeholder {
-        color: #636366;
-    }
-
-    .ios-toast {
-        background: rgba(28, 28, 30, 0.95);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-}
 
 /* ========================================================================
    PRINT STYLES (para imprimir firmas en PDFs)

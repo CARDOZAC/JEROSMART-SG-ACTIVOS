@@ -2,568 +2,24 @@
 
 {% block title %}Iniciar Sesión - Sistema Inteligente de Gestión{% endblock %}
 
-{% block head_extra %}
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        overflow: hidden;
-        height: 100vh;
-    }
-
-    /* ========== AURORA BOREAL ANIMADA ========== */
-    .aurora-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 0;
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        overflow: hidden;
-    }
-
-    .aurora {
-        position: absolute;
-        width: 200%;
-        height: 200%;
-        top: -50%;
-        left: -50%;
-        background:
-            radial-gradient(ellipse at 20% 30%, rgba(139, 92, 246, 0.3) 0%, transparent 40%),
-            radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.3) 0%, transparent 40%),
-            radial-gradient(ellipse at 40% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 40%),
-            radial-gradient(ellipse at 60% 20%, rgba(236, 72, 153, 0.2) 0%, transparent 40%);
-        animation: aurora-drift 20s ease-in-out infinite;
-        filter: blur(60px);
-    }
-
-    @keyframes aurora-drift {
-        0%, 100% {
-            transform: translate(0, 0) rotate(0deg);
-        }
-        25% {
-            transform: translate(-5%, 5%) rotate(5deg);
-        }
-        50% {
-            transform: translate(5%, -5%) rotate(-5deg);
-        }
-        75% {
-            transform: translate(-3%, -3%) rotate(3deg);
-        }
-    }
-
-    /* ========== ESTRELLAS FLOTANTES ========== */
-    .stars {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-
-    .star {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: white;
-        border-radius: 50%;
-        animation: twinkle 3s infinite;
-    }
-
-    @keyframes twinkle {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
-    }
-
-    /* ========== PARTÍCULAS FLOTANTES ========== */
-    .particles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-    }
-
-    .particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: radial-gradient(circle, rgba(255,255,255,0.8), transparent);
-        border-radius: 50%;
-        animation: float-up 15s infinite;
-        opacity: 0;
-    }
-
-    @keyframes float-up {
-        0% {
-            transform: translateY(100vh) scale(0);
-            opacity: 0;
-        }
-        10% {
-            opacity: 0.6;
-        }
-        90% {
-            opacity: 0.6;
-        }
-        100% {
-            transform: translateY(-100vh) scale(1);
-            opacity: 0;
-        }
-    }
-
-    /* ========== CONTENEDOR PRINCIPAL ========== */
-    .login-wrapper {
-        position: relative;
-        z-index: 1;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-
-    /* ========== TARJETA DE LOGIN - GLASSMORPHISM ========== */
-    .login-card {
-        position: relative;
-        width: 100%;
-        max-width: 450px;
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow:
-            0 8px 32px 0 rgba(31, 38, 135, 0.37),
-            0 0 60px rgba(139, 92, 246, 0.2),
-            inset 0 0 60px rgba(255, 255, 255, 0.05);
-        padding: 3rem 2.5rem;
-        animation: card-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        overflow: hidden;
-    }
-
-    @keyframes card-entrance {
-        0% {
-            opacity: 0;
-            transform: scale(0.9) translateY(30px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-    }
-
-    /* Efecto de brillo en los bordes */
-    .login-card::before {
-        content: '';
-        position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
-        background: linear-gradient(45deg,
-            rgba(139, 92, 246, 0.5),
-            rgba(59, 130, 246, 0.5),
-            rgba(16, 185, 129, 0.5),
-            rgba(236, 72, 153, 0.5)
-        );
-        border-radius: 30px;
-        z-index: -1;
-        opacity: 0;
-        animation: glow-pulse 3s ease-in-out infinite;
-        filter: blur(10px);
-    }
-
-    @keyframes glow-pulse {
-        0%, 100% {
-            opacity: 0.3;
-        }
-        50% {
-            opacity: 0.6;
-        }
-    }
-
-    .login-card:hover::before {
-        opacity: 0.8;
-    }
-
-    /* ========== HEADER ========== */
-    .login-header {
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
-
-    .logo-container {
-        position: relative;
-        display: inline-block;
-        margin-bottom: 1.5rem;
-    }
-
-    .logo-glow {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 120px;
-        height: 120px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.6), transparent);
-        border-radius: 50%;
-        filter: blur(30px);
-        animation: logo-pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes logo-pulse {
-        0%, 100% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.6;
-        }
-        50% {
-            transform: translate(-50%, -50%) scale(1.2);
-            opacity: 1;
-        }
-    }
-
-    .logo-img {
-        position: relative;
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-        filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.5));
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% {
-            transform: translateY(0);
-        }
-        50% {
-            transform: translateY(-10px);
-        }
-    }
-
-    .login-title {
-        font-size: 2rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.5px;
-        animation: title-shimmer 3s ease-in-out infinite;
-    }
-
-    @keyframes title-shimmer {
-        0%, 100% {
-            filter: brightness(1) contrast(1);
-        }
-        50% {
-            filter: brightness(1.2) contrast(1.1);
-        }
-    }
-
-    .login-subtitle {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.95rem;
-        font-weight: 400;
-        letter-spacing: 0.3px;
-    }
-
-    /* ========== FORMULARIO ========== */
-    .form-group {
-        position: relative;
-        margin-bottom: 1.8rem;
-    }
-
-    .form-floating {
-        position: relative;
-    }
-
-    .form-control {
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.15);
-        border-radius: 16px;
-        color: #fff;
-        padding: 1.2rem 1rem;
-        font-size: 0.95rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px);
-    }
-
-    .form-control:focus {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(139, 92, 246, 0.8);
-        box-shadow:
-            0 0 0 4px rgba(139, 92, 246, 0.2),
-            0 8px 20px rgba(139, 92, 246, 0.3);
-        outline: none;
-        transform: translateY(-2px);
-    }
-
-    .form-control::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
-    .form-floating > label {
-        color: rgba(255, 255, 255, 0.7);
-        padding: 1.2rem 1rem;
-    }
-
-    .form-control:focus ~ label,
-    .form-control:not(:placeholder-shown) ~ label {
-        color: rgba(139, 92, 246, 1);
-        transform: scale(0.85) translateY(-0.8rem) translateX(0.15rem);
-    }
-
-    /* ========== ICONOS EN INPUTS ========== */
-    .input-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 1.2rem;
-        pointer-events: none;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus ~ .input-icon {
-        color: rgba(139, 92, 246, 1);
-    }
-
-    /* ========== TOGGLE PASSWORD ========== */
-    .password-wrapper {
-        position: relative;
-    }
-
-    .btn-toggle-password {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        z-index: 10;
-    }
-
-    .btn-toggle-password:hover {
-        color: rgba(139, 92, 246, 1);
-        background: rgba(139, 92, 246, 0.1);
-    }
-
-    /* ========== CHECKBOX ========== */
-    .form-check {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-check-input {
-        width: 1.2rem;
-        height: 1.2rem;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .form-check-input:checked {
-        background: linear-gradient(135deg, #a78bfa, #60a5fa);
-        border-color: #a78bfa;
-    }
-
-    .form-check-label {
-        color: rgba(255, 255, 255, 0.8);
-        margin-left: 0.5rem;
-        cursor: pointer;
-    }
-
-    /* ========== BOTÓN DE LOGIN ========== */
-    .btn-login {
-        width: 100%;
-        padding: 1rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-        color: white;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow:
-            0 4px 15px rgba(139, 92, 246, 0.4),
-            0 8px 30px rgba(59, 130, 246, 0.2);
-        letter-spacing: 0.5px;
-    }
-
-    .btn-login::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .btn-login:hover {
-        transform: translateY(-3px);
-        box-shadow:
-            0 6px 20px rgba(139, 92, 246, 0.6),
-            0 12px 40px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-login:hover::before {
-        left: 100%;
-    }
-
-    .btn-login:active {
-        transform: translateY(-1px);
-    }
-
-    /* ========== LINKS ========== */
-    .form-link {
-        color: rgba(255, 255, 255, 0.8);
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .form-link::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #a78bfa, #60a5fa);
-        transition: width 0.3s ease;
-    }
-
-    .form-link:hover {
-        color: #a78bfa;
-    }
-
-    .form-link:hover::after {
-        width: 100%;
-    }
-
-    /* ========== ALERTS ========== */
-    .alert {
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        border-radius: 12px;
-        color: #fca5a5;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        backdrop-filter: blur(10px);
-        animation: alert-slide-in 0.5s ease;
-    }
-
-    .alert-success {
-        background: rgba(16, 185, 129, 0.15);
-        border-color: rgba(16, 185, 129, 0.3);
-        color: #6ee7b7;
-    }
-
-    @keyframes alert-slide-in {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* ========== ANIMACIONES DE ENTRADA ========== */
-    .animate-in {
-        animation: fade-in-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-    }
-
-    .animate-in:nth-child(1) { animation-delay: 0.1s; }
-    .animate-in:nth-child(2) { animation-delay: 0.2s; }
-    .animate-in:nth-child(3) { animation-delay: 0.3s; }
-    .animate-in:nth-child(4) { animation-delay: 0.4s; }
-    .animate-in:nth-child(5) { animation-delay: 0.5s; }
-
-    @keyframes fade-in-up {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* ========== RESPONSIVE ========== */
-    @media (max-width: 640px) {
-        .login-card {
-            padding: 2rem 1.5rem;
-            max-width: 100%;
-        }
-
-        .login-title {
-            font-size: 1.6rem;
-        }
-
-        .login-subtitle {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* ========== MODO OSCURO ESPECÍFICO ========== */
-    @media (prefers-color-scheme: dark) {
-        .aurora-container {
-            background: linear-gradient(135deg, #0a0a0f, #1a1a2e, #16213e);
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<!-- Aurora Boreal Animada -->
-<div class="aurora-container">
-    <div class="aurora"></div>
-
-    <!-- Estrellas -->
-    <div class="stars" id="stars"></div>
-
-    <!-- Partículas Flotantes -->
-    <div class="particles" id="particles"></div>
-</div>
-
-<!-- Login Card -->
 <div class="login-wrapper">
     <div class="login-card">
         <div class="login-header">
-            <div class="logo-container animate-in">
-                <div class="logo-glow"></div>
+            <div class="logo-container">
                 <img src="{{ url_for('static', filename='img/logosmartjero.png') }}"
                      alt="Logo SmartJero"
                      class="logo-img"
                      onerror="this.style.display='none'">
             </div>
-            <h1 class="login-title animate-in">Sistema Inteligente</h1>
-            <p class="login-subtitle animate-in">Gestión de Activos Clínicos</p>
+            <h1 class="login-title">Sistema Inteligente</h1>
+            <p class="login-subtitle">Gestión de Activos Clínicos</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} animate-in" role="alert">
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }}" role="alert">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         {{ message }}
                     </div>
@@ -575,7 +31,7 @@
             {{ form.hidden_tag() }}
 
             <!-- Email -->
-            <div class="form-group animate-in">
+            <div class="form-group">
                 <div class="form-floating">
                     {{ form.email(
                         class="form-control",
@@ -592,7 +48,7 @@
             </div>
 
             <!-- Password -->
-            <div class="form-group animate-in">
+            <div class="form-group">
                 <div class="password-wrapper">
                     <div class="form-floating">
                         {{ form.password(
@@ -607,14 +63,15 @@
                             Contraseña
                         </label>
                     </div>
-                    <button type="button" class="btn-toggle-password" id="togglePassword">
+                    <button type="button" class="btn-toggle-password" id="togglePassword"
+                            aria-label="Mostrar u ocultar la contraseña">
                         <i class="bi bi-eye-slash-fill"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Remember Me & Forgot Password -->
-            <div class="d-flex justify-content-between align-items-center mb-4 animate-in">
+            <!-- Recordarme y recuperación -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="form-check">
                     {{ form.remember_me(class="form-check-input", id="remember") }}
                     <label class="form-check-label" for="remember">
@@ -626,8 +83,8 @@
                 </a>
             </div>
 
-            <!-- Submit Button -->
-            <div class="animate-in">
+            <!-- Enviar -->
+            <div>
                 {{ form.submit(class="btn-login") }}
             </div>
         </form>
@@ -638,40 +95,14 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ========== GENERAR ESTRELLAS ==========
-    const starsContainer = document.getElementById('stars');
-    const starCount = 100;
-
-    for (let i = 0; i < starCount; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.animationDelay = Math.random() * 3 + 's';
-        starsContainer.appendChild(star);
-    }
-
-    // ========== GENERAR PARTÍCULAS ==========
-    const particlesContainer = document.getElementById('particles');
-    const particleCount = 30;
-
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (10 + Math.random() * 10) + 's';
-        particlesContainer.appendChild(particle);
-    }
-
-    // ========== TOGGLE PASSWORD ==========
+    // Mostrar u ocultar la contraseña
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
+            const oculta = passwordInput.getAttribute('type') === 'password';
+            passwordInput.setAttribute('type', oculta ? 'text' : 'password');
 
             const icon = this.querySelector('i');
             icon.classList.toggle('bi-eye-slash-fill');
@@ -679,85 +110,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== EFECTO RIPPLE EN BOTÓN ==========
-    const btnLogin = document.querySelector('.btn-login');
-
-    if (btnLogin) {
-        btnLogin.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.5);
-                border-radius: 50%;
-                transform: scale(0);
-                animation: ripple 0.6s ease-out;
-                pointer-events: none;
-            `;
-
-            this.appendChild(ripple);
-
-            setTimeout(() => ripple.remove(), 600);
-        });
-    }
-
-    // ========== VALIDACIÓN DE FORMULARIO ==========
+    // Validación mínima en cliente. La validación real la hace el servidor
+    // (Flask-WTF), esto solo evita un viaje innecesario.
     const form = document.querySelector('form');
 
     if (form) {
         form.addEventListener('submit', function(e) {
             const email = document.getElementById('email');
             const password = document.getElementById('password');
+            let valido = true;
 
-            let isValid = true;
-
-            // Validar email
             if (!email.value || !email.value.includes('@')) {
-                email.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-                isValid = false;
+                email.style.borderColor = 'var(--auth-red)';
+                valido = false;
             } else {
-                email.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                email.style.borderColor = '';
             }
 
-            // Validar password
-            if (!password.value || password.value.length < 4) {
-                password.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-                isValid = false;
+            if (!password.value) {
+                password.style.borderColor = 'var(--auth-red)';
+                valido = false;
             } else {
-                password.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                password.style.borderColor = '';
             }
 
-            if (!isValid) {
+            if (!valido) {
                 e.preventDefault();
             }
         });
     }
-
-    // ========== ANIMACIÓN DE ENTRADA ==========
-    const animateElements = document.querySelectorAll('.animate-in');
-    animateElements.forEach((el, index) => {
-        el.style.animationDelay = (index * 0.1) + 's';
-    });
 });
-
-// Agregar animación de ripple al CSS dinámicamente
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
 </script>
 {% endblock %}

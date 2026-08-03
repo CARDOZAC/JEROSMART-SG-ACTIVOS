@@ -110,20 +110,6 @@
 /* ========================================================================
    DARK MODE (iOS automático)
    ======================================================================== */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --ios-bg-primary: #000000;
-        --ios-bg-secondary: #1C1C1E;
-        --ios-bg-tertiary: #2C2C2E;
-        --ios-glass-bg: rgba(30, 30, 30, 0.8);
-        --ios-glass-bg-light: rgba(30, 30, 30, 0.9);
-        --ios-glass-bg-heavy: rgba(30, 30, 30, 0.95);
-        --ios-glass-border: rgba(255, 255, 255, 0.1);
-        --ios-gray-1: #AEAEB2;
-        --ios-gray-5: #3A3A3C;
-        --ios-gray-6: #2C2C2E;
-    }
-}
 
 /* ========================================================================
    RESET & BASE

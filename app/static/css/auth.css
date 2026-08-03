@@ -1,0 +1,306 @@
+/* ==========================================================================
+   Estilos de las páginas de autenticación — tema claro único.
+   Reemplaza el tema oscuro con aurora/glassmorphism que tenían login,
+   forgot_password y reset_password.
+
+   Criterios:
+   - Fondo blanco. La tarjeta se define por borde y sombra suave, no por
+     contraste de fondo.
+   - Sin animaciones ni transformaciones, coherente con sin-efectos-visuales.css
+     (la aplicación evita el movimiento de forma deliberada).
+   ========================================================================== */
+
+:root {
+  --auth-bg: #FFFFFF;
+  --auth-surface: #FFFFFF;
+  --auth-fill: #F7F7F9;
+  --auth-border: #E3E3E8;
+  --auth-text: #1C1C1E;
+  --auth-text-muted: #6C6C70;
+  --auth-blue: #007AFF;
+  --auth-blue-dark: #0051D5;
+  --auth-red: #FF3B30;
+  --auth-green: #34C759;
+  --auth-radius: 16px;
+  --auth-font: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+}
+
+body.auth-page-body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--auth-bg);
+  color: var(--auth-text);
+  font-family: var(--auth-font);
+}
+
+/* Neutraliza los fondos decorativos oscuros que aún declaran algunas
+   plantillas (aurora, estrellas, partículas, spotlight). */
+.aurora-container,
+.aurora-background,
+.aurora,
+.stars,
+.particles,
+.spotlight,
+.logo-glow {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Tarjeta
+   -------------------------------------------------------------------------- */
+.login-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card,
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem 2rem;
+  background: var(--auth-surface);
+  border: 1px solid var(--auth-border);
+  border-radius: var(--auth-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   Encabezado
+   -------------------------------------------------------------------------- */
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-container {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.logo-img,
+.login-header img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+.login-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--auth-text);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  color: var(--auth-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Campos de formulario
+   -------------------------------------------------------------------------- */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-control {
+  background-color: var(--auth-fill);
+  border: 1px solid var(--auth-border);
+  border-radius: 12px;
+  color: var(--auth-text);
+  font-size: 0.95rem;
+  padding: 0.85rem 1rem;
+}
+
+.form-control::placeholder {
+  color: var(--auth-text-muted);
+}
+
+.form-control:focus {
+  background-color: var(--auth-surface);
+  border-color: var(--auth-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+  outline: none;
+  color: var(--auth-text);
+}
+
+/* Etiquetas flotantes de Bootstrap */
+.form-floating > label {
+  color: var(--auth-text-muted);
+  padding: 0.85rem 1rem;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--auth-blue);
+  opacity: 1;
+}
+
+/* Mostrar/ocultar contraseña */
+.password-wrapper {
+  position: relative;
+}
+
+.btn-toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--auth-text-muted);
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  z-index: 5;
+}
+
+.btn-toggle-password:hover {
+  color: var(--auth-blue);
+  background: rgba(0, 122, 255, 0.08);
+}
+
+/* Casilla "Recordarme" */
+.form-check {
+  margin-bottom: 0;
+}
+
+.form-check-input {
+  width: 1.1rem;
+  height: 1.1rem;
+  background-color: var(--auth-surface);
+  border: 1px solid #C6C6C8;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: var(--auth-blue);
+  border-color: var(--auth-blue);
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+  border-color: var(--auth-blue);
+}
+
+.form-check-label {
+  color: var(--auth-text-muted);
+  margin-left: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Botón principal
+   -------------------------------------------------------------------------- */
+.btn-login,
+.auth-card .btn-primary {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--auth-blue);
+  color: #FFFFFF;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+
+.btn-login:hover,
+.auth-card .btn-primary:hover {
+  background-color: var(--auth-blue-dark);
+  color: #FFFFFF;
+}
+
+.btn-login:focus-visible,
+.auth-card .btn-primary:focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.35);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Enlaces
+   -------------------------------------------------------------------------- */
+.form-link,
+.auth-card a {
+  color: var(--auth-blue);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.form-link:hover,
+.auth-card a:hover {
+  color: var(--auth-blue-dark);
+  text-decoration: underline;
+}
+
+.text-muted {
+  color: var(--auth-text-muted) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Alertas
+   -------------------------------------------------------------------------- */
+.alert {
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+
+.alert-danger,
+.alert-error {
+  background-color: #FFF0EF;
+  border-color: #FFD5D2;
+  color: #A32017;
+}
+
+.alert-success {
+  background-color: #EDF9F0;
+  border-color: #CBEBD5;
+  color: #1B6E38;
+}
+
+.alert-warning {
+  background-color: #FFF8E6;
+  border-color: #FFE7A8;
+  color: #8A6100;
+}
+
+.alert-info {
+  background-color: #EEF5FF;
+  border-color: #CFE2FF;
+  color: #08529B;
+}
+
+/* La variante clara del botón de cierre no se ve sobre fondo blanco */
+.btn-close-white {
+  filter: none;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .login-card,
+  .auth-card {
+    padding: 2rem 1.25rem;
+  }
+
+  .login-title {
+    font-size: 1.4rem;
+  }
+}

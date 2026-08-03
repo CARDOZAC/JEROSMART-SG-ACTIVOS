@@ -729,15 +729,3 @@ tbody td {
 /* ============================================================================
    DARK MODE SUPPORT (Future Enhancement)
    ============================================================================ */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --text-primary: #F5F5F7;
-        --text-secondary: #EBEBF0;
-        --text-tertiary: #98989F;
-        --bg-primary: #1C1C1E;
-        --bg-secondary: #2C2C2E;
-        --bg-tertiary: #3A3A3C;
-        --border: #48484A;
-        --border-light: #38383A;
-    }
-}

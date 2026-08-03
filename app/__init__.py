@@ -158,8 +158,8 @@ def create_app(config_class=Config):
     app.register_blueprint(biomedicos_bp, url_prefix='/biomedicos')
     app.register_blueprint(mantenimientos_bp, url_prefix='/mantenimientos')
 
-    # --- Registrar Comandos CLI ---
-    # Esto es mejor manejarlo en run.py para mantener __init__.py limpio
+    # --- Manejadores de Error ---
+    registrar_manejadores_error(app)
 
     # --- Crear carpetas de subida ---
     # Llama a la función de inicialización de la configuración
@@ -170,6 +170,59 @@ def create_app(config_class=Config):
     app.cli.add_command(init_db_command)
 
     return app
+
+def registrar_manejadores_error(app):
+    """
+    Registra páginas de error propias.
+
+    Sin esto, un 404 devuelve el texto plano de Werkzeug y un 500 expone el
+    traceback interactivo cuando debug está activo, lo que filtra código fuente
+    y variables locales.
+
+    Las peticiones de API (JSON o rutas /api/) reciben JSON en vez de HTML.
+    """
+    from flask import render_template, request, jsonify
+    from .extensions import db
+
+    ERRORES = {
+        403: ('Acceso denegado', 'bi-shield-lock',
+              'No tienes permisos para acceder a esta sección. Si crees que es un error, contacta al administrador.'),
+        404: ('Página no encontrada', 'bi-compass',
+              'La dirección que intentas abrir no existe o el registro fue eliminado.'),
+        413: ('Archivo demasiado grande', 'bi-file-earmark-x',
+              'El archivo que intentas subir supera el tamaño máximo permitido.'),
+        500: ('Error interno del servidor', 'bi-exclamation-octagon',
+              'Ocurrió un error inesperado. El incidente quedó registrado para su revisión.'),
+    }
+
+    def _responder(codigo):
+        titulo, icono, mensaje = ERRORES[codigo]
+        quiere_json = request.is_json or request.path.startswith('/api/') or '/api/' in request.path
+        if quiere_json:
+            return jsonify({'error': titulo, 'mensaje': mensaje, 'codigo': codigo}), codigo
+        return render_template('errors/error.html', codigo=codigo, titulo=titulo,
+                               icono=icono, mensaje=mensaje), codigo
+
+    @app.errorhandler(403)
+    def _error_403(e):
+        return _responder(403)
+
+    @app.errorhandler(404)
+    def _error_404(e):
+        return _responder(404)
+
+    @app.errorhandler(413)
+    def _error_413(e):
+        return _responder(413)
+
+    @app.errorhandler(500)
+    def _error_500(e):
+        # Crítico: una transacción fallida deja la sesión inutilizable y todas
+        # las peticiones siguientes fallarían con PendingRollbackError.
+        db.session.rollback()
+        app.logger.error(f"Error 500 en {request.method} {request.path}", exc_info=True)
+        return _responder(500)
+
 
 @click.command('init-db')
 @with_appcontext

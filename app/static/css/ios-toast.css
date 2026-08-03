@@ -74,10 +74,6 @@
 }
 
 /* Dark mode support */
-[data-theme="dark"] .ios-toast {
-    background: rgba(28, 28, 30, 0.95);
-    color: white;
-}
 
 /* Mobile responsive */
 @media (max-width: 576px) {

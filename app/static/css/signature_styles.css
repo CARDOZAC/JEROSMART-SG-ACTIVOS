@@ -448,36 +448,6 @@
 }
 
 /* ===== DARK MODE SUPPORT ===== */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --sig-background: #2c2c2e;
-        --sig-surface: #1c1c1e;
-        --sig-border: rgba(255, 255, 255, 0.1);
-        --sig-text-primary: #ffffff;
-        --sig-text-secondary: rgba(235, 235, 245, 0.6);
-    }
-
-    .signature-wrapper {
-        background: var(--sig-surface);
-    }
-
-    .signature-header {
-        background: linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%);
-    }
-
-    .signature-pad-container {
-        background: var(--sig-background);
-    }
-
-    .signature-name-field input {
-        background: var(--sig-background);
-        color: var(--sig-text-primary);
-    }
-
-    .signature-consent {
-        background: linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%);
-    }
-}
 
 /* ===== ANIMACIONES ADICIONALES ===== */
 @keyframes signaturePulse {

@@ -433,47 +433,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('💫 Micro-interacciones activadas');
 });
 
-// ==============================================================================
-// DARK MODE TOGGLE
-// ==============================================================================
-/**
- * Función para cambiar entre modo claro y oscuro
- * Guarda la preferencia en localStorage para persistencia
- */
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-
-    // Animación suave
-    document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+// La aplicación usa un único tema claro. Se eliminó el conmutador de modo oscuro
+// y cualquier preferencia guardada en localStorage se limpia una sola vez.
+if (localStorage.getItem('theme')) {
+    localStorage.removeItem('theme');
 }
-
-/**
- * Inicializar tema al cargar la página
- * Verifica localStorage o usa preferencia del sistema
- */
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    } else if (prefersDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
-}
-
-// Ejecutar al cargar la página
-initTheme();
-
-// Escuchar cambios en la preferencia del sistema
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-    }
-});
 
